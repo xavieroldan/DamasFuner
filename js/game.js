@@ -659,7 +659,16 @@ class DamasGame {
         
         const messageElement = document.createElement('div');
         messageElement.className = `chat-message ${sender}`;
-        messageElement.textContent = message;
+        
+        // Para mensajes de sistema, mostrar solo el mensaje sin prefijos
+        if (sender === 'system') {
+            messageElement.textContent = message;
+        } else {
+            // Para mensajes de jugadores, añadir el nombre del jugador
+            const playerName = sender === 'player1' ? 'Jugador 1' : 'Jugador 2';
+            messageElement.textContent = `${playerName}: ${message}`;
+        }
+        
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }

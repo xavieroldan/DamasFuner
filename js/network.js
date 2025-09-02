@@ -223,8 +223,13 @@ class NetworkManager {
                     
                     // Solo procesar si no se ha procesado antes
                     if (!this.processedMessages.has(messageId)) {
-                        const sender = msg.player_id === 1 ? 'player1' : 'player2';
-                        window.game.addChatMessage(sender, `${msg.player_name}: ${msg.message}`);
+                        // Determinar el tipo de mensaje
+                        if (msg.player_name === 'Sistema') {
+                            window.game.addChatMessage('system', msg.message);
+                        } else {
+                            const sender = msg.player_id === 1 ? 'player1' : 'player2';
+                            window.game.addChatMessage(sender, `${msg.player_name}: ${msg.message}`);
+                        }
                         this.processedMessages.add(messageId);
                     }
                 }
