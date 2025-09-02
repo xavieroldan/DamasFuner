@@ -8,6 +8,7 @@ class DamasGame {
         this.capturedPieces = { black: 0, white: 0 };
         this.playerId = null;
         this.gameId = null;
+        this.playerName = null; // Nombre del jugador actual
         this.gameEndNotified = false; // Flag to prevent multiple end game notifications
         
         this.initializeBoard();
@@ -166,6 +167,7 @@ class DamasGame {
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
             if (this.isValidMove(this.selectedPiece, { row, col })) {
+                const fromPiece = { ...this.selectedPiece }; // Guardar la posición antes de mover
                 this.makeMove(this.selectedPiece, { row, col });
                 this.selectedPiece = null;
                 this.possibleMoves = [];
@@ -173,7 +175,7 @@ class DamasGame {
                 
                 // Enviar movimiento al servidor
                 if (window.network) {
-                    window.network.sendMove(this.selectedPiece, { row, col });
+                    window.network.sendMove(fromPiece, { row, col });
                 }
             } else {
                 // Mostrar mensaje de movimiento no válido
@@ -628,9 +630,10 @@ class DamasGame {
         document.getElementById('leave-game-btn').style.display = 'none';
     }
 
-    startGame(playerId, gameId) {
+    startGame(playerId, gameId, playerName) {
         this.playerId = playerId;
         this.gameId = gameId;
+        this.playerName = playerName; // Almacenar el nombre del jugador
         this.gameState = 'playing';
         this.gameEndNotified = false;
         

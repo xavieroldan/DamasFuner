@@ -34,9 +34,9 @@ class NetworkManager {
             if (data.success) {
                 this.gameId = data.game_id;
                 this.playerId = data.player_id;
-                this.playerName = 'Jugador 1';
+                this.playerName = playerName; // Usar el nombre real del jugador
                 
-                window.game.startGame(this.playerId, this.gameId);
+                window.game.startGame(this.playerId, this.gameId, playerName);
                 this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
                 window.game.addChatMessage('system', `Partida creada. Código: ${data.game_code}`);
                 
@@ -71,7 +71,7 @@ class NetworkManager {
                 this.playerId = data.player_id;
                 this.playerName = playerName;
                 
-                window.game.startGame(this.playerId, this.gameId);
+                window.game.startGame(this.playerId, this.gameId, playerName);
                 this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
                 window.game.addChatMessage('system', `Te has unido a la partida como ${playerName}`);
                 
