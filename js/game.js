@@ -209,6 +209,7 @@ class DamasGame {
         const mandatoryCapture = this.applyCaptureRules(piece.player);
         
         if (mandatoryCapture) {
+            console.log('Captura obligatoria detectada:', mandatoryCapture);
             // Si hay captura obligatoria, solo mostrar movimientos de captura
             if (mandatoryCapture.piece.row === row && mandatoryCapture.piece.col === col) {
                 return mandatoryCapture.captures.map(capture => ({
@@ -218,6 +219,7 @@ class DamasGame {
                     captured: { row: capture.capturedRow, col: capture.capturedCol }
                 }));
             } else {
+                console.log('No se puede mover esta pieza, hay captura obligatoria con otra');
                 return []; // No se puede mover esta pieza si hay captura obligatoria con otra
             }
         }
@@ -238,6 +240,7 @@ class DamasGame {
             }
         }
 
+        console.log(`Movimientos posibles para pieza en (${row}, ${col}):`, moves);
         return moves;
     }
 
