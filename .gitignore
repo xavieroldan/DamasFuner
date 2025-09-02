@@ -55,4 +55,3 @@ vendor/
 
 # Installation files (should be removed after setup)
 install.php
-config/test_connection.php
