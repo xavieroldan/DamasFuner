@@ -108,9 +108,9 @@ class DamasGame {
                     piece.dataset.col = col;
                     
                     if (this.board[row][col].player === 1) {
-                        piece.classList.add('black');
-                    } else {
                         piece.classList.add('white');
+                    } else {
+                        piece.classList.add('black');
                     }
                     
                     if (this.board[row][col].isKing) {
