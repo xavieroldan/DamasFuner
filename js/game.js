@@ -564,6 +564,13 @@ class DamasGame {
 
     addChatMessage(sender, message) {
         const chatMessages = document.getElementById('chat-messages');
+        
+        // Verificar si el último mensaje es el mismo para evitar duplicados
+        const lastMessage = chatMessages.lastElementChild;
+        if (lastMessage && lastMessage.textContent === message) {
+            return; // No añadir mensaje duplicado
+        }
+        
         const messageElement = document.createElement('div');
         messageElement.className = `chat-message ${sender}`;
         messageElement.textContent = message;

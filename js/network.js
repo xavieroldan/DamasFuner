@@ -8,6 +8,7 @@ class NetworkManager {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000;
+        this.processedMessages = new Set(); // Track processed chat messages
         
         this.setupEventListeners();
     }
@@ -45,6 +46,7 @@ class NetworkManager {
                 this.playerName = 'Jugador 1';
                 
                 window.game.startGame(this.playerId, this.gameId);
+                this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
                 window.game.addChatMessage('system', `Partida creada. Código: ${data.game_code}`);
                 
                 // Iniciar polling para actualizaciones
@@ -79,6 +81,7 @@ class NetworkManager {
                 this.playerName = playerName;
                 
                 window.game.startGame(this.playerId, this.gameId);
+                this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
                 window.game.addChatMessage('system', `Te has unido a la partida como ${playerName}`);
                 
                 // Iniciar polling para actualizaciones
@@ -224,8 +227,15 @@ class NetworkManager {
         if (gameData.chat_messages) {
             gameData.chat_messages.forEach(msg => {
                 if (msg.player_id !== this.playerId) {
-                    const sender = msg.player_id === 1 ? 'player1' : 'player2';
-                    window.game.addChatMessage(sender, `${msg.player_name}: ${msg.message}`);
+                    // Crear un ID único para el mensaje
+                    const messageId = `${msg.id || msg.created_at}_${msg.player_id}_${msg.message}`;
+                    
+                    // Solo procesar si no se ha procesado antes
+                    if (!this.processedMessages.has(messageId)) {
+                        const sender = msg.player_id === 1 ? 'player1' : 'player2';
+                        window.game.addChatMessage(sender, `${msg.player_name}: ${msg.message}`);
+                        this.processedMessages.add(messageId);
+                    }
                 }
             });
         }
