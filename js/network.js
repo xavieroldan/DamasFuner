@@ -214,6 +214,17 @@ class NetworkManager {
             window.game.updateGameStatus();
         }
         
+        // Actualizar nombres de jugadores
+        if (gameData.players) {
+            gameData.players.forEach(player => {
+                if (player.name) {
+                    window.game.playerNames[player.player_number] = player.name;
+                }
+            });
+            // Actualizar la UI después de actualizar los nombres
+            window.game.updateGameStatus();
+        }
+        
         // Procesar mensajes de chat
         if (gameData.chat_messages) {
             gameData.chat_messages.forEach(msg => {
@@ -238,7 +249,10 @@ class NetworkManager {
         
         // Verificar si el juego terminó
         if (gameData.winner) {
-            const winnerName = gameData.winner === 1 ? 'Jugador 1 (Negras)' : 'Jugador 2 (Blancas)';
+            const winnerNumber = gameData.winner;
+            const winnerPlayerName = window.game.playerNames[winnerNumber] || `Jugador ${winnerNumber}`;
+            const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
+            const winnerName = `${winnerPlayerName} ${colorText}`;
             window.game.addChatMessage('system', `¡${winnerName} ha ganado la partida!`);
             window.game.gameState = 'finished';
             this.stopPolling();

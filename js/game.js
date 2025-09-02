@@ -9,6 +9,7 @@ class DamasGame {
         this.playerId = null;
         this.gameId = null;
         this.playerName = null; // Current player name
+        this.playerNames = { 1: null, 2: null }; // Store both player names
         this.gameEndNotified = false; // Flag to prevent multiple end game notifications
         
         this.initializeBoard();
@@ -429,9 +430,13 @@ class DamasGame {
         const playerElement = document.getElementById('current-player');
         
         if (this.gameState === 'playing') {
-            const playerName = this.currentPlayer === 1 ? 'Jugador 1 (Blancas)' : 'Jugador 2 (Negras)';
-            playerElement.textContent = playerName;
-            statusElement.textContent = `Turno de ${playerName}`;
+            const playerNumber = this.currentPlayer;
+            const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
+            const colorText = playerNumber === 1 ? '(Blancas)' : '(Negras)';
+            const fullPlayerName = `${playerName} ${colorText}`;
+            
+            playerElement.textContent = fullPlayerName;
+            statusElement.textContent = `Turno de ${fullPlayerName}`;
         } else {
             statusElement.textContent = 'Esperando jugadores...';
         }
@@ -525,7 +530,10 @@ class DamasGame {
         }
         
         this.gameState = 'finished';
-        const winnerName = winner === 1 ? 'Jugador 1 (Blancas)' : 'Jugador 2 (Negras)';
+        const winnerNumber = winner;
+        const winnerPlayerName = this.playerNames[winnerNumber] || `Jugador ${winnerNumber}`;
+        const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
+        const winnerName = `${winnerPlayerName} ${colorText}`;
         
         // Actualizar la interfaz
         const statusElement = document.getElementById('game-status');
@@ -638,7 +646,8 @@ class DamasGame {
     startGame(playerId, gameId, playerName) {
         this.playerId = playerId;
         this.gameId = gameId;
-        this.playerName = playerName; // Almacenar el nombre del jugador
+        this.playerName = playerName; // Store current player name
+        this.playerNames[playerId] = playerName; // Store player name by ID
         this.gameState = 'playing';
         this.gameEndNotified = false;
         
@@ -667,7 +676,8 @@ class DamasGame {
             messageElement.textContent = message;
         } else {
             // Para mensajes de jugadores, añadir el nombre del jugador
-            const playerName = sender === 'player1' ? 'Jugador 1' : 'Jugador 2';
+            const playerNumber = sender === 'player1' ? 1 : 2;
+            const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
             messageElement.textContent = `${playerName}: ${message}`;
         }
         
