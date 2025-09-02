@@ -450,6 +450,7 @@ main {
     display: flex;
     flex-direction: column;
     height: 500px;
+    overflow: hidden;
 }
 
 .chat-messages {
@@ -493,6 +494,8 @@ main {
 .chat-input {
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
+    min-height: 50px;
 }
 
 .chat-input input {
@@ -518,6 +521,9 @@ main {
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
+    flex-shrink: 0;
+    min-width: 80px;
+    white-space: nowrap;
 }
 
 .chat-input button:hover {

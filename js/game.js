@@ -1,13 +1,14 @@
 class DamasGame {
     constructor() {
         this.board = [];
-        this.currentPlayer = 1; // 1 = negras, 2 = blancas
+        this.currentPlayer = 1; // 1 = blancas, 2 = negras
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
         this.capturedPieces = { black: 0, white: 0 };
         this.playerId = null;
         this.gameId = null;
+        this.gameEndNotified = false; // Flag to prevent multiple end game notifications
         
         this.initializeBoard();
         this.setupEventListeners();
@@ -437,21 +438,12 @@ class DamasGame {
         // Verificar si el jugador actual no tiene movimientos posibles (victoria por bloqueo)
         // Nota: this.currentPlayer ya cambió en makeMove, así que verificamos el jugador que debe jugar ahora
         const currentPlayerPieces = this.currentPlayer === 1 ? player1Pieces : player2Pieces;
-        let hasValidMoves = false;
         
-        for (const piece of currentPlayerPieces) {
-            const moves = this.getPossibleMoves(piece.row, piece.col);
-            if (moves.length > 0) {
-                hasValidMoves = true;
-                break;
-            }
-        }
-        
-        // Solo declarar victoria por bloqueo si realmente no hay movimientos válidos
-        // y el jugador tiene piezas en el tablero
-        if (!hasValidMoves && currentPlayerPieces.length > 0) {
-            // Verificar que realmente no puede mover (no solo que no hay capturas obligatorias)
-            let canMoveAnyPiece = false;
+        // Solo verificar bloqueo si el jugador tiene piezas
+        if (currentPlayerPieces.length > 0) {
+            let hasAnyValidMove = false;
+            
+            // Verificar cada pieza del jugador actual
             for (const piece of currentPlayerPieces) {
                 const pieceObj = this.board[piece.row][piece.col];
                 if (pieceObj) {
@@ -464,16 +456,26 @@ class DamasGame {
                         const newRow = piece.row + dr;
                         const newCol = piece.col + dc;
                         if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
-                            canMoveAnyPiece = true;
+                            hasAnyValidMove = true;
                             break;
                         }
                     }
-                    if (canMoveAnyPiece) break;
+                    
+                    // Si no hay movimientos simples, verificar si hay capturas obligatorias
+                    if (!hasAnyValidMove) {
+                        const captureMoves = this.getPossibleMoves(piece.row, piece.col);
+                        if (captureMoves.length > 0) {
+                            hasAnyValidMove = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasAnyValidMove) break;
                 }
             }
             
-            if (!canMoveAnyPiece) {
-                // El jugador actual no puede mover, el oponente gana
+            // Si el jugador actual no puede hacer ningún movimiento, el oponente gana
+            if (!hasAnyValidMove) {
                 return this.currentPlayer === 1 ? 2 : 1;
             }
         }
@@ -483,8 +485,13 @@ class DamasGame {
 
     // Función para finalizar el juego
     endGame(winner) {
+        // Evitar finalizar el juego si ya está terminado
+        if (this.gameState === 'finished') {
+            return;
+        }
+        
         this.gameState = 'finished';
-        const winnerName = winner === 1 ? 'Jugador 1 (Negras)' : 'Jugador 2 (Blancas)';
+        const winnerName = winner === 1 ? 'Jugador 1 (Blancas)' : 'Jugador 2 (Negras)';
         
         // Actualizar la interfaz
         const statusElement = document.getElementById('game-status');
@@ -503,8 +510,9 @@ class DamasGame {
         this.possibleMoves = [];
         this.renderBoard();
         
-        // Notificar al servidor sobre el fin del juego
-        if (window.network) {
+        // Notificar al servidor sobre el fin del juego (solo una vez)
+        if (window.network && !this.gameEndNotified) {
+            this.gameEndNotified = true;
             window.network.endGame(winner);
         }
     }
@@ -560,6 +568,7 @@ class DamasGame {
         this.capturedPieces = { black: 0, white: 0 };
         this.playerId = null;
         this.gameId = null;
+        this.gameEndNotified = false;
         
         // Restaurar estilos del estado del juego
         const statusElement = document.getElementById('game-status');
@@ -579,6 +588,7 @@ class DamasGame {
         this.playerId = playerId;
         this.gameId = gameId;
         this.gameState = 'playing';
+        this.gameEndNotified = false;
         
         document.getElementById('new-game-btn').style.display = 'none';
         document.getElementById('join-game-btn').style.display = 'none';

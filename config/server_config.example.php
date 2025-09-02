@@ -48,3 +48,4 @@ $_ENV['DB_PASS'] = DB_PASS;
 // Log configuration for debugging
 error_log("Server config loaded - Host: " . DB_HOST . ", DB: " . DB_NAME . ", User: " . DB_USER);
 ?>
+
