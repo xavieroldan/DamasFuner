@@ -11,26 +11,33 @@
 // - localhost (for shared hosting)
 // - mysql.yourdomain.com (for some providers)
 // - A specific IP address provided by your host
+// - Check your hosting control panel for the correct database host
 
-define('DB_HOST', 'localhost');
+define('DB_HOST', 'your_database_host_here'); // IMPORTANT: Replace with the actual host provided by your hosting
 define('DB_NAME', '6774344_damas_online');
-define('DB_USER', 'damasfuner'); // The actual username from the error
+define('DB_USER', 'your_db_user'); // The actual username from the error
 define('DB_PASS', 'your_actual_password_here'); // Replace with the correct password for damasfuner user
 
 // Alternative configuration for different hosting providers
 // Uncomment and modify the lines below if needed:
 
 // For cPanel hosting:
-// define('DB_HOST', 'localhost');
+// define('DB_HOST', 'localhost'); // Usually localhost for cPanel
 // define('DB_NAME', 'your_cpanel_username_damas_online');
 // define('DB_USER', 'your_cpanel_username_damas_online');
 // define('DB_PASS', 'your_database_password');
 
 // For some hosting providers that use different hosts:
-// define('DB_HOST', 'mysql.yourdomain.com');
+// define('DB_HOST', 'mysql.yourdomain.com'); // Check your hosting panel
 // define('DB_NAME', '6774344_damas_online');
 // define('DB_USER', '6774344_damas_online');
 // define('DB_PASS', 'your_database_password');
+
+// IMPORTANT: Always check your hosting control panel for the correct:
+// - Database host (may not be localhost!)
+// - Database name (usually provided by hosting)
+// - Username (usually same as database name or provided separately)
+// - Password (set by you or provided by hosting)
 
 // Set environment variables for the database class
 $_ENV['DB_HOST'] = DB_HOST;

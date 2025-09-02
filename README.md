@@ -52,14 +52,16 @@ mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
 
 ### 3. Configurar la conexión a la base de datos
 
-Editar el archivo `config/database.php` y actualizar las credenciales:
+Editar el archivo `config/server_config.php` y actualizar las credenciales:
 
 ```php
-$this->host = 'localhost';
-$this->db_name = '6774344_damas_online';
-$this->username = 'tu_usuario_mysql';
-$this->password = 'tu_contraseña_mysql';
+define('DB_HOST', 'tu_host_de_base_de_datos'); // IMPORTANTE: No siempre es localhost
+define('DB_NAME', '6774344_damas_online');
+define('DB_USER', 'tu_usuario_mysql');
+define('DB_PASS', 'tu_contraseña_mysql');
 ```
+
+**⚠️ Importante:** El host de la base de datos puede no ser `localhost`. Consulta tu panel de hosting para obtener el host correcto.
 
 ### 4. Configurar permisos
 
@@ -222,9 +224,15 @@ UPDATE system_config SET config_value = '50' WHERE config_key = 'max_chat_messag
 
 ### Error de Conexión a la Base de Datos
 
-1. Verifica las credenciales en `config/database.php`
-2. Asegúrate de que MySQL esté ejecutándose
-3. Verifica que la base de datos `damas_online` existe
+1. **Verifica las credenciales en `config/server_config.php`**
+2. **Comprueba el host de la base de datos** - puede no ser `localhost`
+3. **Usa la herramienta de diagnóstico:** Accede a `config/test_connection.php` para probar diferentes configuraciones
+4. **Consulta tu panel de hosting** para obtener:
+   - Host correcto de la base de datos
+   - Nombre exacto de la base de datos
+   - Usuario y contraseña correctos
+5. Asegúrate de que MySQL esté ejecutándose
+6. Verifica que la base de datos `6774344_damas_online` existe
 
 ### El Juego No Carga
 
