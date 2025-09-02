@@ -14,8 +14,8 @@
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', '6774344_damas_online');
-define('DB_USER', '6774344_damas_online'); // Usually the same as database name
-define('DB_PASS', 'your_database_password_here'); // Replace with your actual password
+define('DB_USER', 'damasfuner'); // The actual username from the error
+define('DB_PASS', 'your_actual_password_here'); // Replace with the correct password for damasfuner user
 
 // Alternative configuration for different hosting providers
 // Uncomment and modify the lines below if needed:
