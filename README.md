@@ -52,7 +52,12 @@ mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
 
 ### 3. Configurar la conexión a la base de datos
 
-Editar el archivo `config/server_config.php` y actualizar las credenciales:
+1. **Copia el archivo de ejemplo:**
+   ```bash
+   cp config/server_config.example.php config/server_config.php
+   ```
+
+2. **Edita el archivo `config/server_config.php`** y actualiza las credenciales:
 
 ```php
 define('DB_HOST', 'tu_host_de_base_de_datos'); // IMPORTANTE: No siempre es localhost
@@ -61,7 +66,9 @@ define('DB_USER', 'tu_usuario_mysql');
 define('DB_PASS', 'tu_contraseña_mysql');
 ```
 
-**⚠️ Importante:** El host de la base de datos puede no ser `localhost`. Consulta tu panel de hosting para obtener el host correcto.
+**⚠️ Importante:** 
+- El host de la base de datos puede no ser `localhost`. Consulta tu panel de hosting para obtener el host correcto.
+- El archivo `server_config.php` no se incluye en el repositorio por seguridad.
 
 ### 4. Configurar permisos
 
