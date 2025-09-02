@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damas Funer - Juego Multijugador</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Damas Funer</h1>
+            <div class="game-info">
+                <div class="player-info">
+                    <span id="current-player">Jugador 1 (Negras)</span>
+                </div>
+                <div class="game-status">
+                    <span id="game-status">Esperando jugadores...</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="game-area">
+                <div class="board-container">
+                    <div id="game-board" class="board"></div>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="players">
+                        <div class="player black-player">
+                            <div class="player-piece black"></div>
+                            <span>Jugador 1 (Negras)</span>
+                            <div class="captured-pieces" id="black-captured">0</div>
+                        </div>
+                        <div class="player white-player">
+                            <div class="player-piece white"></div>
+                            <span>Jugador 2 (Blancas)</span>
+                            <div class="captured-pieces" id="white-captured">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="new-game-btn" class="btn">Nueva Partida</button>
+                        <button id="join-game-btn" class="btn">Unirse a Partida</button>
+                        <button id="leave-game-btn" class="btn" style="display: none;">Abandonar</button>
+                        <a href="about.html" class="btn" style="text-decoration: none; display: inline-block;">ℹ️ Acerca de</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input" placeholder="Escribe un mensaje..." maxlength="100">
+                    <button id="send-btn">Enviar</button>
+                </div>
+            </div>
+        </main>
+
+        <div class="modal" id="game-modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Nueva Partida</h2>
+                <div id="modal-body">
+                    <p>¿Quieres crear una nueva partida o unirte a una existente?</p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="create-game-btn" class="btn">Crear Partida</button>
+                    <button id="join-existing-btn" class="btn">Unirse a Partida</button>
+                    <button id="close-modal-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="join-modal">
+            <div class="modal-content">
+                <h2>Unirse a Partida</h2>
+                <div class="modal-body">
+                    <input type="text" id="game-code-input" placeholder="Código de partida" maxlength="6">
+                    <input type="text" id="player-name-input" placeholder="Tu nombre" maxlength="20">
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirm-join-btn" class="btn">Unirse</button>
+                    <button id="cancel-join-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

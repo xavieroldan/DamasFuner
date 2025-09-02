@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo de Uso - Damas Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 4px solid #32CD32;
+        }
+        .step {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .btn {
+            background: linear-gradient(135deg, #32CD32, #228B22);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .screenshot {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Damas Online - Guía de Uso</h1>
+        
+        <div class="demo-section">
+            <h2>¿Qué es Damas Online?</h2>
+            <p>Damas Online es un juego multijugador en tiempo real donde dos jugadores pueden jugar damas desde diferentes dispositivos. El juego incluye chat integrado, interfaz moderna y todas las reglas tradicionales de las damas.</p>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🚀 Cómo Empezar</h2>
+            
+            <div class="step">
+                <h3>Paso 1: Crear una Partida</h3>
+                <p>El primer jugador debe:</p>
+                <ol>
+                    <li>Hacer clic en "Nueva Partida"</li>
+                    <li>Seleccionar "Crear Partida"</li>
+                    <li>Compartir el código de 6 caracteres con el segundo jugador</li>
+                </ol>
+                <div class="code">Código de ejemplo: ABC123</div>
+            </div>
+            
+            <div class="step">
+                <h3>Paso 2: Unirse a una Partida</h3>
+                <p>El segundo jugador debe:</p>
+                <ol>
+                    <li>Hacer clic en "Nueva Partida"</li>
+                    <li>Seleccionar "Unirse a Partida"</li>
+                    <li>Ingresar el código de partida y su nombre</li>
+                    <li>Hacer clic en "Unirse"</li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <h3>Paso 3: ¡Jugar!</h3>
+                <p>Una vez que ambos jugadores estén conectados:</p>
+                <ol>
+                    <li>El juego comenzará automáticamente</li>
+                    <li>Las piezas negras (Jugador 1) mueven primero</li>
+                    <li>Haz clic en una pieza para seleccionarla</li>
+                    <li>Haz clic en una casilla válida para mover</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎯 Reglas del Juego</h2>
+            
+            <div class="step">
+                <h3>Movimientos Básicos</h3>
+                <ul class="feature-list">
+                    <li>Las piezas se mueven diagonalmente</li>
+                    <li>Las piezas negras solo pueden moverse hacia abajo</li>
+                    <li>Las piezas blancas solo pueden moverse hacia arriba</li>
+                    <li>Las reyes pueden moverse en cualquier dirección diagonal</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Capturas</h3>
+                <ul class="feature-list">
+                    <li>Las capturas son obligatorias cuando están disponibles</li>
+                    <li>Para capturar, salta sobre la pieza del oponente</li>
+                    <li>Las capturas múltiples son permitidas</li>
+                    <li>Las piezas capturadas se eliminan del tablero</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Promoción a Rey</h3>
+                <ul class="feature-list">
+                    <li>Una pieza se convierte en rey al llegar al final del tablero</li>
+                    <li>Las reyes pueden moverse en cualquier dirección diagonal</li>
+                    <li>Las reyes pueden capturar en múltiples direcciones</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Objetivo del Juego</h3>
+                <ul class="feature-list">
+                    <li>Capturar todas las piezas del oponente</li>
+                    <li>Bloquear todos los movimientos del oponente</li>
+                    <li>El primer jugador en lograr esto gana</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>💬 Funcionalidades del Chat</h2>
+            
+            <div class="step">
+                <h3>Enviar Mensajes</h3>
+                <p>Los jugadores pueden comunicarse durante la partida:</p>
+                <ul class="feature-list">
+                    <li>Escribe tu mensaje en el campo de texto</li>
+                    <li>Presiona Enter o haz clic en "Enviar"</li>
+                    <li>Los mensajes aparecen en tiempo real</li>
+                    <li>Límite de 200 caracteres por mensaje</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Mensajes del Sistema</h3>
+                <p>El juego también muestra mensajes automáticos:</p>
+                <ul class="feature-list">
+                    <li>Cuando un jugador se une a la partida</li>
+                    <li>Cuando alguien abandona la partida</li>
+                    <li>Cuando el juego termina</li>
+                    <li>Mensajes de bienvenida y ayuda</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>⌨️ Atajos de Teclado</h2>
+            
+            <div class="step">
+                <h3>Atajos Disponibles</h3>
+                <ul class="feature-list">
+                    <li><strong>Ctrl + N:</strong> Crear nueva partida</li>
+                    <li><strong>Ctrl + J:</strong> Unirse a partida existente</li>
+                    <li><strong>Ctrl + L:</strong> Abandonar partida actual</li>
+                    <li><strong>ESC:</strong> Cerrar modales abiertos</li>
+                    <li><strong>Enter:</strong> Enviar mensaje de chat</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>📱 Compatibilidad</h2>
+            
+            <div class="step">
+                <h3>Dispositivos Soportados</h3>
+                <ul class="feature-list">
+                    <li>Computadoras de escritorio (Windows, Mac, Linux)</li>
+                    <li>Tablets (iPad, Android)</li>
+                    <li>Teléfonos inteligentes (iPhone, Android)</li>
+                    <li>Cualquier navegador moderno</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Navegadores Recomendados</h3>
+                <ul class="feature-list">
+                    <li>Chrome 80+</li>
+                    <li>Firefox 75+</li>
+                    <li>Safari 13+</li>
+                    <li>Edge 80+</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🔧 Solución de Problemas</h2>
+            
+            <div class="step">
+                <h3>Problemas Comunes</h3>
+                <ul class="feature-list">
+                    <li><strong>No puedo unirme a una partida:</strong> Verifica que el código sea correcto</li>
+                    <li><strong>Los movimientos no se sincronizan:</strong> Verifica tu conexión a internet</li>
+                    <li><strong>El chat no funciona:</strong> Recarga la página</li>
+                    <li><strong>El juego se ve mal:</strong> Actualiza tu navegador</li>
+                </ul>
+            </div>
+            
+            <div class="step">
+                <h3>Consejos de Rendimiento</h3>
+                <ul class="feature-list">
+                    <li>Cierra otras pestañas del navegador</li>
+                    <li>Usa una conexión estable a internet</li>
+                    <li>Actualiza tu navegador a la última versión</li>
+                    <li>Desactiva extensiones que puedan interferir</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎉 ¡Disfruta Jugando!</h2>
+            <p>Ahora que conoces todas las funcionalidades, ¡es hora de jugar! Invita a un amigo y disfruta de una partida de damas online.</p>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="index.html" class="btn">🚀 Ir al Juego</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

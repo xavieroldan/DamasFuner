@@ -1,0 +1,275 @@
+<?php
+/**
+ * API para realizar un movimiento en el juego
+ */
+
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
+
+require_once '../config/database.php';
+
+// Solo permitir método POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    exit;
+}
+
+try {
+    // Obtener datos del POST
+    $input = json_decode(file_get_contents('php://input'), true);
+    
+    if (!$input || !isset($input['game_id']) || !isset($input['player_id']) || 
+        !isset($input['from']) || !isset($input['to'])) {
+        throw new Exception('Datos de movimiento requeridos');
+    }
+    
+    $gameId = (int)$input['game_id'];
+    $playerId = (int)$input['player_id'];
+    $from = $input['from'];
+    $to = $input['to'];
+    
+    // Validar coordenadas
+    if (!isValidPosition($from['row'], $from['col']) || 
+        !isValidPosition($to['row'], $to['col'])) {
+        throw new Exception('Coordenadas inválidas');
+    }
+    
+    // Obtener información de la partida
+    $game = fetchOne("SELECT * FROM games WHERE id = ? AND game_status = 'playing'", [$gameId]);
+    if (!$game) {
+        throw new Exception('Partida no encontrada o no está en juego');
+    }
+    
+    // Verificar que es el turno del jugador
+    if ($game['current_player'] != getPlayerNumber($playerId, $gameId)) {
+        throw new Exception('No es tu turno');
+    }
+    
+    // Obtener el estado actual del tablero
+    $board = json_decode($game['board_state'], true);
+    if (!$board) {
+        throw new Exception('Estado del tablero inválido');
+    }
+    
+    // Validar y realizar el movimiento
+    $moveResult = validateAndMakeMove($board, $from, $to, $playerId, $gameId);
+    
+    if (!$moveResult['valid']) {
+        throw new Exception($moveResult['message']);
+    }
+    
+    // Actualizar la base de datos
+    $conn = getDBConnection();
+    $conn->beginTransaction();
+    
+    try {
+        // Actualizar el estado del tablero
+        $sql = "UPDATE games SET board_state = ?, current_player = ?, 
+                captured_pieces_black = ?, captured_pieces_white = ?,
+                updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            json_encode($moveResult['new_board']),
+            $moveResult['next_player'],
+            $moveResult['captured_black'],
+            $moveResult['captured_white'],
+            $gameId
+        ]);
+        
+        // Registrar el movimiento
+        $sql = "INSERT INTO moves (game_id, player_id, from_row, from_col, to_row, to_col, 
+                captured_row, captured_col, move_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            $gameId, $playerId, $from['row'], $from['col'], $to['row'], $to['col'],
+            $moveResult['captured_row'], $moveResult['captured_col'], $moveResult['move_type']
+        ]);
+        
+        // Verificar si el juego ha terminado
+        $gameEnded = checkGameEnd($moveResult['new_board']);
+        if ($gameEnded['ended']) {
+            $sql = "UPDATE games SET game_status = 'finished', winner = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$gameEnded['winner'], $gameId]);
+        }
+        
+        $conn->commit();
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Movimiento realizado exitosamente',
+            'game_ended' => $gameEnded['ended'],
+            'winner' => $gameEnded['winner'] ?? null
+        ]);
+        
+    } catch (Exception $e) {
+        $conn->rollBack();
+        throw $e;
+    }
+    
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+}
+
+/**
+ * Valida y realiza un movimiento en el tablero
+ */
+function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
+    $fromRow = $from['row'];
+    $fromCol = $from['col'];
+    $toRow = $to['row'];
+    $toCol = $to['col'];
+    
+    // Verificar que hay una pieza en la posición de origen
+    if (!$board[$fromRow][$fromCol]) {
+        return ['valid' => false, 'message' => 'No hay pieza en la posición de origen'];
+    }
+    
+    $piece = $board[$fromRow][$fromCol];
+    $playerNumber = getPlayerNumber($playerId, $gameId);
+    
+    // Verificar que la pieza pertenece al jugador
+    if ($piece['player'] !== $playerNumber) {
+        return ['valid' => false, 'message' => 'La pieza no te pertenece'];
+    }
+    
+    // Verificar que la posición de destino está vacía
+    if ($board[$toRow][$toCol]) {
+        return ['valid' => false, 'message' => 'La posición de destino está ocupada'];
+    }
+    
+    // Verificar que es un movimiento diagonal
+    $rowDiff = abs($toRow - $fromRow);
+    $colDiff = abs($toCol - $fromCol);
+    
+    if ($rowDiff !== $colDiff) {
+        return ['valid' => false, 'message' => 'Solo se permiten movimientos diagonales'];
+    }
+    
+    // Verificar dirección del movimiento para piezas normales
+    if (!$piece['isKing']) {
+        if ($piece['player'] === 1 && $toRow <= $fromRow) {
+            return ['valid' => false, 'message' => 'Las piezas negras solo pueden moverse hacia abajo'];
+        }
+        if ($piece['player'] === 2 && $toRow >= $fromRow) {
+            return ['valid' => false, 'message' => 'Las piezas blancas solo pueden moverse hacia arriba'];
+        }
+    }
+    
+    // Crear una copia del tablero para el nuevo estado
+    $newBoard = $board;
+    $capturedRow = null;
+    $capturedCol = null;
+    $moveType = 'move';
+    $capturedBlack = 0;
+    $capturedWhite = 0;
+    
+    // Verificar si es una captura
+    if ($rowDiff === 2) {
+        $middleRow = ($fromRow + $toRow) / 2;
+        $middleCol = ($fromCol + $toCol) / 2;
+        
+        if ($board[$middleRow][$middleCol] && 
+            $board[$middleRow][$middleCol]['player'] !== $piece['player']) {
+            
+            // Es una captura válida
+            $newBoard[$middleRow][$middleCol] = null;
+            $capturedRow = $middleRow;
+            $capturedCol = $middleCol;
+            $moveType = 'capture';
+            
+            // Actualizar contador de piezas capturadas
+            $game = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
+            $capturedBlack = $game['captured_pieces_black'];
+            $capturedWhite = $game['captured_pieces_white'];
+            
+            if ($piece['player'] === 1) {
+                $capturedWhite++;
+            } else {
+                $capturedBlack++;
+            }
+        } else {
+            return ['valid' => false, 'message' => 'Movimiento de captura inválido'];
+        }
+    } else if ($rowDiff !== 1) {
+        return ['valid' => false, 'message' => 'Movimiento inválido'];
+    }
+    
+    // Mover la pieza
+    $newBoard[$toRow][$toCol] = $piece;
+    $newBoard[$fromRow][$fromCol] = null;
+    
+    // Verificar promoción a rey
+    if (!$piece['isKing']) {
+        if (($piece['player'] === 1 && $toRow === 7) || 
+            ($piece['player'] === 2 && $toRow === 0)) {
+            $newBoard[$toRow][$toCol]['isKing'] = true;
+            $moveType = 'king_promotion';
+        }
+    }
+    
+    // Determinar el siguiente jugador
+    $nextPlayer = $piece['player'] === 1 ? 2 : 1;
+    
+    return [
+        'valid' => true,
+        'new_board' => $newBoard,
+        'next_player' => $nextPlayer,
+        'captured_row' => $capturedRow,
+        'captured_col' => $capturedCol,
+        'move_type' => $moveType,
+        'captured_black' => $capturedBlack,
+        'captured_white' => $capturedWhite
+    ];
+}
+
+/**
+ * Verifica si el juego ha terminado
+ */
+function checkGameEnd($board) {
+    $blackPieces = 0;
+    $whitePieces = 0;
+    
+    for ($row = 0; $row < 8; $row++) {
+        for ($col = 0; $col < 8; $col++) {
+            if ($board[$row][$col]) {
+                if ($board[$row][$col]['player'] === 1) {
+                    $blackPieces++;
+                } else {
+                    $whitePieces++;
+                }
+            }
+        }
+    }
+    
+    if ($blackPieces === 0) {
+        return ['ended' => true, 'winner' => 2];
+    } else if ($whitePieces === 0) {
+        return ['ended' => true, 'winner' => 1];
+    }
+    
+    return ['ended' => false];
+}
+
+/**
+ * Obtiene el número de jugador (1 o 2) basado en el ID
+ */
+function getPlayerNumber($playerId, $gameId) {
+    $player = fetchOne("SELECT player_number FROM players WHERE id = ? AND game_id = ?", [$playerId, $gameId]);
+    return $player ? $player['player_number'] : null;
+}
+
+/**
+ * Valida que una posición esté dentro del tablero
+ */
+function isValidPosition($row, $col) {
+    return $row >= 0 && $row < 8 && $col >= 0 && $col < 8;
+}
+?>
