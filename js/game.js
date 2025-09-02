@@ -1,14 +1,14 @@
 class DamasGame {
     constructor() {
         this.board = [];
-        this.currentPlayer = 1; // 1 = blancas, 2 = negras
+        this.currentPlayer = 1; // 1 = white, 2 = black
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
         this.capturedPieces = { black: 0, white: 0 };
         this.playerId = null;
         this.gameId = null;
-        this.playerName = null; // Nombre del jugador actual
+        this.playerName = null; // Current player name
         this.gameEndNotified = false; // Flag to prevent multiple end game notifications
         
         this.initializeBoard();
@@ -16,7 +16,7 @@ class DamasGame {
     }
 
     initializeBoard() {
-        // Crear tablero 8x8
+        // Create 8x8 board
         this.board = Array(8).fill().map(() => Array(8).fill(null));
         
         // Colocar piezas negras (jugador 1)
@@ -319,8 +319,10 @@ class DamasGame {
     // Función para aplicar las reglas de captura obligatoria
     applyCaptureRules(player) {
         const allCaptures = this.getAllPossibleCaptures(player);
+        console.log(`Capturas encontradas para jugador ${player}:`, allCaptures);
         
         if (allCaptures.length === 0) {
+            console.log('No hay capturas posibles, devolviendo null');
             return null; // No hay capturas posibles
         }
         
