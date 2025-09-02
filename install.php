@@ -4,12 +4,12 @@
  * Ejecutar una sola vez para configurar el juego
  */
 
-// Configuración de la base de datos
+// Database configuration
 $db_config = [
     'host' => 'localhost',
-    'dbname' => 'damas_online',
-    'username' => 'root', // Cambiar por tu usuario
-    'password' => ''      // Cambiar por tu contraseña
+    'dbname' => '6774344_damas_online',
+    'username' => 'root', // Change to your username
+    'password' => ''      // Change to your password
 ];
 
 ?>
@@ -162,7 +162,7 @@ $db_config = [
                     
                     <div class="form-group">
                         <label for="dbname">Nombre de la Base de Datos:</label>
-                        <input type="text" id="dbname" name="dbname" value="damas_online" required>
+                        <input type="text" id="dbname" name="dbname" value="6774344_damas_online" required>
                     </div>
                     
                     <div class="form-group">

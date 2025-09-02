@@ -3,6 +3,11 @@
  * Database configuration for Damas Funer
  */
 
+// Load server-specific configuration if it exists
+if (file_exists(__DIR__ . '/server_config.php')) {
+    require_once __DIR__ . '/server_config.php';
+}
+
 class Database {
     private $host;
     private $db_name;
@@ -12,11 +17,14 @@ class Database {
     
     public function __construct() {
         // Database configuration
-        // Change these values according to your setup
-        $this->host = 'localhost';
-        $this->db_name = '6774344_damas_online';
-        $this->username = 'root'; // Change to your MySQL username
-        $this->password = ''; // Change to your MySQL password
+        // Try to load from environment variables first, then fallback to defaults
+        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
+        $this->db_name = $_ENV['DB_NAME'] ?? '6774344_damas_online';
+        $this->username = $_ENV['DB_USER'] ?? 'root';
+        $this->password = $_ENV['DB_PASS'] ?? '';
+        
+        // Log configuration for debugging (without password)
+        error_log("Database config - Host: {$this->host}, DB: {$this->db_name}, User: {$this->username}");
     }
     
     public function getConnection() {
@@ -34,8 +42,10 @@ class Database {
                 ]
             );
         } catch(PDOException $exception) {
-            error_log("Connection error: " . $exception->getMessage());
-            throw new Exception("Database connection error");
+            $errorMsg = "Connection error: " . $exception->getMessage();
+            error_log($errorMsg);
+            error_log("Connection details - Host: {$this->host}, DB: {$this->db_name}, User: {$this->username}");
+            throw new Exception("Database connection error: " . $exception->getMessage());
         }
         
         return $this->conn;
