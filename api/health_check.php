@@ -1,6 +1,6 @@
 <?php
 /**
- * API para verificar el estado del servidor
+ * API to check server health status
  */
 
 header('Content-Type: application/json');
@@ -9,14 +9,15 @@ header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
+require_once '../config/config.php';
 
 try {
-    // Verificar conexión a la base de datos
+    // Check database connection
     $conn = getDBConnection();
     $stmt = $conn->query("SELECT 1");
     
-    // Verificar que las tablas principales existen
-    $tables = ['games', 'players', 'chat_messages', 'moves'];
+    // Check that main tables exist
+    $tables = ['games', 'players', 'chat_messages', 'moves', 'system_config'];
     $existingTables = [];
     
     foreach ($tables as $table) {
@@ -26,13 +27,16 @@ try {
         }
     }
     
-    // Obtener estadísticas básicas
+    // Get basic statistics
     $stats = [
         'total_games' => fetchOne("SELECT COUNT(*) as count FROM games")['count'],
         'active_games' => fetchOne("SELECT COUNT(*) as count FROM games WHERE game_status = 'playing'")['count'],
         'waiting_games' => fetchOne("SELECT COUNT(*) as count FROM games WHERE game_status = 'waiting'")['count'],
         'total_players' => fetchOne("SELECT COUNT(*) as count FROM players")['count']
     ];
+    
+    // Get system health
+    $health = checkSystemHealth();
     
     echo json_encode([
         'success' => true,
@@ -42,7 +46,10 @@ try {
         'existing_tables' => $existingTables,
         'server_time' => date('Y-m-d H:i:s'),
         'php_version' => PHP_VERSION,
-        'stats' => $stats
+        'app_version' => APP_VERSION,
+        'stats' => $stats,
+        'health' => $health,
+        'system_info' => getSystemInfo()
     ]);
     
 } catch (Exception $e) {

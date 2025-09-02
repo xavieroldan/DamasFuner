@@ -10,7 +10,7 @@ define('APP_DEBUG', false);
 
 // Configuración de la base de datos
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'damas_online');
+define('DB_NAME', '6774344_damas_online');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 

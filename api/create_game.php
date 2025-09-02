@@ -18,16 +18,23 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // Obtener datos del POST
+    // Get POST data
     $input = json_decode(file_get_contents('php://input'), true);
     
+    // Log the request for debugging
+    error_log("Create game request: " . json_encode($input));
+    
     if (!$input || !isset($input['player_name'])) {
-        throw new Exception('Nombre del jugador requerido');
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Player name required']);
+        exit;
     }
     
     $playerName = trim($input['player_name']);
     if (empty($playerName) || strlen($playerName) > 50) {
-        throw new Exception('Nombre del jugador inválido');
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid player name']);
+        exit;
     }
     
     // Generar código único para la partida
@@ -75,10 +82,11 @@ try {
     }
     
 } catch (Exception $e) {
-    http_response_code(400);
+    error_log("Error creating game: " . $e->getMessage());
+    http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Error creating game: ' . $e->getMessage()
     ]);
 }
 

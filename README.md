@@ -37,7 +37,7 @@ Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin 
 ### 1. Clonar o descargar el proyecto
 
 ```bash
-git clone [URL_DEL_REPOSITORIO]
+git clone [https://github.com/xavieroldan/DamasFuner.git]
 # o descargar y extraer el archivo ZIP
 ```
 
