@@ -71,12 +71,28 @@ class DamasGame {
             this.hideModal('join-modal');
         });
 
+        // Event listener para Enter en el input de nombre al unirse
+        document.getElementById('player-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.joinGame();
+            }
+        });
+
         document.getElementById('confirm-create-btn').addEventListener('click', () => {
             this.createGame();
         });
 
         document.getElementById('cancel-create-btn').addEventListener('click', () => {
             this.hideModal('create-modal');
+        });
+
+        // Event listener para Enter en el input de crear partida
+        document.getElementById('create-player-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.createGame();
+            }
         });
 
         // Los event listeners del chat se configuran en setupChatEventListeners()
