@@ -447,9 +447,35 @@ class DamasGame {
             }
         }
         
-        if (!hasValidMoves) {
-            // El jugador actual no puede mover, el oponente gana
-            return this.currentPlayer === 1 ? 2 : 1;
+        // Solo declarar victoria por bloqueo si realmente no hay movimientos válidos
+        // y el jugador tiene piezas en el tablero
+        if (!hasValidMoves && currentPlayerPieces.length > 0) {
+            // Verificar que realmente no puede mover (no solo que no hay capturas obligatorias)
+            let canMoveAnyPiece = false;
+            for (const piece of currentPlayerPieces) {
+                const pieceObj = this.board[piece.row][piece.col];
+                if (pieceObj) {
+                    // Verificar movimientos simples (no solo capturas)
+                    const directions = pieceObj.isKing ? 
+                        [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
+                        (pieceObj.player === 1 ? [[1, -1], [1, 1]] : [[-1, -1], [-1, 1]]);
+                    
+                    for (const [dr, dc] of directions) {
+                        const newRow = piece.row + dr;
+                        const newCol = piece.col + dc;
+                        if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                            canMoveAnyPiece = true;
+                            break;
+                        }
+                    }
+                    if (canMoveAnyPiece) break;
+                }
+            }
+            
+            if (!canMoveAnyPiece) {
+                // El jugador actual no puede mover, el oponente gana
+                return this.currentPlayer === 1 ? 2 : 1;
+            }
         }
         
         return null; // No hay ganador aún

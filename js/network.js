@@ -281,6 +281,27 @@ class NetworkManager {
             return false;
         }
     }
+
+    // Método para notificar fin del juego al servidor
+    async endGame(winner) {
+        if (!this.gameId || !this.playerId) return;
+
+        try {
+            await fetch('api/end_game.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: this.gameId,
+                    player_id: this.playerId,
+                    winner: winner
+                })
+            });
+        } catch (error) {
+            console.error('Error al notificar fin del juego:', error);
+        }
+    }
 }
 
 // Inicializar el gestor de red cuando se carga la página
