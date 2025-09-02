@@ -1,6 +1,6 @@
 <?php
 /**
- * Configuración de la base de datos para Damas Online
+ * Database configuration for Damas Funer
  */
 
 class Database {
@@ -11,12 +11,12 @@ class Database {
     private $conn;
     
     public function __construct() {
-        // Configuración de la base de datos
-        // Cambia estos valores según tu configuración
+        // Database configuration
+        // Change these values according to your setup
         $this->host = 'localhost';
         $this->db_name = '6774344_damas_online';
-        $this->username = 'root'; // Cambia por tu usuario de MySQL
-        $this->password = ''; // Cambia por tu contraseña de MySQL
+        $this->username = 'root'; // Change to your MySQL username
+        $this->password = ''; // Change to your MySQL password
     }
     
     public function getConnection() {
@@ -34,8 +34,8 @@ class Database {
                 ]
             );
         } catch(PDOException $exception) {
-            error_log("Error de conexión: " . $exception->getMessage());
-            throw new Exception("Error de conexión a la base de datos");
+            error_log("Connection error: " . $exception->getMessage());
+            throw new Exception("Database connection error");
         }
         
         return $this->conn;
@@ -47,7 +47,7 @@ class Database {
 }
 
 /**
- * Función helper para obtener una conexión a la base de datos
+ * Helper function to get a database connection
  */
 function getDBConnection() {
     static $db = null;
@@ -58,7 +58,7 @@ function getDBConnection() {
 }
 
 /**
- * Función para ejecutar consultas de forma segura
+ * Function to execute queries safely
  */
 function executeQuery($sql, $params = []) {
     try {
@@ -67,13 +67,13 @@ function executeQuery($sql, $params = []) {
         $stmt->execute($params);
         return $stmt;
     } catch (PDOException $e) {
-        error_log("Error en consulta: " . $e->getMessage());
-        throw new Exception("Error en la consulta a la base de datos");
+        error_log("Query error: " . $e->getMessage());
+        throw new Exception("Database query error");
     }
 }
 
 /**
- * Función para obtener un solo resultado
+ * Function to get a single result
  */
 function fetchOne($sql, $params = []) {
     $stmt = executeQuery($sql, $params);
@@ -81,7 +81,7 @@ function fetchOne($sql, $params = []) {
 }
 
 /**
- * Función para obtener múltiples resultados
+ * Function to get multiple results
  */
 function fetchAll($sql, $params = []) {
     $stmt = executeQuery($sql, $params);
@@ -89,7 +89,7 @@ function fetchAll($sql, $params = []) {
 }
 
 /**
- * Función para insertar y obtener el ID
+ * Function to insert and get the ID
  */
 function insertAndGetId($sql, $params = []) {
     $conn = getDBConnection();
@@ -99,7 +99,7 @@ function insertAndGetId($sql, $params = []) {
 }
 
 /**
- * Función para validar la conexión a la base de datos
+ * Function to validate database connection
  */
 function validateDatabaseConnection() {
     try {
@@ -112,13 +112,13 @@ function validateDatabaseConnection() {
 }
 
 /**
- * Función para inicializar la base de datos si no existe
+ * Function to initialize database if it doesn't exist
  */
 function initializeDatabase() {
     try {
         $conn = getDBConnection();
         
-        // Verificar si las tablas existen
+        // Check if tables exist
         $tables = ['games', 'players', 'chat_messages', 'moves', 'system_config'];
         $existingTables = [];
         
@@ -129,7 +129,7 @@ function initializeDatabase() {
             }
         }
         
-        // Si faltan tablas, ejecutar el schema
+        // If tables are missing, execute the schema
         if (count($existingTables) < count($tables)) {
             $schema = file_get_contents(__DIR__ . '/../database/schema.sql');
             $conn->exec($schema);
@@ -138,21 +138,21 @@ function initializeDatabase() {
         
         return true;
     } catch (Exception $e) {
-        error_log("Error al inicializar la base de datos: " . $e->getMessage());
+        error_log("Error initializing database: " . $e->getMessage());
         return false;
     }
 }
 
-// Configuración de errores
+// Error configuration
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/../logs/error.log');
 
-// Crear directorio de logs si no existe
+// Create logs directory if it doesn't exist
 if (!file_exists(__DIR__ . '/../logs')) {
     mkdir(__DIR__ . '/../logs', 0755, true);
 }
 
-// Inicializar la base de datos al cargar este archivo
+// Initialize database when loading this file
 initializeDatabase();
 ?>

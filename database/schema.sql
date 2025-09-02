@@ -1,8 +1,4 @@
--- Base de datos para el juego de Damas Online
-CREATE DATABASE IF NOT EXISTS damas_online;
-USE damas_online;
-
--- Tabla de partidas
+-- Games table
 CREATE TABLE IF NOT EXISTS games (
     id INT AUTO_INCREMENT PRIMARY KEY,
     game_code VARCHAR(6) UNIQUE NOT NULL,
@@ -20,7 +16,7 @@ CREATE TABLE IF NOT EXISTS games (
     INDEX idx_status (game_status)
 );
 
--- Tabla de jugadores
+-- Players table
 CREATE TABLE IF NOT EXISTS players (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -31,7 +27,7 @@ CREATE TABLE IF NOT EXISTS players (
     INDEX idx_game_id (game_id)
 );
 
--- Tabla de mensajes de chat
+-- Chat messages table
 CREATE TABLE IF NOT EXISTS chat_messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     game_id INT NOT NULL,
@@ -44,7 +40,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     INDEX idx_created_at (created_at)
 );
 
--- Tabla de movimientos (historial)
+-- Moves table (history)
 CREATE TABLE IF NOT EXISTS moves (
     id INT AUTO_INCREMENT PRIMARY KEY,
     game_id INT NOT NULL,
@@ -62,7 +58,7 @@ CREATE TABLE IF NOT EXISTS moves (
     INDEX idx_created_at (created_at)
 );
 
--- Tabla de configuración del sistema
+-- System configuration table
 CREATE TABLE IF NOT EXISTS system_config (
     id INT AUTO_INCREMENT PRIMARY KEY,
     config_key VARCHAR(50) UNIQUE NOT NULL,
@@ -70,7 +66,7 @@ CREATE TABLE IF NOT EXISTS system_config (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Insertar configuración inicial
+-- Insert initial configuration
 INSERT INTO system_config (config_key, config_value) VALUES
 ('max_games_per_hour', '10'),
 ('max_chat_messages_per_minute', '30'),
@@ -78,7 +74,7 @@ INSERT INTO system_config (config_key, config_value) VALUES
 ('cleanup_interval_hours', '24')
 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
 
--- Vista para estadísticas de partidas
+-- View for game statistics
 CREATE OR REPLACE VIEW game_stats AS
 SELECT 
     g.id,
@@ -97,7 +93,7 @@ LEFT JOIN players p2 ON g.player2_id = p2.id
 LEFT JOIN moves m ON g.id = m.game_id
 GROUP BY g.id;
 
--- Procedimiento para limpiar partidas antiguas
+-- Procedure to clean up old games
 DELIMITER //
 CREATE PROCEDURE CleanupOldGames()
 BEGIN
@@ -124,7 +120,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Evento para limpiar partidas automáticamente
+-- Event to automatically clean up old games
 CREATE EVENT IF NOT EXISTS cleanup_old_games
 ON SCHEDULE EVERY 1 HOUR
 DO

@@ -1,6 +1,6 @@
 <?php
 /**
- * API para crear una nueva partida de damas
+ * API to create a new checkers game
  */
 
 header('Content-Type: application/json');
@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Solo permitir método POST
+// Only allow POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
