@@ -25,15 +25,15 @@ try {
         throw new Exception('Código de partida y nombre del jugador requeridos');
     }
     
-    $gameCode = trim(strtoupper($input['game_code']));
+    $gameCode = trim($input['game_code']);
     $playerName = trim($input['player_name']);
     
-    if (empty($gameCode) || strlen($gameCode) !== 6) {
+    if (empty($gameCode) || strlen($gameCode) !== 3) {
         throw new Exception('Código de partida inválido');
     }
     
-    if (empty($playerName) || strlen($playerName) > 50) {
-        throw new Exception('Nombre del jugador inválido');
+    if (empty($playerName) || strlen($playerName) < 3 || strlen($playerName) > 15) {
+        throw new Exception('El nombre debe tener entre 3 y 15 caracteres');
     }
     
     // Buscar la partida
@@ -48,6 +48,12 @@ try {
     
     if ($playerCount >= 2) {
         throw new Exception('La partida ya está llena');
+    }
+    
+    // Verificar que el nombre no sea igual al del jugador 1
+    $player1 = fetchOne("SELECT name FROM players WHERE game_id = ? AND player_number = 1", [$game['id']]);
+    if ($player1 && strtolower(trim($player1['name'])) === strtolower(trim($playerName))) {
+        throw new Exception('El nombre no puede ser igual al del otro jugador');
     }
     
     // Unirse a la partida

@@ -52,7 +52,7 @@ class DamasGame {
         });
 
         document.getElementById('create-game-btn').addEventListener('click', () => {
-            this.createGame();
+            this.showCreateModal();
         });
 
         document.getElementById('join-existing-btn').addEventListener('click', () => {
@@ -71,16 +71,15 @@ class DamasGame {
             this.hideModal('join-modal');
         });
 
-        // Event listener para el chat
-        document.getElementById('send-btn').addEventListener('click', () => {
-            this.sendChatMessage();
+        document.getElementById('confirm-create-btn').addEventListener('click', () => {
+            this.createGame();
         });
 
-        document.getElementById('chat-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.sendChatMessage();
-            }
+        document.getElementById('cancel-create-btn').addEventListener('click', () => {
+            this.hideModal('create-modal');
         });
+
+        // Los event listeners del chat se configuran en setupChatEventListeners()
     }
 
     renderBoard() {
@@ -537,15 +536,27 @@ class DamasGame {
         document.getElementById(modalId).style.display = 'none';
     }
 
+    showCreateModal() {
+        this.hideModal('game-modal');
+        document.getElementById('create-modal').style.display = 'block';
+    }
+
     showJoinModal() {
         this.hideModal('game-modal');
         document.getElementById('join-modal').style.display = 'block';
     }
 
     createGame() {
-        this.hideModal('game-modal');
+        const playerName = document.getElementById('create-player-name-input').value.trim();
+        
+        if (!playerName || playerName.length < 3) {
+            alert('El nombre debe tener al menos 3 caracteres');
+            return;
+        }
+        
+        this.hideModal('create-modal');
         if (window.network) {
-            window.network.createGame();
+            window.network.createGame(playerName);
         }
     }
 
@@ -555,6 +566,11 @@ class DamasGame {
         
         if (!gameCode || !playerName) {
             alert('Por favor, ingresa el código de partida y tu nombre');
+            return;
+        }
+        
+        if (playerName.length < 3) {
+            alert('El nombre debe tener al menos 3 caracteres');
             return;
         }
         
@@ -674,6 +690,27 @@ class DamasGame {
         }
     }
 
+    setupChatEventListeners() {
+        // Event listener para el botón de enviar
+        const sendBtn = document.getElementById('send-btn');
+        if (sendBtn) {
+            sendBtn.addEventListener('click', () => {
+                this.sendChatMessage();
+            });
+        }
+
+        // Event listener para la tecla Enter en el input del chat
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevenir el comportamiento por defecto
+                    this.sendChatMessage();
+                }
+            });
+        }
+    }
+
     updateBoardFromServer(boardData) {
         this.board = boardData;
         this.renderBoard();
@@ -740,4 +777,5 @@ class DamasGame {
 document.addEventListener('DOMContentLoaded', () => {
     window.game = new DamasGame();
     window.game.renderBoard();
+    window.game.setupChatEventListeners(); // Asegurar que los event listeners del chat se añadan después del DOM
 });

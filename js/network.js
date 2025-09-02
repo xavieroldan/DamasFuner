@@ -14,19 +14,10 @@ class NetworkManager {
     }
 
     setupEventListeners() {
-        // Event listeners para el chat
-        document.getElementById('send-btn').addEventListener('click', () => {
-            this.sendChatMessage();
-        });
-
-        document.getElementById('chat-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.sendChatMessage();
-            }
-        });
+        // Los event listeners del chat se manejan en game.js
     }
 
-    async createGame() {
+    async createGame(playerName) {
         try {
             const response = await fetch('api/create_game.php', {
                 method: 'POST',
@@ -34,7 +25,7 @@ class NetworkManager {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    player_name: 'Jugador 1'
+                    player_name: playerName
                 })
             });
 

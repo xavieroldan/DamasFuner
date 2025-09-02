@@ -31,9 +31,9 @@ try {
     }
     
     $playerName = trim($input['player_name']);
-    if (empty($playerName) || strlen($playerName) > 50) {
+    if (empty($playerName) || strlen($playerName) < 3 || strlen($playerName) > 15) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid player name']);
+        echo json_encode(['success' => false, 'message' => 'El nombre debe tener entre 3 y 15 caracteres']);
         exit;
     }
     
