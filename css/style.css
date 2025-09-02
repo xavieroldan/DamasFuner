@@ -496,6 +496,9 @@ main {
     gap: 10px;
     flex-shrink: 0;
     min-height: 50px;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-input input {
@@ -505,6 +508,8 @@ main {
     border-radius: 25px;
     font-size: 14px;
     outline: none;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .chat-input input:focus {

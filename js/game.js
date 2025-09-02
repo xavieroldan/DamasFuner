@@ -375,6 +375,8 @@ class DamasGame {
                     captured: { row: capture.capturedRow, col: capture.capturedCol }
                 }));
                 this.renderBoard();
+                // Verificar ganador después de captura
+                this.checkWinnerIfNeeded();
                 return; // No cambiar turno
             }
         }
@@ -391,6 +393,9 @@ class DamasGame {
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.updateGameStatus();
+        
+        // Verificar ganador solo después de un movimiento válido
+        this.checkWinnerIfNeeded();
     }
 
     isValidPosition(row, col) {
@@ -402,14 +407,7 @@ class DamasGame {
         const playerElement = document.getElementById('current-player');
         
         if (this.gameState === 'playing') {
-            // Verificar condiciones de victoria
-            const winner = this.checkWinner();
-            if (winner) {
-                this.endGame(winner);
-                return;
-            }
-            
-            const playerName = this.currentPlayer === 1 ? 'Jugador 1 (Negras)' : 'Jugador 2 (Blancas)';
+            const playerName = this.currentPlayer === 1 ? 'Jugador 1 (Blancas)' : 'Jugador 2 (Negras)';
             playerElement.textContent = playerName;
             statusElement.textContent = `Turno de ${playerName}`;
         } else {
@@ -420,6 +418,20 @@ class DamasGame {
     updateCapturedPieces() {
         document.getElementById('black-captured').textContent = this.capturedPieces.black;
         document.getElementById('white-captured').textContent = this.capturedPieces.white;
+    }
+
+    // Función para verificar ganador solo cuando sea necesario
+    checkWinnerIfNeeded() {
+        if (this.gameState !== 'playing') {
+            return;
+        }
+        
+        const winner = this.checkWinner();
+        if (winner) {
+            this.endGame(winner);
+            return true; // Indica que el juego terminó
+        }
+        return false; // El juego continúa
     }
 
     // Función para verificar si hay un ganador
