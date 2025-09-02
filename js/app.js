@@ -1,6 +1,6 @@
 // Archivo principal de la aplicación
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Aplicación de Damas Online iniciada');
+    console.log('Aplicación de Damas Funer iniciada');
     
     // Verificar si el navegador soporta las funcionalidades necesarias
     if (!window.fetch) {
@@ -87,7 +87,7 @@ function setupKeyboardShortcuts() {
 function showWelcomeMessage() {
     setTimeout(() => {
         if (window.game) {
-            window.game.addChatMessage('system', '¡Bienvenido a Damas Online! Usa Ctrl+N para nueva partida o Ctrl+J para unirse.');
+            window.game.addChatMessage('system', '¡Bienvenido a Damas Funer Online! Usa Ctrl+N para nueva partida o Ctrl+J para unirse.');
         }
     }, 1000);
 }
@@ -201,7 +201,7 @@ function importGame() {
 // Función para mostrar ayuda
 function showHelp() {
     const helpText = `
-Damas Online - Guía de uso
+Damas Funer - Guía de uso
 
 Controles:
 - Click en una pieza para seleccionarla
@@ -244,7 +244,7 @@ function adjustDifficulty(level) {
 // Función para mostrar información del desarrollador
 function showAbout() {
     const aboutText = `
-Damas Online v1.0
+Damas Funer v1.0
 
 Desarrollado con:
 - HTML5, CSS3, JavaScript

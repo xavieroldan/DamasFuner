@@ -1,10 +1,10 @@
 <?php
 /**
- * Configuración general del juego de Damas Online
+ * Configuración general del juego de Damas Funer
  */
 
 // Configuración de la aplicación
-define('APP_NAME', 'Damas Online');
+define('APP_NAME', 'Damas Funer');
 define('APP_VERSION', '1.0.0');
 define('APP_DEBUG', false);
 

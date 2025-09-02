@@ -1,6 +1,6 @@
 <?php
 /**
- * Script de instalación para Damas Online
+ * Script de instalación para Damas Funer
  * Ejecutar una sola vez para configurar el juego
  */
 
@@ -18,7 +18,7 @@ $db_config = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instalación - Damas Online</title>
+    <title>Instalación - Damas Funer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,7 +99,7 @@ $db_config = [
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Instalación de Damas Online</h1>
+        <h1>🎮 Instalación de Damas Funer</h1>
         
         <?php
         $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
@@ -122,7 +122,7 @@ $db_config = [
         function showWelcome() {
             ?>
             <div class="step">
-                <h2>Bienvenido a la instalación de Damas Online</h2>
+                <h2>Bienvenido a la instalación de Damas Funer</h2>
                 <p>Este asistente te ayudará a configurar el juego paso a paso.</p>
                 
                 <h3>Requisitos del sistema:</h3>
@@ -234,7 +234,7 @@ $db_config = [
                 // Actualizar archivo de configuración
                 $configContent = "<?php
 /**
- * Configuración de la base de datos para Damas Online
+ * Configuración de la base de datos para Damas Funer
  */
 
 class Database {
@@ -408,7 +408,7 @@ initializeDatabase();
                 
                 echo '<div class="step success">';
                 echo '<h2>✅ Instalación completada</h2>';
-                echo '<p>El juego de Damas Online se ha instalado correctamente.</p>';
+                echo '<p>El juego de Damas Funer se ha instalado correctamente.</p>';
                 echo '<a href="?step=4" class="btn">Finalizar</a>';
                 echo '</div>';
                 
@@ -425,7 +425,7 @@ initializeDatabase();
             ?>
             <div class="step success">
                 <h2>🎉 ¡Instalación Completada!</h2>
-                <p>El juego de Damas Online se ha instalado exitosamente en tu servidor.</p>
+                <p>El juego de Damas Funer se ha instalado exitosamente en tu servidor.</p>
                 
                 <h3>Próximos pasos:</h3>
                 <ol>
