@@ -14,7 +14,7 @@ class Database {
         // Configuración de la base de datos
         // Cambia estos valores según tu configuración
         $this->host = 'localhost';
-        $this->db_name = 'damas_online';
+        $this->db_name = '6774344_damas_online';
         $this->username = 'root'; // Cambia por tu usuario de MySQL
         $this->password = ''; // Cambia por tu contraseña de MySQL
     }

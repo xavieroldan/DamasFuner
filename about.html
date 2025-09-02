@@ -303,16 +303,16 @@ git clone [URL_DEL_REPOSITORIO]
             </div>
 
             <h3>2. Configurar la base de datos</h3>
-            <p>Crear una base de datos MySQL llamada <span class="highlight">damas_online</span> e importar el archivo <code>database/schema.sql</code>:</p>
+            <p>Crear una base de datos MySQL llamada <span class="highlight">6774344_damas_online</span> e importar el archivo <code>database/schema.sql</code>:</p>
             <div class="code-block">
-mysql -u tu_usuario -p damas_online < database/schema.sql
+mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
             </div>
 
             <h3>3. Configurar la conexión a la base de datos</h3>
             <p>Editar el archivo <code>config/database.php</code> y actualizar las credenciales:</p>
             <div class="code-block">
 $this->host = 'localhost';
-$this->db_name = 'damas_online';
+$this->db_name = '6774344_damas_online';
 $this->username = 'tu_usuario_mysql';
 $this->password = 'tu_contraseña_mysql';
             </div>

@@ -43,11 +43,11 @@ git clone [URL_DEL_REPOSITORIO]
 
 ### 2. Configurar la base de datos
 
-1. Crear una base de datos MySQL llamada `damas_online`
+1. Crear una base de datos MySQL llamada `6774344_damas_online`
 2. Importar el archivo `database/schema.sql`:
 
 ```bash
-mysql -u tu_usuario -p damas_online < database/schema.sql
+mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
 ```
 
 ### 3. Configurar la conexión a la base de datos
@@ -56,7 +56,7 @@ Editar el archivo `config/database.php` y actualizar las credenciales:
 
 ```php
 $this->host = 'localhost';
-$this->db_name = 'damas_online';
+$this->db_name = '6774344_damas_online';
 $this->username = 'tu_usuario_mysql';
 $this->password = 'tu_contraseña_mysql';
 ```
