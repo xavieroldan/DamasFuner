@@ -120,7 +120,7 @@ damas-online/
 
 1. Haz clic en "Nueva Partida"
 2. Selecciona "Crear Partida"
-3. Comparte el código de 6 caracteres con otro jugador
+3. Comparte el código de 3 dígitos con otro jugador
 
 ### Unirse a una Partida
 

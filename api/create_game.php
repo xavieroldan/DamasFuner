@@ -91,17 +91,14 @@ try {
 }
 
 /**
- * Genera un código único de 6 caracteres para la partida
+ * Genera un código único de 3 dígitos numéricos para la partida
  */
 function generateUniqueGameCode() {
-    $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     $maxAttempts = 10;
     
     for ($i = 0; $i < $maxAttempts; $i++) {
-        $code = '';
-        for ($j = 0; $j < 6; $j++) {
-            $code .= $characters[rand(0, strlen($characters) - 1)];
-        }
+        // Generar código de 3 dígitos numéricos (100-999)
+        $code = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
         
         // Verificar que el código no exista
         $existing = fetchOne("SELECT id FROM games WHERE game_code = ?", [$code]);
