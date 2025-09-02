@@ -435,6 +435,7 @@ class DamasGame {
         }
         
         // Verificar si el jugador actual no tiene movimientos posibles (victoria por bloqueo)
+        // Nota: this.currentPlayer ya cambió en makeMove, así que verificamos el jugador que debe jugar ahora
         const currentPlayerPieces = this.currentPlayer === 1 ? player1Pieces : player2Pieces;
         let hasValidMoves = false;
         
