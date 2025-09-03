@@ -248,6 +248,10 @@ class DamasGame {
         const directions = piece.isKing ? 
             [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
             (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
+        
+        console.log(`=== NORMAL MOVEMENTS DEBUG ===`);
+        console.log(`Piece player: ${piece.player}, isKing: ${piece.isKing}`);
+        console.log(`Directions for this piece:`, directions);
 
         for (const [dr, dc] of directions) {
             const newRow = row + dr;
