@@ -315,6 +315,33 @@ class NetworkManager {
             console.error('Error al notificar fin del juego:', error);
         }
     }
+
+    // Method to load initial game state and player names
+    async loadInitialGameState() {
+        try {
+            const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
+            const data = await response.json();
+            
+            if (data.success && data.game_data) {
+                const gameData = data.game_data;
+                
+                // Set both player names
+                if (gameData.player1_name) {
+                    window.game.playerNames[1] = gameData.player1_name;
+                }
+                if (gameData.player2_name) {
+                    window.game.playerNames[2] = gameData.player2_name;
+                }
+                
+                console.log('Loaded player names:', window.game.playerNames);
+                
+                // Update UI with player names
+                window.game.updateGameStatus();
+            }
+        } catch (error) {
+            console.error('Error loading initial game state:', error);
+        }
+    }
 }
 
 // Initialize network manager when page loads

@@ -837,6 +837,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.network.playerId = parseInt(playerId);
         window.network.playerName = decodeURIComponent(playerName);
         
+        // Load initial game state to get both player names
+        window.network.loadInitialGameState();
+        
         // Start polling for game updates
         window.network.startPolling();
     } else {
