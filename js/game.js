@@ -254,8 +254,13 @@ class DamasGame {
         const captures = [];
         const pieces = this.getPlayerPieces(player);
         
+        console.log(`=== GET ALL POSSIBLE CAPTURES DEBUG ===`);
+        console.log(`Jugador: ${player}`);
+        console.log(`Piezas del jugador:`, pieces);
+        
         for (const piece of pieces) {
             const pieceCaptures = this.getPossibleCaptures(piece.row, piece.col);
+            console.log(`Pieza en (${piece.row}, ${piece.col}):`, piece.piece, 'Capturas:', pieceCaptures);
             if (pieceCaptures.length > 0) {
                 captures.push({
                     piece: piece,
@@ -264,6 +269,8 @@ class DamasGame {
             }
         }
         
+        console.log(`Total capturas encontradas:`, captures);
+        console.log(`=== END GET ALL POSSIBLE CAPTURES DEBUG ===`);
         return captures;
     }
 
@@ -320,7 +327,10 @@ class DamasGame {
     // Function to aplicar las reglas de captura obligatoria
     applyCaptureRules(player) {
         const allCaptures = this.getAllPossibleCaptures(player);
-        console.log(`Capturas encontradas para jugador ${player}:`, allCaptures);
+        console.log(`=== APPLY CAPTURE RULES DEBUG ===`);
+        console.log(`Jugador: ${player}`);
+        console.log(`Capturas encontradas:`, allCaptures);
+        console.log(`Número de capturas: ${allCaptures.length}`);
         
         if (allCaptures.length === 0) {
             console.log('No hay capturas posibles, devolviendo null');
@@ -332,13 +342,17 @@ class DamasGame {
             capture.piece.piece.isKing
         );
         
+        console.log(`Capturas con dama:`, damaCaptures);
+        
         if (damaCaptures.length > 0) {
             // Si hay capturas con dama, usar solo esas
             allCaptures.splice(0, allCaptures.length, ...damaCaptures);
+            console.log('Usando solo capturas con dama');
         }
         
         // Return the first available capture (no longer prioritizing by number of pieces)
         console.log('Mejor captura encontrada:', allCaptures[0]);
+        console.log(`=== END CAPTURE RULES DEBUG ===`);
         return allCaptures[0];
     }
 
@@ -403,19 +417,31 @@ class DamasGame {
         const statusElement = document.getElementById('game-status');
         const playerElement = document.getElementById('current-player');
         
+        console.log('updateGameStatus called - gameState:', this.gameState);
+        console.log('updateGameStatus called - currentPlayer:', this.currentPlayer);
+        console.log('updateGameStatus called - playerNames:', this.playerNames);
+        
         if (this.gameState === 'playing') {
             const playerNumber = this.currentPlayer;
             const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
             const colorText = playerNumber === 1 ? '(Blancas)' : '(Negras)';
             const fullPlayerName = `${playerName} ${colorText}`;
             
-            playerElement.textContent = fullPlayerName;
-            statusElement.textContent = `Turno de ${fullPlayerName}`;
+            console.log('Setting player name to:', fullPlayerName);
+            
+            if (playerElement) {
+                playerElement.textContent = fullPlayerName;
+            }
+            if (statusElement) {
+                statusElement.textContent = `Turno de ${fullPlayerName}`;
+            }
             
             // Update board overlay based on current player
             this.updateBoardOverlay();
         } else {
-            statusElement.textContent = 'Esperando jugadores...';
+            if (statusElement) {
+                statusElement.textContent = 'Esperando jugadores...';
+            }
             this.updateBoardOverlay();
         }
     }

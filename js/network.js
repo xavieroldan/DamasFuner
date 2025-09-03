@@ -319,24 +319,36 @@ class NetworkManager {
     // Method to load initial game state and player names
     async loadInitialGameState() {
         try {
+            console.log('Loading initial game state for game:', this.gameId, 'player:', this.playerId);
             const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
             const data = await response.json();
+            
+            console.log('Initial game state response:', data);
             
             if (data.success && data.game_data) {
                 const gameData = data.game_data;
                 
+                console.log('Game data received:', gameData);
+                console.log('Player 1 name:', gameData.player1_name);
+                console.log('Player 2 name:', gameData.player2_name);
+                
                 // Set both player names
                 if (gameData.player1_name) {
                     window.game.playerNames[1] = gameData.player1_name;
+                    console.log('Set player 1 name to:', gameData.player1_name);
                 }
                 if (gameData.player2_name) {
                     window.game.playerNames[2] = gameData.player2_name;
+                    console.log('Set player 2 name to:', gameData.player2_name);
                 }
                 
-                console.log('Loaded player names:', window.game.playerNames);
+                console.log('Final playerNames object:', window.game.playerNames);
                 
                 // Update UI with player names
                 window.game.updateGameStatus();
+                console.log('Updated game status with player names');
+            } else {
+                console.error('Failed to load game state:', data);
             }
         } catch (error) {
             console.error('Error loading initial game state:', error);
