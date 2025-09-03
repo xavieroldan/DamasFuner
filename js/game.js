@@ -819,7 +819,28 @@ class DamasGame {
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    window.game = new DamasGame();
-    window.game.renderBoard();
-    window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('game');
+    const playerId = urlParams.get('player');
+    const playerName = urlParams.get('name');
+    
+    if (gameId && playerId && playerName) {
+        window.game = new DamasGame();
+        window.network = new NetworkManager();
+        window.game.renderBoard();
+        window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
+        
+        // Initialize game with URL parameters
+        window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
+        window.network.gameId = parseInt(gameId);
+        window.network.playerId = parseInt(playerId);
+        window.network.playerName = decodeURIComponent(playerName);
+        
+        // Start polling for game updates
+        window.network.startPolling();
+    } else {
+        // Redirect to home if no valid parameters
+        window.location.href = 'home.html';
+    }
 });

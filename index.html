@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <script>
+        // Check URL parameters and redirect if invalid
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('game');
+        const playerId = urlParams.get('player');
+        const playerName = urlParams.get('name');
+        
+        if (!gameId || !playerId || !playerName) {
+            // Redirect to home page if parameters are missing
+            window.location.href = 'home.html';
+        }
+    </script>
     <div class="container">
         <header>
             <h1>Damas Funer</h1>

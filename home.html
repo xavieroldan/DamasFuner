@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Damas Funer - Juego Multijugador</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <header>
+            <h1>Damas Funer</h1>
+            <div class="game-info">
+                <p>Juego de Damas Multijugador Online</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="home-area">
+                <div class="welcome-section">
+                    <h2>¡Bienvenido a Damas Funer!</h2>
+                    <p>Disfruta de emocionantes partidas de damas con jugadores de todo el mundo.</p>
+                </div>
+                
+                <div class="game-options">
+                    <div class="option-card">
+                        <h3>🎮 Nueva Partida</h3>
+                        <p>Crea una nueva partida y comparte el código con un amigo</p>
+                        <button id="new-game-btn" class="btn btn-primary">Crear Partida</button>
+                    </div>
+                    
+                    <div class="option-card">
+                        <h3>🔗 Unirse a Partida</h3>
+                        <p>Únete a una partida existente con un código de 3 dígitos</p>
+                        <button id="join-game-btn" class="btn btn-secondary">Unirse a Partida</button>
+                    </div>
+                    
+                    <div class="option-card">
+                        <h3>ℹ️ Acerca de</h3>
+                        <p>Conoce más sobre el juego y sus reglas</p>
+                        <a href="about.html" class="btn btn-info">Ver Información</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div class="modal" id="create-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Crear Partida</h2>
+                <div class="modal-body">
+                    <input type="text" id="create-player-name-input" placeholder="Tu nombre" maxlength="15">
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirm-create-btn" class="btn">Crear</button>
+                    <button id="cancel-create-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="join-modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Unirse a Partida</h2>
+                <div class="modal-body">
+                    <input type="text" id="game-code-input" placeholder="Código de 3 dígitos" maxlength="3">
+                    <input type="text" id="player-name-input" placeholder="Tu nombre" maxlength="15">
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirm-join-btn" class="btn">Unirse</button>
+                    <button id="cancel-join-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waiting Spinner -->
+        <div class="modal" id="waiting-modal" style="display: none;">
+            <div class="modal-content waiting-content">
+                <div class="spinner-container">
+                    <div class="spinner"></div>
+                    <h2>Esperando Jugadores...</h2>
+                    <p id="waiting-message">Tu partida ha sido creada. Comparte el código con un amigo.</p>
+                    <div class="game-code-display">
+                        <span>Código de partida:</span>
+                        <span id="display-game-code" class="game-code">---</span>
+                    </div>
+                    <button id="copy-code-btn" class="btn btn-small">📋 Copiar Código</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/network.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
