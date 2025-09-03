@@ -425,10 +425,22 @@ class DamasGame {
     updateGameStatus() {
         const statusElement = document.getElementById('game-status');
         const playerElement = document.getElementById('current-player');
+        const whitePlayerNameElement = document.getElementById('white-player-name');
+        const blackPlayerNameElement = document.getElementById('black-player-name');
         
         console.log('updateGameStatus called - gameState:', this.gameState);
         console.log('updateGameStatus called - currentPlayer:', this.currentPlayer);
         console.log('updateGameStatus called - playerNames:', this.playerNames);
+        
+        // Update player names in the bottom section
+        if (whitePlayerNameElement) {
+            const whitePlayerName = this.playerNames[1] || 'Jugador 1';
+            whitePlayerNameElement.textContent = `${whitePlayerName} (Blancas)`;
+        }
+        if (blackPlayerNameElement) {
+            const blackPlayerName = this.playerNames[2] || 'Jugador 2';
+            blackPlayerNameElement.textContent = `${blackPlayerName} (Negras)`;
+        }
         
         if (this.gameState === 'playing') {
             const playerNumber = this.currentPlayer;
