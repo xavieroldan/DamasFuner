@@ -241,7 +241,7 @@ class NetworkManager {
                         if (msg.player_name === 'Sistema') {
                             window.game.addChatMessage('system', msg.message);
                         } else {
-                            const sender = msg.player_id === 1 ? 'player1' : 'player2';
+                    const sender = msg.player_id === 1 ? 'player1' : 'player2';
                             window.game.addChatMessage(sender, msg.message);
                         }
                         this.processedMessages.add(messageId);
@@ -348,18 +348,29 @@ class NetworkManager {
                 }
                 
                 // Determine my player number based on my playerId and player names
+                console.log('=== PLAYER IDENTIFICATION DEBUG ===');
+                console.log('My playerName from URL:', this.playerName);
+                console.log('Player 1 name from server:', gameData.player1_name);
+                console.log('Player 2 name from server:', gameData.player2_name);
+                console.log('Player 1 name === my name?', gameData.player1_name === this.playerName);
+                console.log('Player 2 name === my name?', gameData.player2_name === this.playerName);
+                
                 if (gameData.player1_name === this.playerName) {
                     window.game.myPlayerNumber = 1;
-                    console.log('I am Player 1 (Whites)');
+                    console.log('✅ I am Player 1 (Whites)');
                 } else if (gameData.player2_name === this.playerName) {
                     window.game.myPlayerNumber = 2;
-                    console.log('I am Player 2 (Blacks)');
+                    console.log('✅ I am Player 2 (Blacks)');
                 } else {
-                    console.error('Could not determine my player number!');
+                    console.error('❌ Could not determine my player number!');
                     console.log('My name:', this.playerName);
                     console.log('Player 1 name:', gameData.player1_name);
                     console.log('Player 2 name:', gameData.player2_name);
+                    console.log('My name length:', this.playerName ? this.playerName.length : 'undefined');
+                    console.log('Player 1 name length:', gameData.player1_name ? gameData.player1_name.length : 'undefined');
+                    console.log('Player 2 name length:', gameData.player2_name ? gameData.player2_name.length : 'undefined');
                 }
+                console.log('=== END PLAYER IDENTIFICATION DEBUG ===');
                 
                 // Set current player from server
                 if (gameData.current_player) {

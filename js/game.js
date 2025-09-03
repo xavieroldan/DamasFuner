@@ -455,9 +455,14 @@ class DamasGame {
             const myColorText = this.myPlayerNumber === 1 ? '(Blancas)' : '(Negras)';
             const myFullPlayerName = `${myPlayerName} ${myColorText}`;
             
+            console.log('=== UPDATE GAME STATUS DEBUG ===');
             console.log('Current player (who should play):', currentFullPlayerName);
             console.log('My player name:', myFullPlayerName);
             console.log('Is it my turn?', this.currentPlayer === this.myPlayerNumber);
+            console.log('this.currentPlayer:', this.currentPlayer);
+            console.log('this.myPlayerNumber:', this.myPlayerNumber);
+            console.log('this.playerNames:', this.playerNames);
+            console.log('=== END UPDATE GAME STATUS DEBUG ===');
             
             if (playerElement) {
                 playerElement.textContent = myFullPlayerName; // Show my own name
