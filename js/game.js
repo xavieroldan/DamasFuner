@@ -201,7 +201,15 @@ class DamasGame {
         console.log(`=== SELECTING PIECE DEBUG ===`);
         console.log(`Selected piece at (${row}, ${col}):`, this.board[row][col]);
         console.log(`Current player: ${this.currentPlayer}`);
-        console.log(`Piece player: ${this.board[row][col].player}`);
+        
+        const piece = this.board[row][col];
+        if (!piece) {
+            console.log('No piece at this position, cannot select');
+            console.log(`=== END SELECTING PIECE DEBUG ===`);
+            return;
+        }
+        
+        console.log(`Piece player: ${piece.player}`);
         
         this.selectedPiece = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col);
@@ -239,15 +247,20 @@ class DamasGame {
         const moves = [];
         const directions = piece.isKing ? 
             [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-            (piece.player === 1 ? [[1, -1], [1, 1]] : [[-1, -1], [-1, 1]]);
+            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
 
         for (const [dr, dc] of directions) {
             const newRow = row + dr;
             const newCol = col + dc;
 
+            console.log(`Checking direction [${dr}, ${dc}] -> (${newRow}, ${newCol})`);
+            console.log(`Is valid position: ${this.isValidPosition(newRow, newCol)}`);
+            console.log(`Is empty: ${!this.board[newRow][newCol]}`);
+
             // Movimiento simple
             if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
                 moves.push({ row: newRow, col: newCol, type: 'move' });
+                console.log(`Added move to (${newRow}, ${newCol})`);
             }
         }
 
@@ -305,7 +318,7 @@ class DamasGame {
         const captures = [];
         const directions = piece.isKing ? 
             [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-            (piece.player === 1 ? [[1, -1], [1, 1]] : [[-1, -1], [-1, 1]]);
+            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
 
         for (const [dr, dc] of directions) {
             const newRow = row + dr;
@@ -554,7 +567,7 @@ class DamasGame {
                     // Verificar movimientos simples (no solo capturas)
                     const directions = pieceObj.isKing ? 
                         [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-                        (pieceObj.player === 1 ? [[1, -1], [1, 1]] : [[-1, -1], [-1, 1]]);
+                        (pieceObj.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
                     
                     for (const [dr, dc] of directions) {
                         const newRow = piece.row + dr;
