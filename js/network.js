@@ -151,6 +151,13 @@ class NetworkManager {
                 window.game.renderBoard();
             } else {
                 console.log(`Move accepted by server`);
+                // El servidor ha procesado el movimiento, actualizar el tablero desde el servidor
+                if (data.game_data && data.game_data.board) {
+                    window.game.updateBoardFromServer(data.game_data.board);
+                    if (data.game_data.current_player) {
+                        window.game.updateCurrentPlayer(data.game_data.current_player);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error al enviar movimiento:', error);

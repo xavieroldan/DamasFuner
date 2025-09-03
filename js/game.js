@@ -170,17 +170,18 @@ class DamasGame {
         if (this.selectedPiece) {
             if (this.isValidMove(this.selectedPiece, { row, col })) {
                 const fromPiece = { ...this.selectedPiece }; // Save position before moving
-                this.makeMove(this.selectedPiece, { row, col });
-                this.selectedPiece = null;
-                this.possibleMoves = [];
-                this.renderBoard();
                 
-                // Enviar movimiento al servidor
+                // Enviar movimiento al servidor PRIMERO
                 if (window.network) {
                     console.log(`=== SENDING MOVE TO SERVER ===`);
                     console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
                     window.network.sendMove(fromPiece, { row, col });
                 }
+                
+                // NO ejecutar makeMove localmente - esperar respuesta del servidor
+                this.selectedPiece = null;
+                this.possibleMoves = [];
+                this.renderBoard();
             } else {
                 // Show invalid move message
                 this.showInvalidMoveMessage(row, col);
