@@ -115,6 +115,14 @@ class NetworkManager {
         if (!this.gameId || !this.playerId) return;
 
         try {
+            console.log(`=== SENDING MOVE REQUEST ===`);
+            console.log(`Request data:`, {
+                game_id: this.gameId,
+                player_id: this.playerId,
+                from: from,
+                to: to
+            });
+            
             const response = await fetch('api/make_move.php', {
                 method: 'POST',
                 headers: {
@@ -127,6 +135,9 @@ class NetworkManager {
                     to: to
                 })
             });
+            
+            console.log(`Response status: ${response.status}`);
+            console.log(`Response ok: ${response.ok}`);
 
             const data = await response.json();
             

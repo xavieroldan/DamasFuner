@@ -157,7 +157,7 @@ class HomeManager {
             
             if (data.success) {
                 // Redirect to game page
-                window.location.href = `index.html?game=${data.game_id}&player=${data.player_id}&name=${encodeURIComponent(playerName)}`;
+                window.location.href = `game.html?game=${data.game_id}&player=${data.player_id}&name=${encodeURIComponent(playerName)}`;
             } else {
                 alert('Error al unirse a la partida: ' + data.message);
             }
@@ -193,7 +193,7 @@ class HomeManager {
                         console.log('Second player detected, redirecting...');
                         clearInterval(pollInterval);
                         this.hideWaitingSpinner();
-                        window.location.href = `index.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;
+                        window.location.href = `game.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;
                     }
                 }
             } catch (error) {

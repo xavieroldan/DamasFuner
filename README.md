@@ -92,7 +92,7 @@ http://tu-servidor.com/damas-online/
 
 ```
 damas-online/
-├── index.html              # Página principal
+├── game.html               # Página del juego
 ├── css/
 │   └── style.css          # Estilos del juego
 ├── js/

@@ -430,7 +430,7 @@ initializeDatabase();
                 <h3>Próximos pasos:</h3>
                 <ol>
                     <li>Elimina el archivo <code>install.php</code> por seguridad</li>
-                    <li>Accede al juego en: <a href="index.html" style="color: #32CD32;">index.html</a></li>
+                    <li>Accede al juego en: <a href="game.html" style="color: #32CD32;">game.html</a></li>
                     <li>¡Disfruta jugando!</li>
                 </ol>
                 
@@ -439,7 +439,7 @@ initializeDatabase();
                     <p>Por seguridad, elimina este archivo de instalación después de completar la configuración.</p>
                 </div>
                 
-                <a href="index.html" class="btn">Ir al Juego</a>
+                <a href="game.html" class="btn">Ir al Juego</a>
             </div>
             <?php
         }
