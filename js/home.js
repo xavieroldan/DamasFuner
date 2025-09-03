@@ -175,12 +175,26 @@ class HomeManager {
                 
                 console.log('Polling game state:', data);
                 
-                if (data.success && (data.game_state === 'playing' || (data.players && data.players.length >= 2))) {
-                    // Second player joined, redirect to game
-                    console.log('Second player detected, redirecting...');
-                    clearInterval(pollInterval);
-                    this.hideWaitingSpinner();
-                    window.location.href = `index.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;
+                if (data.success && data.game_data) {
+                    const gameData = data.game_data;
+                    
+                    // Check if both players are present (player1_name and player2_name are not null)
+                    const hasBothPlayers = gameData.player1_name && gameData.player2_name;
+                    const isPlaying = gameData.game_status === 'playing';
+                    
+                    console.log('Game status:', gameData.game_status);
+                    console.log('Player 1 name:', gameData.player1_name);
+                    console.log('Player 2 name:', gameData.player2_name);
+                    console.log('Has both players:', hasBothPlayers);
+                    console.log('Is playing:', isPlaying);
+                    
+                    if (isPlaying || hasBothPlayers) {
+                        // Second player joined, redirect to game
+                        console.log('Second player detected, redirecting...');
+                        clearInterval(pollInterval);
+                        this.hideWaitingSpinner();
+                        window.location.href = `index.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;
+                    }
                 }
             } catch (error) {
                 console.error('Error polling game state:', error);
