@@ -130,10 +130,16 @@ class NetworkManager {
 
             const data = await response.json();
             
+            console.log(`=== SERVER RESPONSE ===`);
+            console.log(`Server response:`, data);
+            
             if (!data.success) {
+                console.log(`Move rejected by server: ${data.message}`);
                 alert('Movimiento inválido: ' + data.message);
                 // Revertir el movimiento en el cliente
                 window.game.renderBoard();
+            } else {
+                console.log(`Move accepted by server`);
             }
         } catch (error) {
             console.error('Error al enviar movimiento:', error);

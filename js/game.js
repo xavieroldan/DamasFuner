@@ -177,6 +177,8 @@ class DamasGame {
                 
                 // Enviar movimiento al servidor
                 if (window.network) {
+                    console.log(`=== SENDING MOVE TO SERVER ===`);
+                    console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
                     window.network.sendMove(fromPiece, { row, col });
                 }
             } else {
@@ -386,12 +388,22 @@ class DamasGame {
 
 
     makeMove(from, to) {
+        console.log(`=== MAKING MOVE DEBUG ===`);
+        console.log(`Moving from (${from.row}, ${from.col}) to (${to.row}, ${to.col})`);
+        
         const piece = this.board[from.row][from.col];
         const move = this.possibleMoves.find(m => m.row === to.row && m.col === to.col);
+        
+        console.log(`Piece to move:`, piece);
+        console.log(`Move found:`, move);
         
         // Mover pieza
         this.board[to.row][to.col] = piece;
         this.board[from.row][from.col] = null;
+        
+        console.log(`Piece moved successfully`);
+        console.log(`Board after move:`, this.board[to.row][to.col]);
+        console.log(`Board from position:`, this.board[from.row][from.col]);
         
         // Capturar pieza si es necesario
         if (move && move.type === 'capture') {
