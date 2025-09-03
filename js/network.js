@@ -319,6 +319,7 @@ class NetworkManager {
     // Method to load initial game state and player names
     async loadInitialGameState() {
         try {
+            console.log('=== LOADING INITIAL GAME STATE ===');
             console.log('Loading initial game state for game:', this.gameId, 'player:', this.playerId);
             const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
             const data = await response.json();
@@ -329,6 +330,8 @@ class NetworkManager {
                 const gameData = data.game_data;
                 
                 console.log('Game data received:', gameData);
+                console.log('Current player:', gameData.current_player);
+                console.log('Game status:', gameData.game_status);
                 console.log('Player 1 name:', gameData.player1_name);
                 console.log('Player 2 name:', gameData.player2_name);
                 
@@ -342,7 +345,21 @@ class NetworkManager {
                     console.log('Set player 2 name to:', gameData.player2_name);
                 }
                 
+                // Set current player from server
+                if (gameData.current_player) {
+                    window.game.currentPlayer = gameData.current_player;
+                    console.log('Set current player to:', gameData.current_player);
+                }
+                
+                // Set game state from server
+                if (gameData.game_status) {
+                    window.game.gameState = gameData.game_status;
+                    console.log('Set game state to:', gameData.game_status);
+                }
+                
                 console.log('Final playerNames object:', window.game.playerNames);
+                console.log('Final currentPlayer:', window.game.currentPlayer);
+                console.log('Final gameState:', window.game.gameState);
                 
                 // Update UI with player names
                 window.game.updateGameStatus();
@@ -350,6 +367,7 @@ class NetworkManager {
             } else {
                 console.error('Failed to load game state:', data);
             }
+            console.log('=== END LOADING INITIAL GAME STATE ===');
         } catch (error) {
             console.error('Error loading initial game state:', error);
         }
