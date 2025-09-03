@@ -349,6 +349,7 @@ class DamasGame {
             }
         }
         
+        console.log('Mejor captura encontrada:', bestCapture);
         return bestCapture;
     }
 
@@ -437,8 +438,31 @@ class DamasGame {
             
             playerElement.textContent = fullPlayerName;
             statusElement.textContent = `Turno de ${fullPlayerName}`;
+            
+            // Update board overlay based on current player
+            this.updateBoardOverlay();
         } else {
             statusElement.textContent = 'Esperando jugadores...';
+            this.updateBoardOverlay();
+        }
+    }
+    
+    updateBoardOverlay() {
+        const overlay = document.getElementById('board-overlay');
+        if (!overlay) return;
+        
+        if (this.gameState !== 'playing') {
+            overlay.className = 'board-overlay inactive';
+            return;
+        }
+        
+        // Check if it's the current player's turn
+        const isMyTurn = this.currentPlayer === this.playerId;
+        
+        if (isMyTurn) {
+            overlay.className = 'board-overlay active';
+        } else {
+            overlay.className = 'board-overlay inactive';
         }
     }
 

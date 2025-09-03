@@ -239,7 +239,7 @@ class NetworkManager {
                             window.game.addChatMessage('system', msg.message);
                         } else {
                             const sender = msg.player_id === 1 ? 'player1' : 'player2';
-                            window.game.addChatMessage(sender, `${msg.player_name}: ${msg.message}`);
+                            window.game.addChatMessage(sender, msg.message);
                         }
                         this.processedMessages.add(messageId);
                     }
