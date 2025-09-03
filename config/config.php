@@ -1,50 +1,50 @@
 <?php
 /**
- * Configuración general del juego de Damas Funer
+ * General configuration for Damas Funer game
  */
 
-// Configuración de la aplicación
+// Application configuration
 define('APP_NAME', 'Damas Funer');
 define('APP_VERSION', '1.0.0');
 define('APP_DEBUG', false);
 
-// Configuración de la base de datos
+// Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', '6774344_damas_online');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
-// Configuración del juego
+// Game configuration
 define('GAME_TIMEOUT_MINUTES', 30);
 define('MAX_GAMES_PER_HOUR', 10);
 define('MAX_CHAT_MESSAGES_PER_MINUTE', 30);
 define('POLLING_INTERVAL_SECONDS', 2);
 
-// Configuración de seguridad
+// Security configuration
 define('MAX_MESSAGE_LENGTH', 200);
 define('MAX_PLAYER_NAME_LENGTH', 50);
 define('GAME_CODE_LENGTH', 6);
 
-// Configuración de archivos
+// File configuration
 define('LOG_DIR', __DIR__ . '/../logs/');
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 
-// Configuración de CORS
+// CORS configuration
 define('ALLOWED_ORIGINS', ['*']);
 
-// Configuración de notificaciones
+// Notifications configuration
 define('ENABLE_NOTIFICATIONS', true);
 define('NOTIFICATION_SOUND', true);
 
-// Configuración de estadísticas
+// Statistics configuration
 define('ENABLE_STATS', true);
 define('STATS_RETENTION_DAYS', 30);
 
-// Configuración de limpieza automática
+// Automatic cleanup configuration
 define('AUTO_CLEANUP_ENABLED', true);
 define('CLEANUP_INTERVAL_HOURS', 24);
 
-// Configuración de desarrollo
+// Development configuration
 if (APP_DEBUG) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -64,12 +64,12 @@ if (!file_exists(UPLOAD_DIR)) {
     mkdir(UPLOAD_DIR, 0755, true);
 }
 
-// Función para obtener configuración
+// Function to get configuration
 function getConfig($key, $default = null) {
     return defined($key) ? constant($key) : $default;
 }
 
-// Función para validar configuración
+// Function to validate configuration
 function validateConfig() {
     $required = [
         'DB_HOST', 'DB_NAME', 'DB_USER'
@@ -84,7 +84,7 @@ function validateConfig() {
     return true;
 }
 
-// Función para obtener información del sistema
+// Function to get system information
 function getSystemInfo() {
     return [
         'app_name' => APP_NAME,
@@ -99,7 +99,7 @@ function getSystemInfo() {
     ];
 }
 
-// Función para log de eventos
+// Function for event logging
 function logEvent($level, $message, $context = []) {
     if (!APP_DEBUG && $level === 'debug') {
         return;
@@ -117,7 +117,7 @@ function logEvent($level, $message, $context = []) {
     file_put_contents(LOG_DIR . 'app.log', $logMessage, FILE_APPEND | LOCK_EX);
 }
 
-// Función para limpiar logs antiguos
+// Function to clean old logs
 function cleanupOldLogs() {
     if (!AUTO_CLEANUP_ENABLED) {
         return;
@@ -133,7 +133,7 @@ function cleanupOldLogs() {
     }
 }
 
-// Función para obtener estadísticas del sistema
+// Function to get system statistics
 function getSystemStats() {
     try {
         require_once __DIR__ . '/database.php';
@@ -154,7 +154,7 @@ function getSystemStats() {
     }
 }
 
-// Función para verificar el estado del sistema
+// Function to check system status
 function checkSystemHealth() {
     $health = [
         'database' => false,
@@ -192,7 +192,7 @@ function checkSystemHealth() {
     return $health;
 }
 
-// Inicializar configuración
+// Initialize configuration
 try {
     validateConfig();
     logEvent('info', 'Configuración inicializada correctamente');

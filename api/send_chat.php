@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Solo permitir método POST
+// Only allow POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -38,7 +38,7 @@ try {
         throw new Exception('El mensaje es demasiado largo (máximo 200 caracteres)');
     }
     
-    // Verificar que la partida existe y está activa
+    // Verify that the game exists and is active
     $game = fetchOne("SELECT * FROM games WHERE id = ? AND game_status IN ('waiting', 'playing')", [$gameId]);
     if (!$game) {
         throw new Exception('Partida no encontrada o no está activa');
@@ -50,7 +50,7 @@ try {
         throw new Exception('Jugador no autorizado para esta partida');
     }
     
-    // Verificar límite de mensajes por minuto
+    // Verify message limit per minute
     $recentMessages = fetchOne("
         SELECT COUNT(*) as count 
         FROM chat_messages 
@@ -61,7 +61,7 @@ try {
         throw new Exception('Has enviado demasiados mensajes. Espera un momento.');
     }
     
-    // Filtrar contenido inapropiado (básico)
+    // Filter inappropriate content (basic)
     $filteredMessage = filterMessage($message);
     
     // Insertar el mensaje en la base de datos
@@ -85,7 +85,7 @@ try {
  * Filtra el contenido del mensaje para eliminar contenido inapropiado
  */
 function filterMessage($message) {
-    // Lista básica de palabras inapropiadas (puedes expandir esto)
+    // Basic list of inappropriate words (you can expand this)
     $badWords = ['spam', 'scam', 'hack', 'virus'];
     
     $filtered = $message;

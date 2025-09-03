@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Solo permitir método GET
+// Only allow GET method
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    // Obtener parámetros
+    // Get parameters
     $gameId = isset($_GET['game_id']) ? (int)$_GET['game_id'] : 0;
     $playerId = isset($_GET['player_id']) ? (int)$_GET['player_id'] : 0;
     
@@ -26,7 +26,7 @@ try {
         throw new Exception('ID de partida y jugador requeridos');
     }
     
-    // Obtener información de la partida
+    // Get game information
     $game = fetchOne("
         SELECT g.*, p1.name as player1_name, p2.name as player2_name
         FROM games g
@@ -45,7 +45,7 @@ try {
         throw new Exception('Jugador no autorizado para esta partida');
     }
     
-    // Obtener mensajes de chat recientes (últimos 20)
+    // Get recent chat messages (last 20)
     $chatMessages = fetchAll("
         SELECT cm.*, p.player_number
         FROM chat_messages cm
@@ -55,7 +55,7 @@ try {
         LIMIT 20
     ", [$gameId]);
     
-    // Obtener movimientos recientes (últimos 10)
+    // Get recent moves (last 10)
     $recentMoves = fetchAll("
         SELECT m.*, p.name as player_name
         FROM moves m
@@ -136,7 +136,7 @@ function createInitialBoard() {
         }
     }
     
-    // Colocar piezas blancas (jugador 2) en las últimas 3 filas
+    // Place white pieces (player 2) in the last 3 rows
     for ($row = 5; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {

@@ -224,7 +224,7 @@ class NetworkManager {
                 }
             });
             console.log('Updated playerNames:', window.game.playerNames);
-            // Actualizar la UI después de actualizar los nombres
+            // Update UI after updating names
             window.game.updateGameStatus();
         }
         
@@ -232,7 +232,7 @@ class NetworkManager {
         if (gameData.chat_messages) {
             gameData.chat_messages.forEach(msg => {
                 if (msg.player_id !== this.playerId) {
-                    // Crear un ID único para el mensaje
+                    // Create unique ID for message
                     const messageId = `${msg.id || msg.created_at}_${msg.player_id}_${msg.message}`;
                     
                     // Solo procesar si no se ha procesado antes
@@ -250,7 +250,7 @@ class NetworkManager {
             });
         }
         
-        // Verificar si el juego terminó
+        // Check if game ended
         if (gameData.winner) {
             const winnerNumber = gameData.winner;
             const winnerPlayerName = window.game.playerNames[winnerNumber] || `Jugador ${winnerNumber}`;
@@ -262,12 +262,12 @@ class NetworkManager {
         }
     }
 
-    // Método para generar código de partida único
+    // Method to generate unique game code
     generateGameCode() {
         return Math.random().toString(36).substr(2, 6).toUpperCase();
     }
 
-    // Método para reconectar en caso de pérdida de conexión
+    // Method to reconnect in case of connection loss
     async reconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             console.error('Máximo número de intentos de reconexión alcanzado');
@@ -284,7 +284,7 @@ class NetworkManager {
         }, this.reconnectDelay * this.reconnectAttempts);
     }
 
-    // Método para verificar la conexión
+    // Method to verify connection
     async checkConnection() {
         try {
             const response = await fetch('api/health_check.php');
@@ -295,7 +295,7 @@ class NetworkManager {
         }
     }
 
-    // Método para notificar fin del juego al servidor
+    // Method to notify game end to server
     async endGame(winner) {
         if (!this.gameId || !this.playerId) return;
 
@@ -317,7 +317,7 @@ class NetworkManager {
     }
 }
 
-// Inicializar el gestor de red cuando se carga la página
+// Initialize network manager when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.network = new NetworkManager();
 });

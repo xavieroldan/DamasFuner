@@ -37,7 +37,7 @@ try {
         exit;
     }
     
-    // Generar código único para la partida
+    // Generate unique code for the game
     $gameCode = generateUniqueGameCode();
     
     // Crear estado inicial del tablero
@@ -91,16 +91,16 @@ try {
 }
 
 /**
- * Genera un código único de 3 dígitos numéricos para la partida
+ * Generates a unique 3-digit numeric code for the game
  */
 function generateUniqueGameCode() {
     $maxAttempts = 10;
     
     for ($i = 0; $i < $maxAttempts; $i++) {
-        // Generar código de 3 dígitos numéricos (100-999)
+        // Generate 3-digit numeric code (100-999)
         $code = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
         
-        // Verificar que el código no exista
+        // Verify that the code does not exist
         $existing = fetchOne("SELECT id FROM games WHERE game_code = ?", [$code]);
         if (!$existing) {
             return $code;

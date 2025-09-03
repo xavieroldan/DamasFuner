@@ -1,4 +1,4 @@
-// Archivo principal de la aplicación
+// Main application file
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplicación de Damas Funer iniciada');
     
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar atajos de teclado
     setupKeyboardShortcuts();
     
-    // Mostrar información de bienvenida
+    // Show welcome information
     showWelcomeMessage();
 });
 
@@ -92,7 +92,7 @@ function showWelcomeMessage() {
     }, 1000);
 }
 
-// Función para mostrar notificaciones
+// Function to show notifications
 function showNotification(title, message) {
     if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, {
@@ -102,14 +102,14 @@ function showNotification(title, message) {
     }
 }
 
-// Función para copiar código de partida al portapapeles
+// Function to copy game code to clipboard
 function copyGameCode(code) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(code).then(() => {
             showNotification('Código copiado', `El código ${code} se ha copiado al portapapeles`);
         });
     } else {
-        // Fallback para navegadores más antiguos
+        // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = code;
         document.body.appendChild(textArea);
@@ -120,7 +120,7 @@ function copyGameCode(code) {
     }
 }
 
-// Función para mostrar estadísticas del juego
+// Function to show game statistics
 function showGameStats() {
     const stats = {
         gamesPlayed: localStorage.getItem('gamesPlayed') || 0,
@@ -137,7 +137,7 @@ Tasa de victorias: ${winRate}%
 Total de movimientos: ${stats.totalMoves}`);
 }
 
-// Función para guardar estadísticas
+// Function to save statistics
 function saveGameStats(gameResult) {
     const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
     const gamesWon = parseInt(localStorage.getItem('gamesWon') || '0') + (gameResult === 'win' ? 1 : 0);
@@ -148,7 +148,7 @@ function saveGameStats(gameResult) {
     localStorage.setItem('totalMoves', totalMoves.toString());
 }
 
-// Función para exportar partida
+// Function to export game
 function exportGame() {
     if (!window.game || !window.game.gameId) {
         alert('No hay partida activa para exportar');
@@ -172,7 +172,7 @@ function exportGame() {
     link.click();
 }
 
-// Función para importar partida
+// Function to import game
 function importGame() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -185,7 +185,7 @@ function importGame() {
             reader.onload = (e) => {
                 try {
                     const gameData = JSON.parse(e.target.result);
-                    // Aquí podrías implementar la lógica para cargar la partida
+                    // Here you could implement the logic to load the game
                     alert('Función de importación en desarrollo');
                 } catch (error) {
                     alert('Error al cargar el archivo de partida');
@@ -198,7 +198,7 @@ function importGame() {
     input.click();
 }
 
-// Función para mostrar ayuda
+// Function to show help
 function showHelp() {
     const helpText = `
 Damas Funer - Guía de uso
@@ -229,19 +229,19 @@ Reglas:
     alert(helpText);
 }
 
-// Función para cambiar el idioma (preparado para futuras implementaciones)
+// Function to change language (prepared for future implementations)
 function changeLanguage(lang) {
-    // Aquí podrías implementar la lógica para cambiar el idioma
+    // Here you could implement the logic to change language
     console.log(`Cambiando idioma a: ${lang}`);
 }
 
-// Función para ajustar la dificultad (preparado para futuras implementaciones)
+// Function to adjust difficulty (prepared for future implementations)
 function adjustDifficulty(level) {
-    // Aquí podrías implementar la lógica para ajustar la dificultad
+    // Here you could implement the logic to adjust difficulty
     console.log(`Ajustando dificultad a: ${level}`);
 }
 
-// Función para mostrar información del desarrollador
+// Function to show developer information
 function showAbout() {
     const aboutText = `
 Damas Funer v1.0

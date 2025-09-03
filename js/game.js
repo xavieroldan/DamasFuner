@@ -168,7 +168,7 @@ class DamasGame {
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
             if (this.isValidMove(this.selectedPiece, { row, col })) {
-                const fromPiece = { ...this.selectedPiece }; // Guardar la posición antes de mover
+                const fromPiece = { ...this.selectedPiece }; // Save position before moving
                 this.makeMove(this.selectedPiece, { row, col });
                 this.selectedPiece = null;
                 this.possibleMoves = [];
@@ -179,7 +179,7 @@ class DamasGame {
                     window.network.sendMove(fromPiece, { row, col });
                 }
             } else {
-                // Mostrar mensaje de movimiento no válido
+                // Show invalid move message
                 this.showInvalidMoveMessage(row, col);
                 // Seleccionar nueva pieza
                 this.selectPiece(row, col);
@@ -191,7 +191,7 @@ class DamasGame {
             // Intentar seleccionar pieza del oponente
             this.showMessage('No puedes mover las piezas del oponente', 'error');
         } else {
-            // Click en casilla vacía sin pieza seleccionada
+            // Click on empty cell without selected piece
             this.showMessage('Selecciona una pieza primero', 'info');
         }
     }
@@ -249,7 +249,7 @@ class DamasGame {
         return this.possibleMoves.some(move => move.row === to.row && move.col === to.col);
     }
 
-    // Función para obtener todas las capturas posibles de un jugador
+    // Function to obtener todas las capturas posibles de un jugador
     getAllPossibleCaptures(player) {
         const captures = [];
         const pieces = this.getPlayerPieces(player);
@@ -267,7 +267,7 @@ class DamasGame {
         return captures;
     }
 
-    // Función para obtener las piezas de un jugador
+    // Function to obtener las piezas de un jugador
     getPlayerPieces(player) {
         const pieces = [];
         for (let row = 0; row < 8; row++) {
@@ -280,7 +280,7 @@ class DamasGame {
         return pieces;
     }
 
-    // Función para obtener capturas posibles de una pieza específica
+    // Function to obtener capturas posibles de una pieza específica
     getPossibleCaptures(row, col) {
         const piece = this.board[row][col];
         if (!piece) return [];
@@ -317,7 +317,7 @@ class DamasGame {
         return captures;
     }
 
-    // Función para aplicar las reglas de captura obligatoria
+    // Function to aplicar las reglas de captura obligatoria
     applyCaptureRules(player) {
         const allCaptures = this.getAllPossibleCaptures(player);
         console.log(`Capturas encontradas para jugador ${player}:`, allCaptures);
@@ -327,7 +327,7 @@ class DamasGame {
             return null; // No hay capturas posibles
         }
         
-        // Regla 1: Mayor valor de captura (dama tiene prioridad sobre peón)
+        // Rule 1: Highest capture value (king has priority over pawn)
         const damaCaptures = allCaptures.filter(capture => 
             capture.piece.piece.isKing
         );
@@ -354,13 +354,13 @@ class DamasGame {
         
         // Capturar pieza si es necesario
         if (move && move.type === 'capture') {
-            // Añadir efecto cómico de captura
+            // Add comic capture effect
             this.addCaptureEffect(move.captured.row, move.captured.col);
             this.board[move.captured.row][move.captured.col] = null;
             this.capturedPieces[piece.player === 1 ? 'white' : 'black']++;
             this.updateCapturedPieces();
             
-            // Verificar si hay más capturas posibles después de esta
+            // Check if there are more possible captures after this
             const moreCaptures = this.getPossibleCaptures(to.row, to.col);
             if (moreCaptures.length > 0) {
                 // No cambiar turno, el mismo jugador debe continuar capturando
@@ -372,7 +372,7 @@ class DamasGame {
                     captured: { row: capture.capturedRow, col: capture.capturedCol }
                 }));
                 this.renderBoard();
-                // Verificar ganador después de captura
+                // Check winner after capture
                 this.checkWinnerIfNeeded();
                 return; // No cambiar turno
             }
@@ -381,17 +381,17 @@ class DamasGame {
         // Promover a rey
         if ((piece.player === 1 && to.row === 7) || (piece.player === 2 && to.row === 0)) {
             piece.isKing = true;
-            // Añadir efecto cómico de promoción
+            // Add comic promotion effect
             this.addPromotionEffect(to.row, to.col);
         }
         
-        // Cambiar turno solo si no hay más capturas
+        // Change turn only if no more captures
         this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.updateGameStatus();
         
-        // Verificar ganador solo después de un movimiento válido
+        // Check winner only after a valid move
         this.checkWinnerIfNeeded();
     }
 
@@ -447,7 +447,7 @@ class DamasGame {
         document.getElementById('white-captured').textContent = this.capturedPieces.white;
     }
 
-    // Función para verificar ganador solo cuando sea necesario
+    // Function to verificar ganador solo cuando sea necesario
     checkWinnerIfNeeded() {
         if (this.gameState !== 'playing') {
             return;
@@ -456,12 +456,12 @@ class DamasGame {
         const winner = this.checkWinner();
         if (winner) {
             this.endGame(winner);
-            return true; // Indica que el juego terminó
+            return true; // Indicates game ended
         }
-        return false; // El juego continúa
+        return false; // Game continues
     }
 
-    // Función para verificar si hay un ganador
+    // Function to verificar si hay un ganador
     checkWinner() {
         // Verificar si un jugador no tiene piezas (victoria por captura)
         const player1Pieces = this.getPlayerPieces(1);
@@ -475,7 +475,7 @@ class DamasGame {
         }
         
         // Verificar si el jugador actual no tiene movimientos posibles (victoria por bloqueo)
-        // Nota: this.currentPlayer ya cambió en makeMove, así que verificamos el jugador que debe jugar ahora
+        // Note: this.currentPlayer already changed in makeMove, so we check the player who should play now
         const currentPlayerPieces = this.currentPlayer === 1 ? player1Pieces : player2Pieces;
         
         // Solo verificar bloqueo si el jugador tiene piezas
@@ -513,18 +513,18 @@ class DamasGame {
                 }
             }
             
-            // Si el jugador actual no puede hacer ningún movimiento, el oponente gana
+            // If current player cannot make any move, opponent wins
             if (!hasAnyValidMove) {
                 return this.currentPlayer === 1 ? 2 : 1;
             }
         }
         
-        return null; // No hay ganador aún
+        return null; // No winner yet
     }
 
-    // Función para finalizar el juego
+    // Function to finalizar el juego
     endGame(winner) {
-        // Evitar finalizar el juego si ya está terminado
+        // Avoid ending game if already finished
         if (this.gameState === 'finished') {
             return;
         }
@@ -544,7 +544,7 @@ class DamasGame {
         // Mostrar mensaje de victoria
         this.showMessage(`¡${winnerName} ha ganado la partida!`, 'success');
         
-        // Añadir mensaje al chat
+        // Add message to chat
         this.addChatMessage('system', `🎉 ¡${winnerName} ha ganado la partida!`);
         
         // Deshabilitar interacciones del tablero
@@ -662,10 +662,10 @@ class DamasGame {
     addChatMessage(sender, message) {
         const chatMessages = document.getElementById('chat-messages');
         
-        // Verificar si el último mensaje es el mismo para evitar duplicados
+        // Check if last message is the same to avoid duplicates
         const lastMessage = chatMessages.lastElementChild;
         if (lastMessage && lastMessage.textContent === message) {
-            return; // No añadir mensaje duplicado
+            return; // Don't add duplicate message
         }
         
         const messageElement = document.createElement('div');
@@ -675,7 +675,7 @@ class DamasGame {
         if (sender === 'system') {
             messageElement.textContent = message;
         } else {
-            // Para mensajes de jugadores, añadir el nombre del jugador
+            // For player messages, add player name
             const playerNumber = sender === 'player1' ? 1 : 2;
             const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
             console.log(`Chat message: sender=${sender}, playerNumber=${playerNumber}, playerName=${playerName}, playerNames=`, this.playerNames);
@@ -686,7 +686,7 @@ class DamasGame {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Función para mostrar mensajes informativos
+    // Function to mostrar mensajes informativos
     showMessage(message, type = 'info') {
         // Crear elemento de mensaje si no existe
         let messageElement = document.getElementById('game-message');
@@ -702,13 +702,13 @@ class DamasGame {
         messageElement.className = `game-message ${type}`;
         messageElement.style.display = 'block';
 
-        // Ocultar el mensaje después de 3 segundos
+        // Hide message after 3 seconds
         setTimeout(() => {
             messageElement.style.display = 'none';
         }, 3000);
     }
 
-    // Función para mostrar mensaje específico de movimiento no válido
+    // Function to mostrar mensaje específico de movimiento no válido
     showInvalidMoveMessage(row, col) {
         const mandatoryCapture = this.applyCaptureRules(this.currentPlayer);
         
@@ -735,7 +735,7 @@ class DamasGame {
     }
 
     setupChatEventListeners() {
-        // Event listener para el botón de enviar
+        // Event listener for send button
         const sendBtn = document.getElementById('send-btn');
         if (sendBtn) {
             sendBtn.addEventListener('click', () => {
@@ -765,50 +765,50 @@ class DamasGame {
         this.updateGameStatus();
     }
 
-    // Función para añadir efecto cómico de captura
+    // Function to añadir efecto cómico de captura
     addCaptureEffect(row, col) {
         const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (cell) {
             const piece = cell.querySelector('.piece');
             if (piece) {
                 piece.classList.add('capturing');
-                // Remover la clase después de la animación
+                // Remove class after animation
                 setTimeout(() => {
                     piece.classList.remove('capturing');
                 }, 800);
             }
         }
         
-        // Mostrar mensaje cómico
+        // Show comic message
         this.showMessage('¡BOOM! 💥 ¡Captura épica!', 'success');
     }
 
-    // Función para añadir efecto cómico de promoción
+    // Function to añadir efecto cómico de promoción
     addPromotionEffect(row, col) {
         const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (cell) {
             const piece = cell.querySelector('.piece');
             if (piece) {
                 piece.classList.add('promoting');
-                // Remover la clase después de la animación
+                // Remove class after animation
                 setTimeout(() => {
                     piece.classList.remove('promoting');
                 }, 1500);
             }
         }
         
-        // Mostrar mensaje cómico
+        // Show comic message
         this.showMessage('¡CORONACIÓN! 👑 ¡Ahora eres una DAMA!', 'success');
     }
 
-    // Función para añadir efecto cómico de movimiento
+    // Function to añadir efecto cómico de movimiento
     addMoveEffect(row, col) {
         const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (cell) {
             const piece = cell.querySelector('.piece');
             if (piece) {
                 piece.classList.add('moving');
-                // Remover la clase después de la animación
+                // Remove class after animation
                 setTimeout(() => {
                     piece.classList.remove('moving');
                 }, 500);
@@ -817,9 +817,9 @@ class DamasGame {
     }
 }
 
-// Inicializar el juego cuando se carga la página
+// Initialize game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.game = new DamasGame();
     window.game.renderBoard();
-    window.game.setupChatEventListeners(); // Asegurar que los event listeners del chat se añadan después del DOM
+    window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
 });

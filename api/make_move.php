@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Solo permitir método POST
+// Only allow POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -37,7 +37,7 @@ try {
         throw new Exception('Coordenadas inválidas');
     }
     
-    // Obtener información de la partida
+    // Get game information
     $game = fetchOne("SELECT * FROM games WHERE id = ? AND game_status = 'playing'", [$gameId]);
     if (!$game) {
         throw new Exception('Partida no encontrada o no está en juego');
@@ -127,7 +127,7 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
     $toRow = $to['row'];
     $toCol = $to['col'];
     
-    // Verificar que hay una pieza en la posición de origen
+    // Verify there is a piece at the source position
     if (!$board[$fromRow][$fromCol]) {
         return ['valid' => false, 'message' => 'No hay pieza en la posición de origen'];
     }
@@ -140,7 +140,7 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
         return ['valid' => false, 'message' => 'La pieza no te pertenece'];
     }
     
-    // Verificar que la posición de destino está vacía
+    // Verify that the destination position is empty
     if ($board[$toRow][$toCol]) {
         return ['valid' => false, 'message' => 'La posición de destino está ocupada'];
     }
@@ -153,7 +153,7 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
         return ['valid' => false, 'message' => 'Solo se permiten movimientos diagonales'];
     }
     
-    // Verificar dirección del movimiento para piezas normales
+    // Verify movement direction for normal pieces
     if (!$piece['isKing']) {
         if ($piece['player'] === 1 && $toRow <= $fromRow) {
             return ['valid' => false, 'message' => 'Las piezas negras solo pueden moverse hacia abajo'];
@@ -179,7 +179,7 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
         if ($board[$middleRow][$middleCol] && 
             $board[$middleRow][$middleCol]['player'] !== $piece['player']) {
             
-            // Es una captura válida
+            // It is a valid capture
             $newBoard[$middleRow][$middleCol] = null;
             $capturedRow = $middleRow;
             $capturedCol = $middleCol;
@@ -206,7 +206,7 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
     $newBoard[$toRow][$toCol] = $piece;
     $newBoard[$fromRow][$fromCol] = null;
     
-    // Verificar promoción a rey
+    // Verify promotion to king
     if (!$piece['isKing']) {
         if (($piece['player'] === 1 && $toRow === 7) || 
             ($piece['player'] === 2 && $toRow === 0)) {
@@ -259,7 +259,7 @@ function checkGameEnd($board) {
 }
 
 /**
- * Obtiene el número de jugador (1 o 2) basado en el ID
+ * Gets the player number (1 or 2) based on the ID
  */
 function getPlayerNumber($playerId, $gameId) {
     $player = fetchOne("SELECT player_number FROM players WHERE id = ? AND game_id = ?", [$playerId, $gameId]);
@@ -267,7 +267,7 @@ function getPlayerNumber($playerId, $gameId) {
 }
 
 /**
- * Valida que una posición esté dentro del tablero
+ * Validates that a position is within the board
  */
 function isValidPosition($row, $col) {
     return $row >= 0 && $row < 8 && $col >= 0 && $col < 8;

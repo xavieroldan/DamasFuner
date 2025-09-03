@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Solo permitir método POST
+// Only allow POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -50,7 +50,7 @@ try {
         $message = $player['name'] . " ha abandonado la partida.";
         $stmt->execute([$gameId, $message]);
         
-        // Si la partida está en progreso, declarar ganador al oponente
+        // If the game is in progress, declare the opponent as winner
         if ($game['game_status'] === 'playing') {
             $winner = $player['player_number'] === 1 ? 2 : 1;
             $sql = "UPDATE games SET game_status = 'finished', winner = ? WHERE id = ?";
@@ -63,7 +63,7 @@ try {
             $winnerMessage = "¡Partida terminada! El jugador " . ($winner === 1 ? "1" : "2") . " gana por abandono.";
             $stmt->execute([$gameId, $winnerMessage]);
         } else {
-            // Si la partida está esperando, eliminarla
+            // If the game is waiting, delete it
             $sql = "DELETE FROM games WHERE id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$gameId]);
