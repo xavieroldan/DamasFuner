@@ -879,10 +879,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
         
         // Initialize game with URL parameters
+        console.log('=== GAME INITIALIZATION ===');
+        console.log('URL params - gameId:', gameId, 'playerId:', playerId, 'playerName:', playerName);
+        console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
+        
         window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
         window.network.gameId = parseInt(gameId);
         window.network.playerId = parseInt(playerId);
         window.network.playerName = decodeURIComponent(playerName);
+        
+        console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
+        console.log('=== END GAME INITIALIZATION ===');
         
         // Load initial game state to get both player names
         window.network.loadInitialGameState();

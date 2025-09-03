@@ -321,6 +321,8 @@ class NetworkManager {
         try {
             console.log('=== LOADING INITIAL GAME STATE ===');
             console.log('Loading initial game state for game:', this.gameId, 'player:', this.playerId);
+            console.log('My playerId from URL:', this.playerId);
+            console.log('My playerName from URL:', this.playerName);
             const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
             const data = await response.json();
             
