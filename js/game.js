@@ -197,8 +197,17 @@ class DamasGame {
     }
 
     selectPiece(row, col) {
+        console.log(`=== SELECTING PIECE DEBUG ===`);
+        console.log(`Selected piece at (${row}, ${col}):`, this.board[row][col]);
+        console.log(`Current player: ${this.currentPlayer}`);
+        console.log(`Piece player: ${this.board[row][col].player}`);
+        
         this.selectedPiece = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col);
+        
+        console.log(`Possible moves:`, this.possibleMoves);
+        console.log(`=== END SELECTING PIECE DEBUG ===`);
+        
         this.renderBoard();
     }
 
@@ -673,7 +682,7 @@ class DamasGame {
         this.playerId = playerId;
         this.gameId = gameId;
         this.playerName = playerName; // Store current player name
-        this.playerNames[playerId] = playerName; // Store player name by ID
+        // Don't set playerNames here - it will be set by loadInitialGameState
         this.gameState = 'playing';
         this.gameEndNotified = false;
         
