@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (gameId && playerId && playerName) {
         window.game = new DamasGame();
-        // Don't create a new NetworkManager here - use the existing one from network.js
+        window.network = new NetworkManager();
         window.game.renderBoard();
         window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
         
@@ -933,23 +933,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
         
         window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
+        window.network.gameId = parseInt(gameId);
+        window.network.playerId = parseInt(playerId);
+        window.network.playerName = decodeURIComponent(playerName);
         
-        // Set network manager values
-        if (window.network) {
-            window.network.gameId = parseInt(gameId);
-            window.network.playerId = parseInt(playerId);
-            window.network.playerName = decodeURIComponent(playerName);
-            
-            console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
-            
-            // Load initial game state to get both player names
-            window.network.loadInitialGameState();
-            
-            // Start polling for game updates
-            window.network.startPolling();
-        }
-        
+        console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
         console.log('=== END GAME INITIALIZATION ===');
+        
+        // Load initial game state to get both player names
+        window.network.loadInitialGameState();
+        
+        // Start polling for game updates
+        window.network.startPolling();
     } else {
         // Redirect to home if no valid parameters
         window.location.href = 'home.html';
