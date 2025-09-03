@@ -444,18 +444,30 @@ class DamasGame {
         }
         
         if (this.gameState === 'playing') {
-            const playerNumber = this.currentPlayer;
-            const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
-            const colorText = playerNumber === 1 ? '(Blancas)' : '(Negras)';
-            const fullPlayerName = `${playerName} ${colorText}`;
+            // Show current player's name in the header (who should play now)
+            const currentPlayerNumber = this.currentPlayer;
+            const currentPlayerName = this.playerNames[currentPlayerNumber] || `Jugador ${currentPlayerNumber}`;
+            const currentColorText = currentPlayerNumber === 1 ? '(Blancas)' : '(Negras)';
+            const currentFullPlayerName = `${currentPlayerName} ${currentColorText}`;
             
-            console.log('Setting player name to:', fullPlayerName);
+            // Show my own name in the header
+            const myPlayerName = this.playerNames[this.myPlayerNumber] || `Jugador ${this.myPlayerNumber}`;
+            const myColorText = this.myPlayerNumber === 1 ? '(Blancas)' : '(Negras)';
+            const myFullPlayerName = `${myPlayerName} ${myColorText}`;
+            
+            console.log('Current player (who should play):', currentFullPlayerName);
+            console.log('My player name:', myFullPlayerName);
+            console.log('Is it my turn?', this.currentPlayer === this.myPlayerNumber);
             
             if (playerElement) {
-                playerElement.textContent = fullPlayerName;
+                playerElement.textContent = myFullPlayerName; // Show my own name
             }
             if (statusElement) {
-                statusElement.textContent = `Turno de ${fullPlayerName}`;
+                if (this.currentPlayer === this.myPlayerNumber) {
+                    statusElement.textContent = `Tu turno`;
+                } else {
+                    statusElement.textContent = `Turno de ${currentPlayerName}`;
+                }
             }
             
             // Update board overlay based on current player
