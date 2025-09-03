@@ -936,6 +936,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Set network manager values - wait for network.js to load
         const initializeNetwork = () => {
+            console.log('=== INITIALIZE NETWORK DEBUG ===');
+            console.log('window.network exists?', !!window.network);
+            console.log('window.network:', window.network);
+            
             if (window.network) {
                 window.network.gameId = parseInt(gameId);
                 window.network.playerId = parseInt(playerId);
@@ -948,12 +952,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Start polling for game updates
                 window.network.startPolling();
+                console.log('=== NETWORK INITIALIZATION COMPLETE ===');
             } else {
+                console.log('Network manager not ready yet, retrying in 100ms...');
                 // Network manager not ready yet, try again in 100ms
                 setTimeout(initializeNetwork, 100);
             }
         };
         
+        console.log('Starting network initialization...');
         initializeNetwork();
         
         console.log('=== END GAME INITIALIZATION ===');
