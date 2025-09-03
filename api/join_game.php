@@ -67,8 +67,8 @@ try {
         $stmt->execute([$playerName, $game['id']]);
         $playerId = $conn->lastInsertId();
         
-        // Actualizar la partida con el ID del jugador 2 y cambiar estado a 'playing'
-        $sql = "UPDATE games SET player2_id = ?, game_status = 'playing' WHERE id = ?";
+        // Actualizar la partida con el ID del jugador 2, cambiar estado a 'playing' y establecer current_player
+        $sql = "UPDATE games SET player2_id = ?, game_status = 'playing', current_player = 1 WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->execute([$playerId, $game['id']]);
         
