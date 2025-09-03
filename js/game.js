@@ -457,7 +457,10 @@ class DamasGame {
         }
         
         // Check if it's the current player's turn
+        // this.currentPlayer is who should play now, this.playerId is my ID
         const isMyTurn = this.currentPlayer === this.playerId;
+        
+        console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerId=${this.playerId}, isMyTurn=${isMyTurn}`);
         
         if (isMyTurn) {
             overlay.className = 'board-overlay active';
@@ -702,6 +705,7 @@ class DamasGame {
             // Para mensajes de jugadores, añadir el nombre del jugador
             const playerNumber = sender === 'player1' ? 1 : 2;
             const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
+            console.log(`Chat message: sender=${sender}, playerNumber=${playerNumber}, playerName=${playerName}, playerNames=`, this.playerNames);
             messageElement.textContent = `${playerName}: ${message}`;
         }
         

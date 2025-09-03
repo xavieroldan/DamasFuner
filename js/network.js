@@ -216,11 +216,14 @@ class NetworkManager {
         
         // Actualizar nombres de jugadores
         if (gameData.players) {
+            console.log('Updating player names from server:', gameData.players);
             gameData.players.forEach(player => {
                 if (player.name) {
                     window.game.playerNames[player.player_number] = player.name;
+                    console.log(`Set player ${player.player_number} name to: ${player.name}`);
                 }
             });
+            console.log('Updated playerNames:', window.game.playerNames);
             // Actualizar la UI después de actualizar los nombres
             window.game.updateGameStatus();
         }
