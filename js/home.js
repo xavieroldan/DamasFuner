@@ -173,8 +173,11 @@ class HomeManager {
                 const response = await fetch(`api/get_game_state.php?game_id=${this.network.gameId}&player_id=${this.network.playerId}`);
                 const data = await response.json();
                 
-                if (data.success && data.game_state === 'playing') {
+                console.log('Polling game state:', data);
+                
+                if (data.success && (data.game_state === 'playing' || (data.players && data.players.length >= 2))) {
                     // Second player joined, redirect to game
+                    console.log('Second player detected, redirecting...');
                     clearInterval(pollInterval);
                     this.hideWaitingSpinner();
                     window.location.href = `index.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;

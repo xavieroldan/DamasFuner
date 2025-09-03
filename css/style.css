@@ -774,6 +774,102 @@ main {
         gap: 20px;
     }
     
+    /* Home page responsive styles */
+    .home-area {
+        padding: 20px 15px;
+    }
+    
+    .welcome-section {
+        margin-bottom: 30px;
+    }
+    
+    .welcome-section h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .welcome-section p {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+    
+    .game-options {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 100%;
+    }
+    
+    .option-card {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+    
+    .option-card p {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    
+    .btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    /* Modal responsive */
+    .modal-content {
+        margin: 20px;
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 40px);
+    }
+    
+    .waiting-content {
+        padding: 30px 20px;
+    }
+    
+    .spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .game-code {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .home-area {
+        padding: 30px 20px;
+    }
+    
+    .welcome-section h2 {
+        font-size: 2.2rem;
+    }
+    
+    .game-options {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+    
+    .option-card {
+        padding: 25px;
+    }
+    
+    .option-card h3 {
+        font-size: 1.4rem;
+    }
+    
+    .modal-content {
+        margin: 30px;
+        max-width: 500px;
+    }
+}
+    
     .board {
         grid-template-columns: repeat(8, 45px);
         grid-template-rows: repeat(8, 45px);
