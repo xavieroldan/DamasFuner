@@ -60,6 +60,19 @@ header h1 {
     transform-origin: center;
 }
 
+header h1 .home-link {
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+header h1 .home-link:hover {
+    color: #ffd700;
+    text-shadow: 2px 2px 8px rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+}
+
 /* Comic title effect */
 @keyframes titleWiggle {
     0%, 100% {

@@ -124,8 +124,8 @@ try {
 function createInitialBoard() {
     $board = array_fill(0, 8, array_fill(0, 8, null));
     
-    // Colocar piezas negras (jugador 1) en las primeras 3 filas
-    for ($row = 0; $row < 3; $row++) {
+    // Place white pieces (player 1) in the last 3 rows
+    for ($row = 5; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
@@ -136,8 +136,8 @@ function createInitialBoard() {
         }
     }
     
-    // Place white pieces (player 2) in the last 3 rows
-    for ($row = 5; $row < 8; $row++) {
+    // Place black pieces (player 2) in the first 3 rows
+    for ($row = 0; $row < 3; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
