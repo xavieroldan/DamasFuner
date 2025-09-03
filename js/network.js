@@ -347,6 +347,20 @@ class NetworkManager {
                     console.log('Set player 2 name to:', gameData.player2_name);
                 }
                 
+                // Determine my player number based on my playerId and player names
+                if (gameData.player1_name === this.playerName) {
+                    window.game.myPlayerNumber = 1;
+                    console.log('I am Player 1 (Whites)');
+                } else if (gameData.player2_name === this.playerName) {
+                    window.game.myPlayerNumber = 2;
+                    console.log('I am Player 2 (Blacks)');
+                } else {
+                    console.error('Could not determine my player number!');
+                    console.log('My name:', this.playerName);
+                    console.log('Player 1 name:', gameData.player1_name);
+                    console.log('Player 2 name:', gameData.player2_name);
+                }
+                
                 // Set current player from server
                 if (gameData.current_player) {
                     window.game.currentPlayer = gameData.current_player;
@@ -360,6 +374,7 @@ class NetworkManager {
                 }
                 
                 console.log('Final playerNames object:', window.game.playerNames);
+                console.log('Final myPlayerNumber:', window.game.myPlayerNumber);
                 console.log('Final currentPlayer:', window.game.currentPlayer);
                 console.log('Final gameState:', window.game.gameState);
                 

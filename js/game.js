@@ -6,7 +6,8 @@ class DamasGame {
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
         this.capturedPieces = { black: 0, white: 0 };
-        this.playerId = null;
+        this.playerId = null; // Database player ID
+        this.myPlayerNumber = null; // My player number (1 or 2)
         this.gameId = null;
         this.playerName = null; // Current player name
         this.playerNames = { 1: null, 2: null }; // Store both player names
@@ -184,10 +185,10 @@ class DamasGame {
                 // Seleccionar nueva pieza
                 this.selectPiece(row, col);
             }
-        } else if (piece && piece.player === this.currentPlayer) {
+        } else if (piece && piece.player === this.myPlayerNumber) {
             // Seleccionar pieza
             this.selectPiece(row, col);
-        } else if (piece && piece.player !== this.currentPlayer) {
+        } else if (piece && piece.player !== this.myPlayerNumber) {
             // Intentar seleccionar pieza del oponente
             this.showMessage('No puedes mover las piezas del oponente', 'error');
         } else {
@@ -216,7 +217,7 @@ class DamasGame {
         if (!piece) return [];
 
         // Verificar si hay capturas obligatorias
-        const mandatoryCapture = this.applyCaptureRules(piece.player);
+        const mandatoryCapture = this.applyCaptureRules(this.myPlayerNumber);
         
         if (mandatoryCapture) {
             console.log('Captura obligatoria detectada:', mandatoryCapture);
@@ -477,10 +478,10 @@ class DamasGame {
         }
         
         // Check if it's the current player's turn
-        // this.currentPlayer is who should play now, this.playerId is my ID
-        const isMyTurn = this.currentPlayer === this.playerId;
+        // this.currentPlayer is who should play now, this.myPlayerNumber is my player number (1 or 2)
+        const isMyTurn = this.currentPlayer === this.myPlayerNumber;
         
-        console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerId=${this.playerId}, isMyTurn=${isMyTurn}`);
+        console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerNumber=${this.myPlayerNumber}, isMyTurn=${isMyTurn}`);
         
         if (isMyTurn) {
             overlay.className = 'board-overlay active';
@@ -695,6 +696,7 @@ class DamasGame {
         this.gameId = gameId;
         this.playerName = playerName; // Store current player name
         // Don't set playerNames here - it will be set by loadInitialGameState
+        // Don't set myPlayerNumber here - it will be set by loadInitialGameState
         this.gameState = 'playing';
         this.gameEndNotified = false;
         
@@ -757,7 +759,7 @@ class DamasGame {
 
     // Function to mostrar mensaje específico de movimiento no válido
     showInvalidMoveMessage(row, col) {
-        const mandatoryCapture = this.applyCaptureRules(this.currentPlayer);
+        const mandatoryCapture = this.applyCaptureRules(this.myPlayerNumber);
         
         if (mandatoryCapture) {
             if (mandatoryCapture.piece.row !== this.selectedPiece.row || 
