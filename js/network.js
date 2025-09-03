@@ -352,13 +352,22 @@ class NetworkManager {
                 console.log('My playerName from URL:', this.playerName);
                 console.log('Player 1 name from server:', gameData.player1_name);
                 console.log('Player 2 name from server:', gameData.player2_name);
-                console.log('Player 1 name === my name?', gameData.player1_name === this.playerName);
-                console.log('Player 2 name === my name?', gameData.player2_name === this.playerName);
                 
-                if (gameData.player1_name === this.playerName) {
+                // Clean names for comparison (trim whitespace)
+                const myCleanName = this.playerName ? this.playerName.trim() : '';
+                const player1CleanName = gameData.player1_name ? gameData.player1_name.trim() : '';
+                const player2CleanName = gameData.player2_name ? gameData.player2_name.trim() : '';
+                
+                console.log('My clean name:', myCleanName);
+                console.log('Player 1 clean name:', player1CleanName);
+                console.log('Player 2 clean name:', player2CleanName);
+                console.log('Player 1 name === my name?', player1CleanName === myCleanName);
+                console.log('Player 2 name === my name?', player2CleanName === myCleanName);
+                
+                if (player1CleanName === myCleanName) {
                     window.game.myPlayerNumber = 1;
                     console.log('✅ I am Player 1 (Whites)');
-                } else if (gameData.player2_name === this.playerName) {
+                } else if (player2CleanName === myCleanName) {
                     window.game.myPlayerNumber = 2;
                     console.log('✅ I am Player 2 (Blacks)');
                 } else {
