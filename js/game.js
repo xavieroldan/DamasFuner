@@ -934,34 +934,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
         
-        // Set network manager values - wait for network.js to load
-        const initializeNetwork = () => {
-            console.log('=== INITIALIZE NETWORK DEBUG ===');
-            console.log('window.network exists?', !!window.network);
-            console.log('window.network:', window.network);
+        // Set network manager values
+        if (window.network) {
+            window.network.gameId = parseInt(gameId);
+            window.network.playerId = parseInt(playerId);
+            window.network.playerName = decodeURIComponent(playerName);
             
-            if (window.network) {
-                window.network.gameId = parseInt(gameId);
-                window.network.playerId = parseInt(playerId);
-                window.network.playerName = decodeURIComponent(playerName);
-                
-                console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
-                
-                // Load initial game state to get both player names
-                window.network.loadInitialGameState();
-                
-                // Start polling for game updates
-                window.network.startPolling();
-                console.log('=== NETWORK INITIALIZATION COMPLETE ===');
-            } else {
-                console.log('Network manager not ready yet, retrying in 100ms...');
-                // Network manager not ready yet, try again in 100ms
-                setTimeout(initializeNetwork, 100);
-            }
-        };
-        
-        console.log('Starting network initialization...');
-        initializeNetwork();
+            console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
+            
+            // Load initial game state to get both player names
+            window.network.loadInitialGameState();
+            
+            // Start polling for game updates
+            window.network.startPolling();
+        }
         
         console.log('=== END GAME INITIALIZATION ===');
     } else {

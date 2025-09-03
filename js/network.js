@@ -112,16 +112,7 @@ class NetworkManager {
     }
 
     async sendMove(from, to) {
-        console.log(`=== SENDMOVE DEBUG ===`);
-        console.log(`this.gameId:`, this.gameId);
-        console.log(`this.playerId:`, this.playerId);
-        console.log(`from:`, from);
-        console.log(`to:`, to);
-        
-        if (!this.gameId || !this.playerId) {
-            console.log(`❌ sendMove aborted: gameId or playerId is null/undefined`);
-            return;
-        }
+        if (!this.gameId || !this.playerId) return;
 
         try {
             console.log(`=== SENDING MOVE REQUEST ===`);
