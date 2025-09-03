@@ -337,39 +337,12 @@ class DamasGame {
             allCaptures.splice(0, allCaptures.length, ...damaCaptures);
         }
         
-        // Regla 2: Mayor número de piezas capturadas
-        let maxCaptures = 0;
-        let bestCapture = null;
-        
-        for (const capture of allCaptures) {
-            const totalCaptures = this.countTotalCaptures(capture.piece.row, capture.piece.col, capture.captures);
-            if (totalCaptures > maxCaptures) {
-                maxCaptures = totalCaptures;
-                bestCapture = capture;
-            }
-        }
-        
-        console.log('Mejor captura encontrada:', bestCapture);
-        return bestCapture;
+        // Return the first available capture (no longer prioritizing by number of pieces)
+        console.log('Mejor captura encontrada:', allCaptures[0]);
+        return allCaptures[0];
     }
 
-    // Función para contar el total de piezas capturadas en una secuencia
-    countTotalCaptures(startRow, startCol, captures) {
-        let total = 0;
-        let currentRow = startRow;
-        let currentCol = startCol;
-        
-        for (const capture of captures) {
-            total++;
-            // Calcular la posición después de la captura
-            const rowDiff = capture.row - currentRow;
-            const colDiff = capture.col - currentCol;
-            currentRow = capture.row + rowDiff;
-            currentCol = capture.col + colDiff;
-        }
-        
-        return total;
-    }
+
 
     makeMove(from, to) {
         const piece = this.board[from.row][from.col];

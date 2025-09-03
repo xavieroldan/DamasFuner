@@ -134,7 +134,6 @@ damas-online/
 - Las piezas se mueven diagonalmente
 - Las capturas son obligatorias cuando están disponibles
 - **Regla de Mayor Valor de Captura**: Si puedes capturar con varias piezas, debes usar la pieza de mayor rango (dama tiene prioridad sobre peón)
-- **Regla de Mayor Número de Piezas**: Si tienes varias opciones de captura con la misma pieza, debes elegir la que capture más fichas en esa jugada
 - Las piezas se convierten en damas al llegar al final del tablero
 - Las damas pueden moverse en cualquier dirección diagonal
 - **Condiciones de victoria**:
@@ -307,7 +306,7 @@ Si tienes problemas o preguntas:
 ### v1.1.0
 - ✅ Implementadas reglas de captura obligatoria de la versión española/internacional
 - ✅ Regla de "Mayor valor de captura" (dama tiene prioridad sobre peón)
-- ✅ Regla de "Mayor número de piezas" (elegir captura que coma más fichas)
+
 - ✅ Corrección de terminología: "reyes" → "damas"
 - ✅ Mejoras en la lógica de capturas múltiples
 - ✅ Sistema de mensajes informativos para movimientos no válidos
