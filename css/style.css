@@ -634,6 +634,10 @@ main {
 }
 
 /* Home page styles */
+.home-area .game-info p {
+    color: #e0e0e0;
+    font-size: 1.1rem;
+}
 .home-area {
     display: flex;
     flex-direction: column;
@@ -659,7 +663,7 @@ main {
 
 .welcome-section p {
     font-size: 1.2rem;
-    color: #666;
+    color: #e0e0e0;
     max-width: 600px;
     margin: 0 auto;
 }
@@ -692,11 +696,11 @@ main {
 .option-card h3 {
     font-size: 1.5rem;
     margin-bottom: 15px;
-    color: #333;
+    color: #ffffff;
 }
 
 .option-card p {
-    color: #666;
+    color: #e0e0e0;
     margin-bottom: 25px;
     line-height: 1.6;
 }
