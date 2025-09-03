@@ -17,12 +17,24 @@ jobs:
     environment: PRD
 
     steps:
-      - name: Checkout  repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache apt packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            /var/cache/apt
+            /var/lib/apt/lists
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/lockfiles') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
       - name: Install lftp
-        run: sudo apt-get install -y lftp        
-        
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
       - name: Deploy via lftp
         run: |
-          lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /; quit"          
+          lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /; quit"
