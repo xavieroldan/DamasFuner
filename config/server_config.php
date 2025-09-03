@@ -1,7 +1,7 @@
 <?php
 /**
- * Example server configuration for Damas Funer
- * Copy this file to server_config.php and update with your actual credentials
+ * Server-specific configuration for Damas Funer
+ * This file should be customized for your hosting environment
  */
 
 // Database configuration for your hosting provider
@@ -15,8 +15,8 @@
 
 define('DB_HOST', 'your_database_host_here'); // IMPORTANT: Replace with the actual host provided by your hosting
 define('DB_NAME', '6774344_damas_online');
-define('DB_USER', 'your_db_user'); // Replace with your actual database username
-define('DB_PASS', 'your_actual_password_here'); // Replace with your actual database password
+define('DB_USER', 'your_db_user'); // The actual username from the error
+define('DB_PASS', 'your_actual_password_here'); // Replace with the correct password for damasfuner user
 
 // Alternative configuration for different hosting providers
 // Uncomment and modify the lines below if needed:
@@ -48,5 +48,3 @@ $_ENV['DB_PASS'] = DB_PASS;
 // Log configuration for debugging
 error_log("Server config loaded - Host: " . DB_HOST . ", DB: " . DB_NAME . ", User: " . DB_USER);
 ?>
-
-
