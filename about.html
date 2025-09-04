@@ -346,9 +346,14 @@ http://tu-servidor.com/damas-funer/
             <h3>Reglas del Juego</h3>
             <ul>
                 <li>Las piezas se mueven diagonalmente</li>
-                <li>Las capturas son obligatorias cuando están disponibles</li>
-                <li><strong>Regla de Mayor Valor de Captura</strong>: Si puedes capturar con varias piezas, debes usar la pieza de mayor rango (dama tiene prioridad sobre peón)</li>
-                <li><strong>Regla de Mayor Número de Piezas</strong>: Si tienes varias opciones de captura con la misma pieza, debes elegir la que capture más fichas en esa jugada</li>
+                <li><strong>Las capturas son obligatorias</strong> cuando están disponibles</li>
+                <li><strong>Reglas de captura obligatoria</strong>:
+                    <ol>
+                        <li>Si un peón amenaza a otro, está obligado a capturarlo</li>
+                        <li>Si varios peones amenazan la misma pieza, uno de ellos debe capturarla</li>
+                        <li>Si peones y damas amenazan la misma pieza, la dama está obligada a capturarla</li>
+                    </ol>
+                </li>
                 <li>Las piezas se convierten en damas al llegar al final del tablero</li>
                 <li>Las damas pueden moverse en cualquier dirección diagonal</li>
                 <li><strong>Condiciones de victoria</strong>:

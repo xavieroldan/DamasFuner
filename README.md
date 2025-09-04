@@ -132,8 +132,11 @@ damas-online/
 ### Reglas del Juego
 
 - Las piezas se mueven diagonalmente
-- Las capturas son obligatorias cuando están disponibles
-- **Regla de Mayor Valor de Captura**: Si puedes capturar con varias piezas, debes usar la pieza de mayor rango (dama tiene prioridad sobre peón)
+- **Las capturas son obligatorias** cuando están disponibles
+- **Reglas de captura obligatoria**:
+  1. Si un peón amenaza a otro, está obligado a capturarlo
+  2. Si varios peones amenazan la misma pieza, uno de ellos debe capturarla
+  3. Si peones y damas amenazan la misma pieza, la dama está obligada a capturarla
 - Las piezas se convierten en damas al llegar al final del tablero
 - Las damas pueden moverse en cualquier dirección diagonal
 - **Condiciones de victoria**:

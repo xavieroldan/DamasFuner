@@ -636,3 +636,52 @@ main {
         padding: 20px;
     }
 }
+
+/* Game messages */
+.game-message {
+    position: fixed !important;
+    top: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 15px 25px !important;
+    border-radius: 25px !important;
+    font-weight: bold !important;
+    font-size: 1.1em !important;
+    z-index: 10000 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    animation: messageSlideIn 0.3s ease-out !important;
+    max-width: 90% !important;
+    text-align: center !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.game-message.error {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+    color: white !important;
+    border: 2px solid #ff5252 !important;
+}
+
+.game-message.success {
+    background: linear-gradient(135deg, #51cf66, #40c057) !important;
+    color: white !important;
+    border: 2px solid #51cf66 !important;
+}
+
+.game-message.info {
+    background: linear-gradient(135deg, #74c0fc, #339af0) !important;
+    color: white !important;
+    border: 2px solid #74c0fc !important;
+}
+
+@keyframes messageSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}

@@ -191,52 +191,137 @@ class DamasGame {
         
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
-            // Obtener la pieza seleccionada del tablero
-            const selectedPieceData = this.board[this.selectedPiece.row][this.selectedPiece.col];
+            // Si haces clic en otra pieza del mismo color, reiniciar turno
+            if (piece && piece.player === this.myPlayerNumber) {
+                console.log('=== REINICIANDO TURNO ===');
+                console.log('Deseleccionando pieza anterior:', this.selectedPiece);
+                this.selectedPiece = null;
+                this.possibleMoves = [];
+                this.renderBoard();
+                // Reiniciar el proceso de selección desde cero
+                console.log('=== INICIANDO NUEVA SELECCIÓN ===');
+                console.log(`Nueva pieza en (${row}, ${col}):`, piece);
+                
+                            // Verificar si hay capturas obligatorias antes de seleccionar
+            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+            console.log(`=== VERIFICACIÓN DE CAPTURAS OBLIGATORIAS ===`);
+            console.log(`Mandatory captures:`, mandatoryCaptures);
+            console.log(`Length:`, mandatoryCaptures ? mandatoryCaptures.length : 'null');
             
-            console.log(`=== MOVEMENT VALIDATION ===`);
-            console.log(`Selected piece data:`, selectedPieceData);
-            console.log(`Selected piece player:`, selectedPieceData ? selectedPieceData.player : 'null');
-            console.log(`My player number:`, this.myPlayerNumber);
-            console.log(`Is my piece?`, selectedPieceData && selectedPieceData.player === this.myPlayerNumber);
-            
-            // Verificar que la pieza seleccionada es del jugador actual
-            if (selectedPieceData && selectedPieceData.player !== this.myPlayerNumber) {
-                console.log('❌ Cannot move opponent piece');
-                this.showMessage('No puedes mover las piezas del oponente', 'error');
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                    capture.piece.row === row && capture.piece.col === col
+                );
+                
+                console.log(`Verificando pieza en (${row}, ${col})`);
+                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                console.log(`Capturas obligatorias:`, mandatoryCaptures);
+                
+                if (!canThisPieceCapture) {
+                    // Verificar si hay damas disponibles
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                    
+                    console.log(`Dama captures:`, damaCaptures);
+                    
+                    if (damaCaptures.length > 0) {
+                        this.showMessage('Debes capturar con la dama', 'error');
+                    } else {
+                        this.showMessage('Estás obligado a capturar', 'error');
+                    }
+                    return;
+                }
+            }
+                // Seleccionar la nueva pieza
+                this.selectPiece(row, col);
+                return;
+            } else {
+                // Obtener la pieza seleccionada del tablero
+                const selectedPieceData = this.board[this.selectedPiece.row][this.selectedPiece.col];
+                
+                console.log(`=== MOVEMENT VALIDATION ===`);
+                console.log(`Selected piece data:`, selectedPieceData);
+                console.log(`Selected piece player:`, selectedPieceData ? selectedPieceData.player : 'null');
+                console.log(`My player number:`, this.myPlayerNumber);
+                console.log(`Is my piece?`, selectedPieceData && selectedPieceData.player === this.myPlayerNumber);
+                
+                // Verificar que la pieza seleccionada es del jugador actual
+                if (selectedPieceData && selectedPieceData.player !== this.myPlayerNumber) {
+                    console.log('❌ Cannot move opponent piece');
+                    this.showMessage('No puedes mover las piezas del oponente', 'error');
+                    this.selectedPiece = null;
+                    this.possibleMoves = [];
+                    this.renderBoard();
+                    return;
+                }
+                
+                if (this.isValidMove(this.selectedPiece, { row, col })) {
+                    const fromPiece = { ...this.selectedPiece }; // Save position before moving
+                    
+                    console.log(`=== MOVEMENT APPROVED ===`);
+                    console.log(`From piece:`, fromPiece);
+                    console.log(`To position: (${row}, ${col})`);
+                    console.log(`Selected piece data:`, selectedPieceData);
+                    
+                    // Aplicar movimiento localmente PRIMERO
+                    this.makeMove(fromPiece, { row, col });
+                    
+                    // Enviar movimiento al servidor
+                    if (window.network) {
+                        console.log(`=== SENDING MOVE TO SERVER ===`);
+                        console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
+                        window.network.sendMove(fromPiece, { row, col });
+                    }
+                    this.selectedPiece = null;
+                    this.possibleMoves = [];
+                    this.renderBoard();
+                } else {
+                    // Show invalid move message
+                    this.showInvalidMoveMessage(row, col);
+                    // No seleccionar nueva pieza si hay captura obligatoria
+                    const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+                    if (!mandatoryCaptures || mandatoryCaptures.length === 0) {
+                        this.selectPiece(row, col);
+                    }
+                }
+            }
+        }
+        
+        // Si no hay pieza seleccionada o se está cambiando de pieza
+        if (piece && piece.player === this.myPlayerNumber) {
+            // Si es la misma pieza seleccionada, deseleccionarla
+            if (this.selectedPiece && this.selectedPiece.row === row && this.selectedPiece.col === col) {
+                console.log('Deseleccionando pieza actual:', this.selectedPiece);
                 this.selectedPiece = null;
                 this.possibleMoves = [];
                 this.renderBoard();
                 return;
             }
             
-            if (this.isValidMove(this.selectedPiece, { row, col })) {
-                const fromPiece = { ...this.selectedPiece }; // Save position before moving
+            // Verificar si hay capturas obligatorias antes de seleccionar
+            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                    capture.piece.row === row && capture.piece.col === col
+                );
                 
-                console.log(`=== MOVEMENT APPROVED ===`);
-                console.log(`From piece:`, fromPiece);
-                console.log(`To position: (${row}, ${col})`);
-                console.log(`Selected piece data:`, selectedPieceData);
+                console.log(`Verificando pieza en (${row}, ${col})`);
+                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                console.log(`Capturas obligatorias:`, mandatoryCaptures);
                 
-                // Aplicar movimiento localmente PRIMERO
-                this.makeMove(fromPiece, { row, col });
-                
-                // Enviar movimiento al servidor
-                if (window.network) {
-                    console.log(`=== SENDING MOVE TO SERVER ===`);
-                    console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
-                    window.network.sendMove(fromPiece, { row, col });
+                if (!canThisPieceCapture) {
+                    // Verificar si hay damas disponibles
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                    
+                    if (damaCaptures.length > 0) {
+                        this.showMessage('Debes capturar con la dama', 'error');
+                    } else {
+                        this.showMessage('Estás obligado a capturar', 'error');
+                    }
+                    return;
                 }
-                this.selectedPiece = null;
-                this.possibleMoves = [];
-                this.renderBoard();
-            } else {
-                // Show invalid move message
-                this.showInvalidMoveMessage(row, col);
-                // Seleccionar nueva pieza
-                this.selectPiece(row, col);
             }
-        } else if (piece && piece.player === this.myPlayerNumber) {
             // Seleccionar pieza del jugador actual
             this.selectPiece(row, col);
         } else if (piece && piece.player !== this.myPlayerNumber) {
@@ -244,7 +329,19 @@ class DamasGame {
             this.showMessage('No puedes mover las piezas del oponente', 'error');
         } else {
             // Click on empty cell without selected piece
-            this.showMessage('Selecciona una pieza primero', 'info');
+            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si hay damas disponibles
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                
+                if (damaCaptures.length > 0) {
+                    this.showMessage('Debes capturar con la dama', 'error');
+                } else {
+                    this.showMessage('Estás obligado a capturar', 'error');
+                }
+            } else {
+                this.showMessage('Selecciona una pieza primero', 'info');
+            }
         }
     }
 
@@ -271,6 +368,29 @@ class DamasGame {
             return;
         }
         
+        // Verificar si hay capturas obligatorias
+        const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+        if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+            console.log('Capturas obligatorias detectadas:', mandatoryCaptures);
+            // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+            const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                capture.piece.row === row && capture.piece.col === col
+            );
+            
+            if (!canThisPieceCapture) {
+                console.log('No se puede seleccionar esta pieza, hay captura obligatoria con otra');
+                // Verificar si hay damas disponibles
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                if (damaCaptures.length > 0) {
+                    this.showMessage('Debes capturar con la dama', 'error');
+                } else {
+                    this.showMessage('Estás obligado a capturar', 'error');
+                }
+                console.log(`=== END SELECTING PIECE DEBUG ===`);
+                return;
+            }
+        }
+        
         this.selectedPiece = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col);
         
@@ -291,13 +411,18 @@ class DamasGame {
         console.log(`My player number: ${this.myPlayerNumber}`);
 
         // Verificar si hay capturas obligatorias para el jugador de esta pieza
-        const mandatoryCapture = this.applyCaptureRules(piece.player);
+        const mandatoryCaptures = this.applyCaptureRules(piece.player);
         
-        if (mandatoryCapture) {
-            console.log('Captura obligatoria detectada:', mandatoryCapture);
-            // Si hay captura obligatoria, solo mostrar movimientos de captura
-            if (mandatoryCapture.piece.row === row && mandatoryCapture.piece.col === col) {
-                return mandatoryCapture.captures.map(capture => ({
+        if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+            console.log('Capturas obligatorias detectadas:', mandatoryCaptures);
+            // Buscar si esta pieza específica puede hacer una captura obligatoria
+            const thisPieceCaptures = mandatoryCaptures.filter(capture => 
+                capture.piece.row === row && capture.piece.col === col
+            );
+            
+            if (thisPieceCaptures.length > 0) {
+                // Si esta pieza puede capturar, mostrar solo sus movimientos de captura
+                return thisPieceCaptures[0].captures.map(capture => ({
                     row: capture.row,
                     col: capture.col,
                     type: 'capture',
@@ -339,7 +464,23 @@ class DamasGame {
     }
 
     isValidMove(from, to) {
-        return this.possibleMoves.some(move => move.row === to.row && move.col === to.col);
+        // Verificar si el movimiento está en los movimientos posibles
+        const isValid = this.possibleMoves.some(move => move.row === to.row && move.col === to.col);
+        
+        if (!isValid) {
+            // Verificar si hay capturas obligatorias
+            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Si hay captura obligatoria, el movimiento solo es válido si es una captura
+                const piece = this.board[from.row][from.col];
+                if (piece) {
+                    const captures = this.getPossibleCaptures(from.row, from.col);
+                    return captures.some(capture => capture.row === to.row && capture.col === to.col);
+                }
+            }
+        }
+        
+        return isValid;
     }
 
     // Function to obtener todas las capturas posibles de un jugador
@@ -378,6 +519,28 @@ class DamasGame {
             }
         }
         return pieces;
+    }
+
+    // Function to obtener movimientos normales de una pieza específica
+    getNormalMoves(row, col) {
+        const piece = this.board[row][col];
+        if (!piece) return [];
+
+        const moves = [];
+        const directions = piece.isKing ? 
+            [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
+            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
+
+        for (const [dRow, dCol] of directions) {
+            const newRow = row + dRow;
+            const newCol = col + dCol;
+            
+            if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                moves.push({ row: newRow, col: newCol, type: 'normal' });
+            }
+        }
+        
+        return moves;
     }
 
     // Function to obtener capturas posibles de una pieza específica
@@ -430,7 +593,7 @@ class DamasGame {
             return null; // No hay capturas posibles
         }
         
-        // Rule 1: Highest capture value (king has priority over pawn)
+        // Regla 1: Si hay damas que pueden capturar, solo ellas pueden capturar
         const damaCaptures = allCaptures.filter(capture => 
             capture.piece.piece.isKing
         );
@@ -439,14 +602,17 @@ class DamasGame {
         
         if (damaCaptures.length > 0) {
             // Si hay capturas con dama, usar solo esas
-            allCaptures.splice(0, allCaptures.length, ...damaCaptures);
             console.log('Usando solo capturas con dama');
+            console.log('Capturas disponibles para elegir:', damaCaptures);
+            console.log(`=== END CAPTURE RULES DEBUG ===`);
+            return damaCaptures; // Devolver solo capturas con dama
         }
         
-        // Return the first available capture (no longer prioritizing by number of pieces)
-        console.log('Mejor captura encontrada:', allCaptures[0]);
+        // Regla 2: Entre piezas del mismo tipo, permitir elegir libremente
+        // Devolver todas las capturas disponibles para que el jugador pueda elegir
+        console.log('Capturas disponibles para elegir:', allCaptures);
         console.log(`=== END CAPTURE RULES DEBUG ===`);
-        return allCaptures[0];
+        return allCaptures; // Devolver todas las opciones disponibles
     }
 
 
@@ -482,6 +648,9 @@ class DamasGame {
             console.log(`New captured count:`, this.capturedPieces[capturedPlayer]);
             console.log(`All captured pieces:`, this.capturedPieces);
             this.updateCapturedPieces();
+            
+            // Mostrar mensaje de captura exitosa
+            this.showMessage(`¡Pieza capturada! Total capturadas: ${this.capturedPieces[capturedPlayer]}`, 'success');
             
             // Check if there are more possible captures after this
             const moreCaptures = this.getPossibleCaptures(to.row, to.col);
@@ -876,39 +1045,93 @@ class DamasGame {
 
     // Function to mostrar mensajes informativos
     showMessage(message, type = 'info') {
-        // Crear elemento de mensaje si no existe
-        let messageElement = document.getElementById('game-message');
+        console.log(`=== SHOWING MESSAGE ===`);
+        console.log(`Message: ${message}`);
+        console.log(`Type: ${type}`);
+        
+        // Usar el elemento HTML existente
+        const messageElement = document.getElementById('game-message');
         if (!messageElement) {
-            messageElement = document.createElement('div');
-            messageElement.id = 'game-message';
-            messageElement.className = 'game-message';
-            document.body.appendChild(messageElement);
+            console.error('Game message element not found!');
+            return;
         }
 
         // Configurar el mensaje
         messageElement.textContent = message;
         messageElement.className = `game-message ${type}`;
-        messageElement.style.display = 'block';
+        
+        // Forzar estilos inline para asegurar visibilidad
+        messageElement.style.cssText = `
+            position: fixed !important;
+            top: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 15px 25px !important;
+            border-radius: 25px !important;
+            font-weight: bold !important;
+            font-size: 1.1em !important;
+            z-index: 10000 !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+            max-width: 90% !important;
+            text-align: center !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: ${type === 'error' ? 'linear-gradient(135deg, #ff6b6b, #ee5a52)' : 
+                        type === 'success' ? 'linear-gradient(135deg, #51cf66, #40c057)' : 
+                        'linear-gradient(135deg, #74c0fc, #339af0)'} !important;
+            color: white !important;
+            border: 2px solid ${type === 'error' ? '#ff5252' : 
+                              type === 'success' ? '#51cf66' : 
+                              '#74c0fc'} !important;
+        `;
+        
+        console.log(`Message element display: ${messageElement.style.display}`);
+        console.log(`Message element text: ${messageElement.textContent}`);
+        console.log(`Message element classes: ${messageElement.className}`);
+        console.log(`=== END SHOWING MESSAGE ===`);
 
-        // Hide message after 3 seconds
+        // Hide message after 5 seconds (más tiempo para verlo)
         setTimeout(() => {
             messageElement.style.display = 'none';
-        }, 3000);
+        }, 5000);
     }
 
     // Function to mostrar mensaje específico de movimiento no válido
     showInvalidMoveMessage(row, col) {
-        const mandatoryCapture = this.applyCaptureRules(this.myPlayerNumber);
+        const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
         
-        if (mandatoryCapture) {
-            if (mandatoryCapture.piece.row !== this.selectedPiece.row || 
-                mandatoryCapture.piece.col !== this.selectedPiece.col) {
-                this.showMessage('Debes capturar con la pieza de mayor rango o que capture más fichas', 'error');
+        if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+            // Verificar si la pieza seleccionada puede hacer capturas
+            const selectedPieceCaptures = this.getPossibleCaptures(this.selectedPiece.row, this.selectedPiece.col);
+            
+            if (selectedPieceCaptures.length === 0) {
+                this.showMessage('Esta pieza no puede capturar. Debes usar la pieza que puede capturar', 'error');
             } else {
-                this.showMessage('Debes realizar la captura obligatoria', 'error');
+                // Verificar si hay damas disponibles
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                
+                if (damaCaptures.length > 0) {
+                    this.showMessage('Debes capturar con la dama', 'error');
+                } else {
+                    this.showMessage('Estás obligado a capturar', 'error');
+                }
             }
         } else {
-            this.showMessage('Movimiento no válido', 'error');
+            // Verificar si es un movimiento normal válido
+            const piece = this.board[this.selectedPiece.row][this.selectedPiece.col];
+            if (piece) {
+                const normalMoves = this.getNormalMoves(this.selectedPiece.row, this.selectedPiece.col);
+                const isValidNormalMove = normalMoves.some(move => move.row === row && move.col === col);
+                
+                if (!isValidNormalMove) {
+                    this.showMessage('Movimiento no válido para esta pieza', 'error');
+                } else {
+                    this.showMessage('Movimiento no válido', 'error');
+                }
+            } else {
+                this.showMessage('Movimiento no válido', 'error');
+            }
         }
     }
 
