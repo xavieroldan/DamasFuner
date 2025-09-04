@@ -7,6 +7,58 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Header unificado */
+        .about-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            animation: titleWiggle 3s ease-in-out infinite;
+        }
+
+        .about-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-header h1 .home-link {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .about-header h1 .home-link:hover {
+            color: #ffd700;
+            text-shadow: 2px 2px 8px rgba(255, 215, 0, 0.5);
+            transform: scale(1.05);
+        }
+
+        .about-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        /* Comic title effect */
+        @keyframes titleWiggle {
+            0%, 100% {
+                transform: rotate(0deg) scale(1);
+            }
+            25% {
+                transform: rotate(1deg) scale(1.02);
+            }
+            50% {
+                transform: rotate(-1deg) scale(1.01);
+            }
+            75% {
+                transform: rotate(-1deg) scale(1.02);
+            }
+        }
+
         /* Estilos específicos para la página home */
         .home-area {
             display: flex;
@@ -210,10 +262,9 @@
 </head>
 <body class="dark-theme home-page">
     <div class="container">
-        <header>
-            <h1>Damas Funer</h1>
-            <div class="game-info">
-            </div>
+        <header class="about-header">
+            <h1><a href="home.html" class="home-link">Damas Funer</a></h1>
+            <p>Un juego de damas multijugador en tiempo real desarrollado con HTML5, CSS3, JavaScript y PHP.</p>
         </header>
 
         <main>
