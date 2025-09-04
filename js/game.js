@@ -105,12 +105,22 @@ class DamasGame {
         const boardElement = document.getElementById('game-board');
         boardElement.innerHTML = '';
 
+        // Determinar si necesitamos rotar el tablero
+        const shouldRotate = this.myPlayerNumber === 2;
+        
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.dataset.row = row;
-                cell.dataset.col = col;
+                
+                // Aplicar rotación si es necesario
+                if (shouldRotate) {
+                    cell.dataset.row = 7 - row;
+                    cell.dataset.col = 7 - col;
+                } else {
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                }
                 
                 // Alternar colores de las casillas
                 if ((row + col) % 2 === 0) {
@@ -119,20 +129,24 @@ class DamasGame {
                     cell.classList.add('dark');
                 }
 
+                // Obtener coordenadas reales del tablero
+                const realRow = shouldRotate ? 7 - row : row;
+                const realCol = shouldRotate ? 7 - col : col;
+                
                 // Agregar pieza si existe
-                if (this.board[row][col]) {
+                if (this.board[realRow][realCol]) {
                     const piece = document.createElement('div');
                     piece.className = 'piece';
-                    piece.dataset.row = row;
-                    piece.dataset.col = col;
+                    piece.dataset.row = realRow;
+                    piece.dataset.col = realCol;
                     
-                    if (this.board[row][col].player === 1) {
+                    if (this.board[realRow][realCol].player === 1) {
                         piece.classList.add('white');
                     } else {
                         piece.classList.add('black');
                     }
                     
-                    if (this.board[row][col].isKing) {
+                    if (this.board[realRow][realCol].isKing) {
                         piece.classList.add('king');
                         piece.textContent = '♔';
                     }
@@ -141,16 +155,19 @@ class DamasGame {
                 }
 
                 // Marcar movimientos posibles
-                if (this.possibleMoves.some(move => move.row === row && move.col === col)) {
+                if (this.possibleMoves.some(move => move.row === realRow && move.col === realCol)) {
                     cell.classList.add('possible-move');
                 }
 
                 // Marcar pieza seleccionada
-                if (this.selectedPiece && this.selectedPiece.row === row && this.selectedPiece.col === col) {
+                if (this.selectedPiece && this.selectedPiece.row === realRow && this.selectedPiece.col === realCol) {
                     cell.classList.add('selected');
                 }
 
-                cell.addEventListener('click', () => this.handleCellClick(row, col));
+                // Mapear coordenadas para el click
+                const clickRow = shouldRotate ? 7 - row : row;
+                const clickCol = shouldRotate ? 7 - col : col;
+                cell.addEventListener('click', () => this.handleCellClick(clickRow, clickCol));
                 boardElement.appendChild(cell);
             }
         }
@@ -164,21 +181,52 @@ class DamasGame {
             return;
         }
         
+        // Verificar si es mi turno
+        if (this.currentPlayer !== this.myPlayerNumber) {
+            this.showMessage('No es tu turno', 'info');
+            return;
+        }
+        
         const piece = this.board[row][col];
         
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
+            // Obtener la pieza seleccionada del tablero
+            const selectedPieceData = this.board[this.selectedPiece.row][this.selectedPiece.col];
+            
+            console.log(`=== MOVEMENT VALIDATION ===`);
+            console.log(`Selected piece data:`, selectedPieceData);
+            console.log(`Selected piece player:`, selectedPieceData ? selectedPieceData.player : 'null');
+            console.log(`My player number:`, this.myPlayerNumber);
+            console.log(`Is my piece?`, selectedPieceData && selectedPieceData.player === this.myPlayerNumber);
+            
+            // Verificar que la pieza seleccionada es del jugador actual
+            if (selectedPieceData && selectedPieceData.player !== this.myPlayerNumber) {
+                console.log('❌ Cannot move opponent piece');
+                this.showMessage('No puedes mover las piezas del oponente', 'error');
+                this.selectedPiece = null;
+                this.possibleMoves = [];
+                this.renderBoard();
+                return;
+            }
+            
             if (this.isValidMove(this.selectedPiece, { row, col })) {
                 const fromPiece = { ...this.selectedPiece }; // Save position before moving
                 
-                // Enviar movimiento al servidor PRIMERO
+                console.log(`=== MOVEMENT APPROVED ===`);
+                console.log(`From piece:`, fromPiece);
+                console.log(`To position: (${row}, ${col})`);
+                console.log(`Selected piece data:`, selectedPieceData);
+                
+                // Aplicar movimiento localmente PRIMERO
+                this.makeMove(fromPiece, { row, col });
+                
+                // Enviar movimiento al servidor
                 if (window.network) {
                     console.log(`=== SENDING MOVE TO SERVER ===`);
                     console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
                     window.network.sendMove(fromPiece, { row, col });
                 }
-                
-                // NO ejecutar makeMove localmente - esperar respuesta del servidor
                 this.selectedPiece = null;
                 this.possibleMoves = [];
                 this.renderBoard();
@@ -189,7 +237,7 @@ class DamasGame {
                 this.selectPiece(row, col);
             }
         } else if (piece && piece.player === this.myPlayerNumber) {
-            // Seleccionar pieza
+            // Seleccionar pieza del jugador actual
             this.selectPiece(row, col);
         } else if (piece && piece.player !== this.myPlayerNumber) {
             // Intentar seleccionar pieza del oponente
@@ -204,6 +252,7 @@ class DamasGame {
         console.log(`=== SELECTING PIECE DEBUG ===`);
         console.log(`Selected piece at (${row}, ${col}):`, this.board[row][col]);
         console.log(`Current player: ${this.currentPlayer}`);
+        console.log(`My player number: ${this.myPlayerNumber}`);
         
         const piece = this.board[row][col];
         if (!piece) {
@@ -213,6 +262,14 @@ class DamasGame {
         }
         
         console.log(`Piece player: ${piece.player}`);
+        
+        // Verificar que la pieza es del jugador actual
+        if (piece.player !== this.myPlayerNumber) {
+            console.log('Cannot select opponent piece');
+            this.showMessage('No puedes seleccionar las piezas del oponente', 'error');
+            console.log(`=== END SELECTING PIECE DEBUG ===`);
+            return;
+        }
         
         this.selectedPiece = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col);
@@ -227,8 +284,14 @@ class DamasGame {
         const piece = this.board[row][col];
         if (!piece) return [];
 
-        // Verificar si hay capturas obligatorias
-        const mandatoryCapture = this.applyCaptureRules(this.myPlayerNumber);
+        console.log(`=== GET POSSIBLE MOVES DEBUG ===`);
+        console.log(`Piece at (${row}, ${col}):`, piece);
+        console.log(`Piece player: ${piece.player}`);
+        console.log(`Current player: ${this.currentPlayer}`);
+        console.log(`My player number: ${this.myPlayerNumber}`);
+
+        // Verificar si hay capturas obligatorias para el jugador de esta pieza
+        const mandatoryCapture = this.applyCaptureRules(piece.player);
         
         if (mandatoryCapture) {
             console.log('Captura obligatoria detectada:', mandatoryCapture);
@@ -411,7 +474,13 @@ class DamasGame {
             // Add comic capture effect
             this.addCaptureEffect(move.captured.row, move.captured.col);
             this.board[move.captured.row][move.captured.col] = null;
-            this.capturedPieces[piece.player === 1 ? 'white' : 'black']++;
+            const capturedPlayer = piece.player === 1 ? 'white' : 'black';
+            this.capturedPieces[capturedPlayer]++;
+            console.log(`=== LOCAL CAPTURE UPDATE ===`);
+            console.log(`Piece player:`, piece.player);
+            console.log(`Captured player:`, capturedPlayer);
+            console.log(`New captured count:`, this.capturedPieces[capturedPlayer]);
+            console.log(`All captured pieces:`, this.capturedPieces);
             this.updateCapturedPieces();
             
             // Check if there are more possible captures after this
@@ -466,11 +535,24 @@ class DamasGame {
         // Update player names in the bottom section
         if (whitePlayerNameElement) {
             const whitePlayerName = this.playerNames[1] || 'Jugador 1';
-            whitePlayerNameElement.textContent = `${whitePlayerName} (Blancas)`;
+            whitePlayerNameElement.innerHTML = `${whitePlayerName} <span class="player-piece-icon white">⚪</span>`;
         }
         if (blackPlayerNameElement) {
             const blackPlayerName = this.playerNames[2] || 'Jugador 2';
-            blackPlayerNameElement.textContent = `${blackPlayerName} (Negras)`;
+            blackPlayerNameElement.innerHTML = `${blackPlayerName} <span class="player-piece-icon black">⚫</span>`;
+        }
+        
+        // Agregar clase 'active' al jugador que está jugando
+        if (this.currentPlayer === 1) {
+            whitePlayerNameElement?.classList.add('active');
+            blackPlayerNameElement?.classList.remove('active');
+        } else if (this.currentPlayer === 2) {
+            blackPlayerNameElement?.classList.add('active');
+            whitePlayerNameElement?.classList.remove('active');
+        } else {
+            // Si no hay jugador activo, quitar la clase active
+            whitePlayerNameElement?.classList.remove('active');
+            blackPlayerNameElement?.classList.remove('active');
         }
         
         if (this.gameState === 'playing') {
@@ -500,8 +582,10 @@ class DamasGame {
             if (statusElement) {
                 if (this.currentPlayer === this.myPlayerNumber) {
                     statusElement.textContent = `Tu turno`;
+                    statusElement.className = 'my-turn';
                 } else {
                     statusElement.textContent = `Turno de ${currentPlayerName}`;
+                    statusElement.className = 'not-my-turn';
                 }
             }
             
@@ -510,6 +594,7 @@ class DamasGame {
         } else {
             if (statusElement) {
                 statusElement.textContent = 'Esperando jugadores...';
+                statusElement.className = 'waiting';
             }
             this.updateBoardOverlay();
         }
@@ -538,8 +623,15 @@ class DamasGame {
     }
 
     updateCapturedPieces() {
-        document.getElementById('black-captured').textContent = this.capturedPieces.black;
-        document.getElementById('white-captured').textContent = this.capturedPieces.white;
+        const blackCaptured = document.getElementById('black-captured');
+        const whiteCaptured = document.getElementById('white-captured');
+        
+        blackCaptured.textContent = `Capturas: ${this.capturedPieces.black}`;
+        whiteCaptured.textContent = `Capturas: ${this.capturedPieces.white}`;
+        
+        // Agregar atributo data-count para los estilos CSS
+        blackCaptured.setAttribute('data-count', this.capturedPieces.black);
+        whiteCaptured.setAttribute('data-count', this.capturedPieces.white);
     }
 
     // Function to verificar ganador solo cuando sea necesario
@@ -933,10 +1025,19 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
         
         window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
+        
+        console.log('=== SETTING NETWORK VALUES ===');
+        console.log('Before setting - window.network.gameId:', window.network.gameId);
+        console.log('Before setting - window.network.playerId:', window.network.playerId);
+        console.log('Setting gameId to:', parseInt(gameId));
+        console.log('Setting playerId to:', parseInt(playerId));
+        
         window.network.gameId = parseInt(gameId);
         window.network.playerId = parseInt(playerId);
         window.network.playerName = decodeURIComponent(playerName);
         
+        console.log('After setting - window.network.gameId:', window.network.gameId);
+        console.log('After setting - window.network.playerId:', window.network.playerId);
         console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
         console.log('=== END GAME INITIALIZATION ===');
         

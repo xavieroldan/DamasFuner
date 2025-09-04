@@ -1,5 +1,7 @@
 class NetworkManager {
     constructor() {
+        console.log('=== NETWORKMANAGER CONSTRUCTOR ===');
+        console.log('Creating new NetworkManager instance');
         this.socket = null;
         this.gameId = null;
         this.playerId = null;
@@ -11,6 +13,7 @@ class NetworkManager {
         this.processedMessages = new Set(); // Track processed chat messages
         
         this.setupEventListeners();
+        console.log('=== END NETWORKMANAGER CONSTRUCTOR ===');
     }
 
     setupEventListeners() {
@@ -112,7 +115,19 @@ class NetworkManager {
     }
 
     async sendMove(from, to) {
-        if (!this.gameId || !this.playerId) return;
+        console.log(`=== SENDMOVE DEBUG ===`);
+        console.log(`this.gameId:`, this.gameId);
+        console.log(`this.playerId:`, this.playerId);
+        console.log(`from:`, from);
+        console.log(`to:`, to);
+        console.log(`window.network === this:`, window.network === this);
+        console.log(`window.network.gameId:`, window.network ? window.network.gameId : 'window.network is null');
+        console.log(`window.network.playerId:`, window.network ? window.network.playerId : 'window.network is null');
+        
+        if (!this.gameId || !this.playerId) {
+            console.log(`❌ EARLY EXIT: gameId or playerId is null`);
+            return;
+        }
 
         try {
             console.log(`=== SENDING MOVE REQUEST ===`);
@@ -228,8 +243,15 @@ class NetworkManager {
         
         // Actualizar piezas capturadas
         if (gameData.captured_pieces) {
+            console.log(`=== UPDATING CAPTURED PIECES ===`);
+            console.log(`Server captured pieces:`, gameData.captured_pieces);
+            console.log(`Current captured pieces:`, window.game.capturedPieces);
+            console.log(`Black pieces captured:`, gameData.captured_pieces.black);
+            console.log(`White pieces captured:`, gameData.captured_pieces.white);
             window.game.capturedPieces = gameData.captured_pieces;
             window.game.updateCapturedPieces();
+            console.log(`Updated captured pieces:`, window.game.capturedPieces);
+            console.log(`=== END UPDATING CAPTURED PIECES ===`);
         }
         
         // Actualizar estado del juego
@@ -435,7 +457,4 @@ class NetworkManager {
     }
 }
 
-// Initialize network manager when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.network = new NetworkManager();
-});
+// Network manager will be initialized in game.js

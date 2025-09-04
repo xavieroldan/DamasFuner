@@ -67,6 +67,12 @@ try {
     
     try {
         // Actualizar el estado del tablero
+        error_log("=== UPDATING CAPTURE COUNTERS ===");
+        error_log("Game ID: " . $gameId);
+        error_log("Captured Black: " . $moveResult['captured_black']);
+        error_log("Captured White: " . $moveResult['captured_white']);
+        error_log("Next Player: " . $moveResult['next_player']);
+        
         $sql = "UPDATE games SET board_state = ?, current_player = ?, 
                 captured_pieces_black = ?, captured_pieces_white = ?,
                 updated_at = CURRENT_TIMESTAMP WHERE id = ?";
@@ -155,11 +161,11 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
     
     // Verify movement direction for normal pieces
     if (!$piece['isKing']) {
-        if ($piece['player'] === 1 && $toRow <= $fromRow) {
-            return ['valid' => false, 'message' => 'Las piezas negras solo pueden moverse hacia abajo'];
-        }
-        if ($piece['player'] === 2 && $toRow >= $fromRow) {
+        if ($piece['player'] === 1 && $toRow >= $fromRow) {
             return ['valid' => false, 'message' => 'Las piezas blancas solo pueden moverse hacia arriba'];
+        }
+        if ($piece['player'] === 2 && $toRow <= $fromRow) {
+            return ['valid' => false, 'message' => 'Las piezas negras solo pueden moverse hacia abajo'];
         }
     }
     
@@ -168,8 +174,11 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
     $capturedRow = null;
     $capturedCol = null;
     $moveType = 'move';
-    $capturedBlack = 0;
-    $capturedWhite = 0;
+    
+    // Obtener contadores actuales de capturas (persisten durante toda la partida)
+    $game = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
+    $capturedBlack = $game['captured_pieces_black'] ?? 0;
+    $capturedWhite = $game['captured_pieces_white'] ?? 0;
     
     // Verificar si es una captura
     if ($rowDiff === 2) {
@@ -186,14 +195,12 @@ function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
             $moveType = 'capture';
             
             // Actualizar contador de piezas capturadas
-            $game = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
-            $capturedBlack = $game['captured_pieces_black'];
-            $capturedWhite = $game['captured_pieces_white'];
-            
             if ($piece['player'] === 1) {
                 $capturedWhite++;
+                error_log("Player 1 (whites) captured a piece. New count: " . $capturedWhite);
             } else {
                 $capturedBlack++;
+                error_log("Player 2 (blacks) captured a piece. New count: " . $capturedBlack);
             }
         } else {
             return ['valid' => false, 'message' => 'Movimiento de captura inválido'];

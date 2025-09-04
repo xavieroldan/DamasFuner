@@ -58,21 +58,7 @@ function setupKeyboardShortcuts() {
             });
         }
         
-        // Ctrl+N para nueva partida
-        if (e.ctrlKey && e.key === 'n') {
-            e.preventDefault();
-            if (window.game) {
-                window.game.showGameModal();
-            }
-        }
-        
-        // Ctrl+J para unirse a partida
-        if (e.ctrlKey && e.key === 'j') {
-            e.preventDefault();
-            if (window.game) {
-                window.game.showJoinModal();
-            }
-        }
+
         
         // Ctrl+L para abandonar partida
         if (e.ctrlKey && e.key === 'l') {
@@ -87,7 +73,7 @@ function setupKeyboardShortcuts() {
 function showWelcomeMessage() {
     setTimeout(() => {
         if (window.game) {
-            window.game.addChatMessage('system', '¡Bienvenido a Damas Funer Online! Usa Ctrl+N para nueva partida o Ctrl+J para unirse.');
+            window.game.addChatMessage('system', '¡Bienvenido a Damas Funer Online!');
         }
     }, 1000);
 }
@@ -210,8 +196,6 @@ Controles:
 - Las casillas azules indican capturas posibles
 
 Atajos de teclado:
-- Ctrl+N: Nueva partida
-- Ctrl+J: Unirse a partida
 - Ctrl+L: Abandonar partida
 - ESC: Cerrar modales
 - Enter: Enviar mensaje de chat

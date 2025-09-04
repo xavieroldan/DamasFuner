@@ -143,8 +143,6 @@ damas-online/
 ### Controles
 
 - **Click**: Seleccionar pieza y mover
-- **Ctrl+N**: Nueva partida
-- **Ctrl+J**: Unirse a partida
 - **Ctrl+L**: Abandonar partida
 - **ESC**: Cerrar modales
 - **Enter**: Enviar mensaje de chat
