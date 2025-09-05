@@ -181,10 +181,10 @@ class DamasGame {
             return;
         }
         
-        // Verificar si es mi turno
+        // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
         if (this.currentPlayer !== this.myPlayerNumber) {
-            this.showMessage('No es tu turno', 'info');
-            return;
+            // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
+            return; 
         }
         
         const piece = this.board[row][col];
@@ -264,13 +264,14 @@ class DamasGame {
                     console.log(`Selected piece data:`, selectedPieceData);
                     
                     // Aplicar movimiento localmente PRIMERO
-                    this.makeMove(fromPiece, { row, col });
+                    const capturedPieces = this.makeMove(fromPiece, { row, col });
                     
                     // Enviar movimiento al servidor
                     if (window.network) {
                         console.log(`=== SENDING MOVE TO SERVER ===`);
                         console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
-                        window.network.sendMove(fromPiece, { row, col });
+                        console.log(`Captured pieces to send:`, capturedPieces);
+                        window.network.sendMove(fromPiece, { row, col }, capturedPieces);
                     }
                     this.selectedPiece = null;
                     this.possibleMoves = [];
@@ -289,6 +290,11 @@ class DamasGame {
         
         // Si no hay pieza seleccionada o se está cambiando de pieza
         if (piece && piece.player === this.myPlayerNumber) {
+            // Solo permitir seleccionar si es mi turno
+            if (this.currentPlayer !== this.myPlayerNumber) {
+                return; // No hacer nada si no es mi turno
+            }
+            
             // Si es la misma pieza seleccionada, deseleccionarla
             if (this.selectedPiece && this.selectedPiece.row === row && this.selectedPiece.col === col) {
                 console.log('Deseleccionando pieza actual:', this.selectedPiece);
@@ -329,19 +335,23 @@ class DamasGame {
             this.showMessage('No puedes mover las piezas del oponente', 'error');
         } else {
             // Click on empty cell without selected piece
-            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
-            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
-                // Verificar si hay damas disponibles
-                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
-                
-                if (damaCaptures.length > 0) {
-                    this.showMessage('Debes capturar con la dama', 'error');
+            // Solo mostrar mensajes si es mi turno
+            if (this.currentPlayer === this.myPlayerNumber) {
+                const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+                if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                    // Verificar si hay damas disponibles
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                    
+                    if (damaCaptures.length > 0) {
+                        this.showMessage('Debes capturar con la dama', 'error');
+                    } else {
+                        this.showMessage('Estás obligado a capturar', 'error');
+                    }
                 } else {
-                    this.showMessage('Estás obligado a capturar', 'error');
+                    this.showMessage('Selecciona una pieza primero', 'info');
                 }
-            } else {
-                this.showMessage('Selecciona una pieza primero', 'info');
             }
+            // Si no es mi turno, no mostrar ningún mensaje
         }
     }
 
@@ -421,13 +431,13 @@ class DamasGame {
             );
             
             if (thisPieceCaptures.length > 0) {
-                // Si esta pieza puede capturar, mostrar solo sus movimientos de captura
-                return thisPieceCaptures[0].captures.map(capture => ({
-                    row: capture.row,
-                    col: capture.col,
-                    type: 'capture',
-                    captured: { row: capture.capturedRow, col: capture.capturedCol }
-                }));
+                // Si esta pieza puede capturar, usar la función getPossibleCaptures
+                const captures = this.getPossibleCaptures(row, col);
+                
+                if (captures.length > 0) {
+                    console.log('Capturas encontradas para esta pieza:', captures);
+                    return captures;
+                }
             } else {
                 console.log('No se puede mover esta pieza, hay captura obligatoria con otra');
                 return []; // No se puede mover esta pieza si hay captura obligatoria con otra
@@ -467,20 +477,45 @@ class DamasGame {
         // Verificar si el movimiento está en los movimientos posibles
         const isValid = this.possibleMoves.some(move => move.row === to.row && move.col === to.col);
         
-        if (!isValid) {
-            // Verificar si hay capturas obligatorias
-            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
-            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
-                // Si hay captura obligatoria, el movimiento solo es válido si es una captura
-                const piece = this.board[from.row][from.col];
-                if (piece) {
-                    const captures = this.getPossibleCaptures(from.row, from.col);
-                    return captures.some(capture => capture.row === to.row && capture.col === to.col);
-                }
-            }
-        }
+        console.log(`=== VALIDATE MOVE DEBUG ===`);
+        console.log(`From: (${from.row}, ${from.col}) to: (${to.row}, ${to.col})`);
+        console.log(`Possible moves:`, this.possibleMoves);
+        console.log(`Is valid: ${isValid}`);
+        console.log(`=== END VALIDATE MOVE DEBUG ===`);
         
         return isValid;
+    }
+
+    // Function to check if a move is a valid multiple capture
+    isMultipleCaptureMove(from, to) {
+        const piece = this.board[from.row][from.col];
+        if (!piece) return false;
+
+        // Check if it's a diagonal move with at least 2 squares difference
+        const rowDiff = Math.abs(to.row - from.row);
+        const colDiff = Math.abs(to.col - from.col);
+        
+        if (rowDiff !== colDiff || rowDiff < 2) {
+            return false;
+        }
+
+        // Check if there are enemy pieces in the path
+        const rowDirection = to.row > from.row ? 1 : -1;
+        const colDirection = to.col > from.col ? 1 : -1;
+        
+        let enemyCount = 0;
+        for (let i = 1; i < rowDiff; i++) {
+            const checkRow = from.row + (i * rowDirection);
+            const checkCol = from.col + (i * colDirection);
+            
+            if (this.isValidPosition(checkRow, checkCol) && 
+                this.board[checkRow][checkCol] && 
+                this.board[checkRow][checkCol].player !== piece.player) {
+                enemyCount++;
+            }
+        }
+
+        return enemyCount > 0;
     }
 
     // Function to obtener todas las capturas posibles de un jugador
@@ -543,12 +578,53 @@ class DamasGame {
         return moves;
     }
 
-    // Function to obtener capturas posibles de una pieza específica
+    // Function to obtener capturas posibles de una pieza específica (incluyendo múltiples)
     getPossibleCaptures(row, col) {
         const piece = this.board[row][col];
         if (!piece) return [];
 
-        const captures = [];
+        // Encontrar todas las secuencias de capturas posibles
+        const captureSequences = this.findCaptureSequences(row, col, piece, []);
+        
+        // Si hay secuencias de captura, devolver todas las de la longitud máxima
+        if (captureSequences.length > 0) {
+            // Encontrar la longitud máxima
+            let maxLength = 0;
+            for (const sequence of captureSequences) {
+                if (sequence.length > maxLength) {
+                    maxLength = sequence.length;
+                }
+            }
+            
+            // Filtrar solo las secuencias de longitud máxima
+            const bestSequences = captureSequences.filter(sequence => sequence.length === maxLength);
+            
+            // Convertir todas las secuencias al formato esperado por makeMove
+            const moves = [];
+            for (const sequence of bestSequences) {
+                if (sequence.length > 0) {
+                    const finalPosition = sequence[sequence.length - 1];
+                    moves.push({
+                        row: finalPosition.row,
+                        col: finalPosition.col,
+                        type: 'multiple_capture',
+                        captured: sequence.map(capture => ({
+                            row: capture.capturedRow,
+                            col: capture.capturedCol
+                        }))
+                    });
+                }
+            }
+            
+            return moves;
+        }
+
+        return [];
+    }
+
+    // Function to encontrar todas las secuencias de capturas posibles
+    findCaptureSequences(row, col, piece, capturedPieces) {
+        const sequences = [];
         const directions = piece.isKing ? 
             [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
             (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
@@ -566,18 +642,49 @@ class DamasGame {
                 const jumpCol = newCol + dc;
                 
                 if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
-                    captures.push({ 
+                    // Crear una copia del tablero para simular la captura
+                    const simulatedBoard = this.simulateCapture(row, col, newRow, newCol, jumpRow, jumpCol);
+                    
+                    // Crear la captura actual
+                    const currentCapture = { 
                         row: jumpRow, 
                         col: jumpCol, 
                         capturedRow: newRow, 
                         capturedCol: newCol,
                         pieceType: piece.isKing ? 'dama' : 'peon'
-                    });
+                    };
+                    
+                    // Verificar si puede hacer más capturas desde la nueva posición
+                    const moreCaptures = this.findCaptureSequences(jumpRow, jumpCol, piece, [...capturedPieces, currentCapture]);
+                    
+                    if (moreCaptures.length > 0) {
+                        // Agregar todas las secuencias que continúan desde aquí
+                        for (const sequence of moreCaptures) {
+                            sequences.push([currentCapture, ...sequence]);
+                        }
+                    } else {
+                        // Esta es una captura simple
+                        sequences.push([currentCapture]);
+                    }
                 }
             }
         }
 
-        return captures;
+        return sequences;
+    }
+
+    // Function to simular una captura en el tablero
+    simulateCapture(fromRow, fromCol, capturedRow, capturedCol, toRow, toCol) {
+        const newBoard = this.board.map(row => row.map(cell => cell ? {...cell} : null));
+        
+        // Mover la pieza
+        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+        newBoard[fromRow][fromCol] = null;
+        
+        // Eliminar la pieza capturada
+        newBoard[capturedRow][capturedCol] = null;
+        
+        return newBoard;
     }
 
     // Function to aplicar las reglas de captura obligatoria
@@ -593,26 +700,41 @@ class DamasGame {
             return null; // No hay capturas posibles
         }
         
-        // Regla 1: Si hay damas que pueden capturar, solo ellas pueden capturar
-        const damaCaptures = allCaptures.filter(capture => 
+        // Regla 1: Priorizar capturas múltiples (más piezas capturadas)
+        let maxCaptures = 0;
+        for (const capture of allCaptures) {
+            if (capture.captures.length > maxCaptures) {
+                maxCaptures = capture.captures.length;
+            }
+        }
+        
+        const multipleCaptures = allCaptures.filter(capture => capture.captures.length === maxCaptures);
+        console.log(`Capturas con máximo número de piezas (${maxCaptures}):`, multipleCaptures);
+        
+        // Regla 2: SIEMPRE priorizar damas sobre peones, independientemente del número de capturas
+        const damaCaptures = multipleCaptures.filter(capture => 
             capture.piece.piece.isKing
+        );
+        const peonCaptures = multipleCaptures.filter(capture => 
+            !capture.piece.piece.isKing
         );
         
         console.log(`Capturas con dama:`, damaCaptures);
+        console.log(`Capturas con peón:`, peonCaptures);
         
+        // Si hay capturas con dama, SIEMPRE usar solo damas (incluso si peones pueden capturar más)
         if (damaCaptures.length > 0) {
-            // Si hay capturas con dama, usar solo esas
-            console.log('Usando solo capturas con dama');
+            console.log('Hay opciones de captura con dama, priorizando damas');
             console.log('Capturas disponibles para elegir:', damaCaptures);
             console.log(`=== END CAPTURE RULES DEBUG ===`);
             return damaCaptures; // Devolver solo capturas con dama
         }
         
-        // Regla 2: Entre piezas del mismo tipo, permitir elegir libremente
-        // Devolver todas las capturas disponibles para que el jugador pueda elegir
-        console.log('Capturas disponibles para elegir:', allCaptures);
+        // Regla 3: Solo si NO hay damas disponibles, permitir elección entre peones
+        console.log('No hay damas disponibles, permitir elección entre peones');
+        console.log('Capturas disponibles para elegir:', peonCaptures);
         console.log(`=== END CAPTURE RULES DEBUG ===`);
-        return allCaptures; // Devolver todas las opciones disponibles
+        return peonCaptures; // Devolver capturas con peones
     }
 
 
@@ -635,39 +757,55 @@ class DamasGame {
         console.log(`Board after move:`, this.board[to.row][to.col]);
         console.log(`Board from position:`, this.board[from.row][from.col]);
         
-        // Capturar pieza si es necesario
-        if (move && move.type === 'capture') {
-            // Add comic capture effect
-            this.addCaptureEffect(move.captured.row, move.captured.col);
-            this.board[move.captured.row][move.captured.col] = null;
-            const capturedPlayer = piece.player === 1 ? 'white' : 'black';
-            this.capturedPieces[capturedPlayer]++;
-            console.log(`=== LOCAL CAPTURE UPDATE ===`);
-            console.log(`Piece player:`, piece.player);
-            console.log(`Captured player:`, capturedPlayer);
-            console.log(`New captured count:`, this.capturedPieces[capturedPlayer]);
+        // Capturar pieza(s) si es necesario
+        let capturedPieces = [];
+        if (move && move.captured && move.captured.length > 0) { // Check for the 'captured' array
+            let totalCaptured = 0;
+            
+            // Since getPossibleCaptures always returns a 'multiple_capture' type move
+            // with a 'captured' array, we can simplify this.
+            // The 'move.type' should always be 'multiple_capture' here.
+            console.log('Ejecutando captura(s):', move.captured);
+            for (const captured of move.captured) {
+                // Obtener el jugador de la pieza capturada ANTES de eliminarla
+                const capturedPiece = this.board[captured.row][captured.col];
+                const capturedPlayer = capturedPiece ? capturedPiece.player : null;
+                
+                // Add comic capture effect
+                this.addCaptureEffect(captured.row, captured.col);
+                this.board[captured.row][captured.col] = null;
+                totalCaptured++;
+                
+                // Agregar a la lista de capturas para enviar al servidor
+                capturedPieces.push({
+                    row: captured.row,
+                    col: captured.col,
+                    player: capturedPlayer
+                });
+                
+                // Asignar la captura al jugador que la realiza (no al que la recibe)
+                // Si soy jugador 1 (blancas), sumo a mis capturas (blancas)
+                // Si soy jugador 2 (negras), sumo a mis capturas (negras)
+                const myPlayerColor = piece.player === 1 ? 'white' : 'black';
+                this.capturedPieces[myPlayerColor] += 1;
+            }
+            
+            console.log(`=== CAPTURE UPDATE ===`);
+            console.log(`Total piezas capturadas: ${totalCaptured}`);
+            console.log(`New captured count:`, this.capturedPieces);
             console.log(`All captured pieces:`, this.capturedPieces);
             this.updateCapturedPieces();
             
             // Mostrar mensaje de captura exitosa
-            this.showMessage(`¡Pieza capturada! Total capturadas: ${this.capturedPieces[capturedPlayer]}`, 'success');
+            const message = totalCaptured === 1 ? 
+                `¡${totalCaptured} pieza capturada!` : 
+                `¡${totalCaptured} piezas capturadas!`;
+            this.showMessage(message, 'success');
             
-            // Check if there are more possible captures after this
-            const moreCaptures = this.getPossibleCaptures(to.row, to.col);
-            if (moreCaptures.length > 0) {
-                // No cambiar turno, el mismo jugador debe continuar capturando
-                this.selectedPiece = { row: to.row, col: to.col };
-                this.possibleMoves = moreCaptures.map(capture => ({
-                    row: capture.row,
-                    col: capture.col,
-                    type: 'capture',
-                    captured: { row: capture.capturedRow, col: capture.capturedCol }
-                }));
-                this.renderBoard();
-                // Check winner after capture
-                this.checkWinnerIfNeeded();
-                return; // No cambiar turno
-            }
+            // No need for the 'else' block for simple captures, as all captures are now
+            // formatted as 'multiple_capture' with a 'captured' array.
+            // The logic for `moreCaptures` (lines 769-784) is also removed as the full sequence
+            // is expected in one move.
         }
         
         // Promover a rey
@@ -685,6 +823,9 @@ class DamasGame {
         
         // Check winner only after a valid move
         this.checkWinnerIfNeeded();
+        
+        // Devolver las capturas para enviar al servidor
+        return capturedPieces;
     }
 
     isValidPosition(row, col) {
@@ -704,11 +845,11 @@ class DamasGame {
         // Update player names in the bottom section
         if (whitePlayerNameElement) {
             const whitePlayerName = this.playerNames[1] || 'Jugador 1';
-            whitePlayerNameElement.innerHTML = `${whitePlayerName} <span class="player-piece-icon white">⚪</span>`;
+            whitePlayerNameElement.innerHTML = `${whitePlayerName}`;
         }
         if (blackPlayerNameElement) {
             const blackPlayerName = this.playerNames[2] || 'Jugador 2';
-            blackPlayerNameElement.innerHTML = `${blackPlayerName} <span class="player-piece-icon black">⚫</span>`;
+            blackPlayerNameElement.innerHTML = `${blackPlayerName}`;
         }
         
         // Agregar clase 'active' al jugador que está jugando

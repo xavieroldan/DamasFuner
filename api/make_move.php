@@ -1,8 +1,4 @@
 <?php
-/**
- * API para realizar un movimiento en el juego
- */
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
@@ -10,273 +6,139 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Only allow POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    echo json_encode(['error' => 'Method not allowed']);
     exit;
 }
 
-try {
-    // Obtener datos del POST
-    $input = json_decode(file_get_contents('php://input'), true);
-    
-    if (!$input || !isset($input['game_id']) || !isset($input['player_id']) || 
-        !isset($input['from']) || !isset($input['to'])) {
-        throw new Exception('Datos de movimiento requeridos');
-    }
-    
-    $gameId = (int)$input['game_id'];
-    $playerId = (int)$input['player_id'];
-    $from = $input['from'];
-    $to = $input['to'];
-    
-    // Validar coordenadas
-    if (!isValidPosition($from['row'], $from['col']) || 
-        !isValidPosition($to['row'], $to['col'])) {
-        throw new Exception('Coordenadas inválidas');
-    }
-    
-    // Get game information
-    $game = fetchOne("SELECT * FROM games WHERE id = ? AND game_status = 'playing'", [$gameId]);
-    if (!$game) {
-        throw new Exception('Partida no encontrada o no está en juego');
-    }
-    
-    // Verificar que es el turno del jugador
-    if ($game['current_player'] != getPlayerNumber($playerId, $gameId)) {
-        throw new Exception('No es tu turno');
-    }
-    
-    // Obtener el estado actual del tablero
-    $board = json_decode($game['board_state'], true);
-    if (!$board) {
-        throw new Exception('Estado del tablero inválido');
-    }
-    
-    // Validar y realizar el movimiento
-    $moveResult = validateAndMakeMove($board, $from, $to, $playerId, $gameId);
-    
-    if (!$moveResult['valid']) {
-        throw new Exception($moveResult['message']);
-    }
-    
-    // Actualizar la base de datos
-    $conn = getDBConnection();
-    $conn->beginTransaction();
-    
-    try {
-        // Actualizar el estado del tablero
-        error_log("=== UPDATING CAPTURE COUNTERS ===");
-        error_log("Game ID: " . $gameId);
-        error_log("Captured Black: " . $moveResult['captured_black']);
-        error_log("Captured White: " . $moveResult['captured_white']);
-        error_log("Next Player: " . $moveResult['next_player']);
-        
-        $sql = "UPDATE games SET board_state = ?, current_player = ?, 
-                captured_pieces_black = ?, captured_pieces_white = ?,
-                updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            json_encode($moveResult['new_board']),
-            $moveResult['next_player'],
-            $moveResult['captured_black'],
-            $moveResult['captured_white'],
-            $gameId
-        ]);
-        
-        // Registrar el movimiento
-        $sql = "INSERT INTO moves (game_id, player_id, from_row, from_col, to_row, to_col, 
-                captured_row, captured_col, move_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $gameId, $playerId, $from['row'], $from['col'], $to['row'], $to['col'],
-            $moveResult['captured_row'], $moveResult['captured_col'], $moveResult['move_type']
-        ]);
-        
-        // Verificar si el juego ha terminado
-        $gameEnded = checkGameEnd($moveResult['new_board']);
-        if ($gameEnded['ended']) {
-            $sql = "UPDATE games SET game_status = 'finished', winner = ? WHERE id = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->execute([$gameEnded['winner'], $gameId]);
-        }
-        
-        $conn->commit();
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Movimiento realizado exitosamente',
-            'game_ended' => $gameEnded['ended'],
-            'winner' => $gameEnded['winner'] ?? null
-        ]);
-        
-    } catch (Exception $e) {
-        $conn->rollBack();
-        throw $e;
-    }
-    
-} catch (Exception $e) {
+$input = json_decode(file_get_contents('php://input'), true);
+
+if (!isset($input['from']) || !isset($input['to']) || !isset($input['player_id']) || !isset($input['game_id'])) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(['error' => 'Missing required parameters']);
+    exit;
 }
 
-/**
- * Valida y realiza un movimiento en el tablero
- */
-function validateAndMakeMove($board, $from, $to, $playerId, $gameId) {
+$from = $input['from'];
+$to = $input['to'];
+$playerId = $input['player_id'];
+$gameId = $input['game_id'];
+
+try {
+    $conn = getDBConnection();
+    
+    // Obtener el estado actual del juego
+    $game = fetchOne("SELECT board_state, current_player FROM games WHERE id = ?", [$gameId]);
+    if (!$game) {
+        throw new Exception('Game not found');
+    }
+    
+    $board = json_decode($game['board_state'], true);
+    $currentPlayer = $game['current_player'];
+    
+    // Obtener el número del jugador (1 o 2) basado en su ID
+    $player = fetchOne("SELECT player_number FROM players WHERE id = ? AND game_id = ?", [$playerId, $gameId]);
+    if (!$player) {
+        echo json_encode(['valid' => false, 'message' => 'Jugador no encontrado']);
+        exit;
+    }
+    
+    $playerNumber = $player['player_number'];
+    
+    // Verificar que es el turno del jugador (CRÍTICO para juegos online)
+    if ($currentPlayer !== $playerNumber) {
+        echo json_encode(['success' => false, 'message' => 'No es tu turno']);
+        exit;
+    }
+    
     $fromRow = $from['row'];
     $fromCol = $from['col'];
     $toRow = $to['row'];
     $toCol = $to['col'];
     
-    // Verify there is a piece at the source position
-    if (!$board[$fromRow][$fromCol]) {
-        return ['valid' => false, 'message' => 'No hay pieza en la posición de origen'];
+    // NO VALIDAR NADA - El cliente maneja todas las reglas del juego
+    // Solo verificar que las coordenadas están en el tablero
+    if ($fromRow < 0 || $fromRow >= 8 || $fromCol < 0 || $fromCol >= 8 ||
+        $toRow < 0 || $toRow >= 8 || $toCol < 0 || $toCol >= 8) {
+        echo json_encode(['valid' => false, 'message' => 'Coordenadas fuera del tablero']);
+        exit;
     }
     
     $piece = $board[$fromRow][$fromCol];
-    $playerNumber = getPlayerNumber($playerId, $gameId);
-    
-    // Verificar que la pieza pertenece al jugador
-    if ($piece['player'] !== $playerNumber) {
-        return ['valid' => false, 'message' => 'La pieza no te pertenece'];
-    }
-    
-    // Verify that the destination position is empty
-    if ($board[$toRow][$toCol]) {
-        return ['valid' => false, 'message' => 'La posición de destino está ocupada'];
-    }
-    
-    // Verificar que es un movimiento diagonal
-    $rowDiff = abs($toRow - $fromRow);
-    $colDiff = abs($toCol - $fromCol);
-    
-    if ($rowDiff !== $colDiff) {
-        return ['valid' => false, 'message' => 'Solo se permiten movimientos diagonales'];
-    }
-    
-    // Verify movement direction for normal pieces
-    if (!$piece['isKing']) {
-        if ($piece['player'] === 1 && $toRow >= $fromRow) {
-            return ['valid' => false, 'message' => 'Las piezas blancas solo pueden moverse hacia arriba'];
-        }
-        if ($piece['player'] === 2 && $toRow <= $fromRow) {
-            return ['valid' => false, 'message' => 'Las piezas negras solo pueden moverse hacia abajo'];
-        }
-    }
-    
-    // Crear una copia del tablero para el nuevo estado
     $newBoard = $board;
-    $capturedRow = null;
-    $capturedCol = null;
-    $moveType = 'move';
-    
-    // Obtener contadores actuales de capturas (persisten durante toda la partida)
-    $game = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
-    $capturedBlack = $game['captured_pieces_black'] ?? 0;
-    $capturedWhite = $game['captured_pieces_white'] ?? 0;
-    
-    // Verificar si es una captura
-    if ($rowDiff === 2) {
-        $middleRow = ($fromRow + $toRow) / 2;
-        $middleCol = ($fromCol + $toCol) / 2;
-        
-        if ($board[$middleRow][$middleCol] && 
-            $board[$middleRow][$middleCol]['player'] !== $piece['player']) {
-            
-            // It is a valid capture
-            $newBoard[$middleRow][$middleCol] = null;
-            $capturedRow = $middleRow;
-            $capturedCol = $middleCol;
-            $moveType = 'capture';
-            
-            // Actualizar contador de piezas capturadas
-            if ($piece['player'] === 1) {
-                $capturedWhite++;
-                error_log("Player 1 (whites) captured a piece. New count: " . $capturedWhite);
-            } else {
-                $capturedBlack++;
-                error_log("Player 2 (blacks) captured a piece. New count: " . $capturedBlack);
-            }
-        } else {
-            return ['valid' => false, 'message' => 'Movimiento de captura inválido'];
-        }
-    } else if ($rowDiff !== 1) {
-        return ['valid' => false, 'message' => 'Movimiento inválido'];
-    }
     
     // Mover la pieza
-    $newBoard[$toRow][$toCol] = $piece;
+    $newBoard[$toRow][$toCol] = $newBoard[$fromRow][$fromCol];
     $newBoard[$fromRow][$fromCol] = null;
     
-    // Verify promotion to king
-    if (!$piece['isKing']) {
-        if (($piece['player'] === 1 && $toRow === 7) || 
-            ($piece['player'] === 2 && $toRow === 0)) {
-            $newBoard[$toRow][$toCol]['isKing'] = true;
-            $moveType = 'king_promotion';
-        }
-    }
+    // Procesar capturas enviadas por el cliente
+    $capturedPieces = isset($input['captured_pieces']) ? $input['captured_pieces'] : [];
+    $capturedBlack = 0;
+    $capturedWhite = 0;
     
-    // Determinar el siguiente jugador
-    $nextPlayer = $piece['player'] === 1 ? 2 : 1;
-    
-    return [
-        'valid' => true,
-        'new_board' => $newBoard,
-        'next_player' => $nextPlayer,
-        'captured_row' => $capturedRow,
-        'captured_col' => $capturedCol,
-        'move_type' => $moveType,
-        'captured_black' => $capturedBlack,
-        'captured_white' => $capturedWhite
-    ];
-}
-
-/**
- * Verifica si el juego ha terminado
- */
-function checkGameEnd($board) {
-    $blackPieces = 0;
-    $whitePieces = 0;
-    
-    for ($row = 0; $row < 8; $row++) {
-        for ($col = 0; $col < 8; $col++) {
-            if ($board[$row][$col]) {
-                if ($board[$row][$col]['player'] === 1) {
-                    $blackPieces++;
+    // Procesar cada captura enviada por el cliente
+    foreach ($capturedPieces as $captured) {
+        if (isset($captured['row']) && isset($captured['col']) && isset($captured['player'])) {
+            $capturedRow = $captured['row'];
+            $capturedCol = $captured['col'];
+            $capturedPlayer = $captured['player'];
+            
+            // Eliminar la pieza capturada del tablero
+            if ($capturedRow >= 0 && $capturedRow < 8 && $capturedCol >= 0 && $capturedCol < 8) {
+                $newBoard[$capturedRow][$capturedCol] = null;
+                
+                // Asignar capturas al jugador que las realiza (no al que las recibe)
+                // Si el jugador actual es 1 (blancas), suma a blancas
+                // Si el jugador actual es 2 (negras), suma a negras
+                if ($playerNumber === 1) {
+                    $capturedWhite++;
                 } else {
-                    $whitePieces++;
+                    $capturedBlack++;
                 }
             }
         }
     }
     
-    if ($blackPieces === 0) {
-        return ['ended' => true, 'winner' => 2];
-    } else if ($whitePieces === 0) {
-        return ['ended' => true, 'winner' => 1];
+    // Verificar promoción a rey
+    if (!$piece['isKing']) {
+        if (($piece['player'] === 1 && $toRow === 0) || ($piece['player'] === 2 && $toRow === 7)) {
+            $newBoard[$toRow][$toCol]['isKing'] = true;
+        }
     }
     
-    return ['ended' => false];
-}
-
-/**
- * Gets the player number (1 or 2) based on the ID
- */
-function getPlayerNumber($playerId, $gameId) {
-    $player = fetchOne("SELECT player_number FROM players WHERE id = ? AND game_id = ?", [$playerId, $gameId]);
-    return $player ? $player['player_number'] : null;
-}
-
-/**
- * Validates that a position is within the board
- */
-function isValidPosition($row, $col) {
-    return $row >= 0 && $row < 8 && $col >= 0 && $col < 8;
+    // Obtener capturas actuales de la base de datos y sumar las nuevas
+    $currentCaptured = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
+    $totalCapturedBlack = $currentCaptured['captured_pieces_black'] + $capturedBlack;
+    $totalCapturedWhite = $currentCaptured['captured_pieces_white'] + $capturedWhite;
+    
+    // Determinar el siguiente jugador (cambiar de 1 a 2 o viceversa)
+    $nextPlayer = $playerNumber === 1 ? 2 : 1;
+    
+    // Actualizar base de datos (tablero, turno y capturas)
+    $stmt = $conn->prepare("UPDATE games SET board_state = ?, captured_pieces_black = ?, captured_pieces_white = ?, current_player = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->execute([json_encode($newBoard), $totalCapturedBlack, $totalCapturedWhite, $nextPlayer, $gameId]);
+    
+    // Registrar el movimiento (sin capturas - el cliente maneja las reglas)
+    $stmt = $conn->prepare("INSERT INTO moves (game_id, player_id, from_row, from_col, to_row, to_col, move_type) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$gameId, $playerId, $fromRow, $fromCol, $toRow, $toCol, 'move']);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Movimiento realizado exitosamente',
+        'game_data' => [
+            'board' => $newBoard,
+            'current_player' => $nextPlayer,
+            'captured_pieces' => [
+                'black' => $totalCapturedBlack,
+                'white' => $totalCapturedWhite
+            ]
+        ]
+    ]);
+    
+} catch (Exception $e) {
+    error_log("Error in make_move: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Internal server error']);
 }
 ?>

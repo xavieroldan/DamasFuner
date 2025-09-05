@@ -114,12 +114,13 @@ class NetworkManager {
         }
     }
 
-    async sendMove(from, to) {
+    async sendMove(from, to, capturedPieces = []) {
         console.log(`=== SENDMOVE DEBUG ===`);
         console.log(`this.gameId:`, this.gameId);
         console.log(`this.playerId:`, this.playerId);
         console.log(`from:`, from);
         console.log(`to:`, to);
+        console.log(`capturedPieces:`, capturedPieces);
         console.log(`window.network === this:`, window.network === this);
         console.log(`window.network.gameId:`, window.network ? window.network.gameId : 'window.network is null');
         console.log(`window.network.playerId:`, window.network ? window.network.playerId : 'window.network is null');
@@ -135,7 +136,8 @@ class NetworkManager {
                 game_id: this.gameId,
                 player_id: this.playerId,
                 from: from,
-                to: to
+                to: to,
+                captured_pieces: capturedPieces
             });
             
             const response = await fetch('api/make_move.php', {
@@ -147,7 +149,8 @@ class NetworkManager {
                     game_id: this.gameId,
                     player_id: this.playerId,
                     from: from,
-                    to: to
+                    to: to,
+                    captured_pieces: capturedPieces
                 })
             });
             

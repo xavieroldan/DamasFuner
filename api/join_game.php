@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Only allow POST method
+// Solo permitir método POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -25,15 +25,15 @@ try {
         throw new Exception('Código de partida y nombre del jugador requeridos');
     }
     
-    $gameCode = trim($input['game_code']);
+    $gameCode = trim(strtoupper($input['game_code']));
     $playerName = trim($input['player_name']);
     
-    if (empty($gameCode) || strlen($gameCode) !== 3) {
+    if (empty($gameCode) || strlen($gameCode) !== 6) {
         throw new Exception('Código de partida inválido');
     }
     
-    if (empty($playerName) || strlen($playerName) < 3 || strlen($playerName) > 15) {
-        throw new Exception('El nombre debe tener entre 3 y 15 caracteres');
+    if (empty($playerName) || strlen($playerName) > 50) {
+        throw new Exception('Nombre del jugador inválido');
     }
     
     // Buscar la partida
@@ -50,12 +50,6 @@ try {
         throw new Exception('La partida ya está llena');
     }
     
-    // Verificar que el nombre no sea igual al del jugador 1
-    $player1 = fetchOne("SELECT name FROM players WHERE game_id = ? AND player_number = 1", [$game['id']]);
-    if ($player1 && strtolower(trim($player1['name'])) === strtolower(trim($playerName))) {
-        throw new Exception('El nombre no puede ser igual al del otro jugador');
-    }
-    
     // Unirse a la partida
     $conn = getDBConnection();
     $conn->beginTransaction();
@@ -67,8 +61,8 @@ try {
         $stmt->execute([$playerName, $game['id']]);
         $playerId = $conn->lastInsertId();
         
-        // Actualizar la partida con el ID del jugador 2, cambiar estado a 'playing' y establecer current_player
-        $sql = "UPDATE games SET player2_id = ?, game_status = 'playing', current_player = 1 WHERE id = ?";
+        // Actualizar la partida con el ID del jugador 2 y cambiar estado a 'playing'
+        $sql = "UPDATE games SET player2_id = ?, game_status = 'playing' WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->execute([$playerId, $game['id']]);
         

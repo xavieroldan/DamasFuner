@@ -10,7 +10,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
-// Only allow GET method
+// Solo permitir método GET
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    // Get parameters
+    // Obtener parámetros
     $gameId = isset($_GET['game_id']) ? (int)$_GET['game_id'] : 0;
     $playerId = isset($_GET['player_id']) ? (int)$_GET['player_id'] : 0;
     
@@ -26,7 +26,7 @@ try {
         throw new Exception('ID de partida y jugador requeridos');
     }
     
-    // Get game information
+    // Obtener información de la partida
     $game = fetchOne("
         SELECT g.*, p1.name as player1_name, p2.name as player2_name
         FROM games g
@@ -45,7 +45,7 @@ try {
         throw new Exception('Jugador no autorizado para esta partida');
     }
     
-    // Get recent chat messages (last 20)
+    // Obtener mensajes de chat recientes (últimos 20)
     $chatMessages = fetchAll("
         SELECT cm.*, p.player_number
         FROM chat_messages cm
@@ -55,7 +55,7 @@ try {
         LIMIT 20
     ", [$gameId]);
     
-    // Get recent moves (last 10)
+    // Obtener movimientos recientes (últimos 10)
     $recentMoves = fetchAll("
         SELECT m.*, p.name as player_name
         FROM moves m
@@ -124,8 +124,8 @@ try {
 function createInitialBoard() {
     $board = array_fill(0, 8, array_fill(0, 8, null));
     
-    // Place white pieces (player 1) in the last 3 rows
-    for ($row = 5; $row < 8; $row++) {
+    // Colocar piezas negras (jugador 1) en las primeras 3 filas
+    for ($row = 0; $row < 3; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
@@ -136,8 +136,8 @@ function createInitialBoard() {
         }
     }
     
-    // Place black pieces (player 2) in the first 3 rows
-    for ($row = 0; $row < 3; $row++) {
+    // Colocar piezas blancas (jugador 2) en las últimas 3 filas
+    for ($row = 5; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
