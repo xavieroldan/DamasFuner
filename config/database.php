@@ -3,9 +3,22 @@
  * Database configuration for Damas Funer
  */
 
-// Load server-specific configuration if it exists
+// Load server-specific configuration first if it exists
 if (file_exists(__DIR__ . '/server_config.php')) {
+    error_log("Loading server_config.php");
     require_once __DIR__ . '/server_config.php';
+    error_log("server_config.php loaded - DB_HOST: " . (defined('DB_HOST') ? DB_HOST : 'NOT DEFINED'));
+} else {
+    error_log("server_config.php not found");
+}
+
+// Load general configuration (this may override some settings)
+if (file_exists(__DIR__ . '/config.php')) {
+    error_log("Loading config.php");
+    require_once __DIR__ . '/config.php';
+    error_log("config.php loaded - DB_HOST: " . (defined('DB_HOST') ? DB_HOST : 'NOT DEFINED'));
+} else {
+    error_log("config.php not found");
 }
 
 class Database {
@@ -17,11 +30,11 @@ class Database {
     
     public function __construct() {
         // Database configuration
-        // Try to load from environment variables first, then fallback to defaults
-        $this->host = $_ENV['DB_HOST'] ?? 'localhost';
-        $this->db_name = $_ENV['DB_NAME'] ?? '6774344_damas_online';
-        $this->username = $_ENV['DB_USER'] ?? 'root';
-        $this->password = $_ENV['DB_PASS'] ?? '';
+        // Try to load from constants first, then environment variables, then defaults
+        $this->host = defined('DB_HOST') ? DB_HOST : ($_ENV['DB_HOST'] ?? 'localhost');
+        $this->db_name = defined('DB_NAME') ? DB_NAME : ($_ENV['DB_NAME'] ?? '6774344_damas_online');
+        $this->username = defined('DB_USER') ? DB_USER : ($_ENV['DB_USER'] ?? 'root');
+        $this->password = defined('DB_PASS') ? DB_PASS : ($_ENV['DB_PASS'] ?? '');
         
         // Log configuration for debugging (without password)
         error_log("Database config - Host: {$this->host}, DB: {$this->db_name}, User: {$this->username}");

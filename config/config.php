@@ -8,11 +8,19 @@ define('APP_NAME', 'Damas Funer');
 define('APP_VERSION', '1.0.0');
 define('APP_DEBUG', false);
 
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', '6774344_damas_online');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Database configuration (only define if not already set by server_config.php)
+if (!defined('DB_HOST')) {
+    define('DB_HOST', 'localhost');
+}
+if (!defined('DB_NAME')) {
+    define('DB_NAME', '6774344_damas_online');
+}
+if (!defined('DB_USER')) {
+    define('DB_USER', 'root');
+}
+if (!defined('DB_PASS')) {
+    define('DB_PASS', '');
+}
 
 // Game configuration
 define('GAME_TIMEOUT_MINUTES', 30);
