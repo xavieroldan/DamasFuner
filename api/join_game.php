@@ -28,7 +28,7 @@ try {
     $gameCode = trim(strtoupper($input['game_code']));
     $playerName = trim($input['player_name']);
     
-    if (empty($gameCode) || strlen($gameCode) !== 6) {
+    if (empty($gameCode) || strlen($gameCode) !== 3) {
         throw new Exception('Código de partida inválido');
     }
     
