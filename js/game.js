@@ -281,11 +281,8 @@ class DamasGame {
                 } else {
                     // Show invalid move message
                     this.showInvalidMoveMessage(row, col);
-                    // No seleccionar nueva pieza si hay captura obligatoria
-                    const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
-                    if (!mandatoryCaptures || mandatoryCaptures.length === 0) {
-                        this.selectPiece(row, col);
-                    }
+                    // No seleccionar nueva pieza después de mostrar mensaje de movimiento inválido
+                    return;
                 }
             }
         }
@@ -1273,7 +1270,7 @@ class DamasGame {
                 const isValidNormalMove = normalMoves.some(move => move.row === row && move.col === col);
                 
                 if (!isValidNormalMove) {
-                    this.showMessage('Movimiento no válido para esta pieza', 'error');
+                    this.showMessage('Solo puedes mover a las casillas iluminadas en azul', 'error');
                 } else {
                     this.showMessage('Movimiento no válido', 'error');
                 }
