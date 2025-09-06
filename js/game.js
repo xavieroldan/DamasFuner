@@ -226,9 +226,9 @@ class DamasGame {
                     console.log(`Dama captures:`, damaCaptures);
                     
                     if (damaCaptures.length > 0) {
-                        this.showMessage('Debes capturar con la dama', 'error');
+                        this.showMessage('🚫 Debes capturar con la dama', 'error');
                     } else {
-                        this.showMessage('Estás obligado a capturar', 'error');
+                        this.showMessage('🚫 Estás obligado a capturar', 'error');
                     }
                     return;
                 }
@@ -249,7 +249,7 @@ class DamasGame {
                 // Verificar que la pieza seleccionada es del jugador actual
                 if (selectedPieceData && selectedPieceData.player !== this.myPlayerNumber) {
                     console.log('❌ Cannot move opponent piece');
-                    this.showMessage('No puedes mover las piezas del oponente', 'error');
+                    this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
                     this.selectedPiece = null;
                     this.possibleMoves = [];
                     this.renderBoard();
@@ -320,9 +320,9 @@ class DamasGame {
                     const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
                     
                     if (damaCaptures.length > 0) {
-                        this.showMessage('Debes capturar con la dama', 'error');
+                        this.showMessage('🚫 Debes capturar con la dama', 'error');
                     } else {
-                        this.showMessage('Estás obligado a capturar', 'error');
+                        this.showMessage('🚫 Estás obligado a capturar', 'error');
                     }
                     return;
                 }
@@ -331,7 +331,7 @@ class DamasGame {
             this.selectPiece(row, col);
         } else if (piece && piece.player !== this.myPlayerNumber) {
             // Intentar seleccionar pieza del oponente
-            this.showMessage('No puedes mover las piezas del oponente', 'error');
+            this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
         } else {
             // Click on empty cell without selected piece
             // Solo mostrar mensajes si es mi turno
@@ -342,9 +342,9 @@ class DamasGame {
                     const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
                     
                     if (damaCaptures.length > 0) {
-                        this.showMessage('Debes capturar con la dama', 'error');
+                        this.showMessage('🚫 Debes capturar con la dama', 'error');
                     } else {
-                        this.showMessage('Estás obligado a capturar', 'error');
+                        this.showMessage('🚫 Estás obligado a capturar', 'error');
                     }
                 } else {
                     this.showMessage('Selecciona una pieza primero', 'info');
@@ -372,7 +372,7 @@ class DamasGame {
         // Verificar que la pieza es del jugador actual
         if (piece.player !== this.myPlayerNumber) {
             console.log('Cannot select opponent piece');
-            this.showMessage('No puedes seleccionar las piezas del oponente', 'error');
+            this.showMessage('🚫 No puedes seleccionar las piezas del oponente', 'error');
             console.log(`=== END SELECTING PIECE DEBUG ===`);
             return;
         }
@@ -391,9 +391,9 @@ class DamasGame {
                 // Verificar si hay damas disponibles
                 const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
                 if (damaCaptures.length > 0) {
-                    this.showMessage('Debes capturar con la dama', 'error');
+                    this.showMessage('🚫 Debes capturar con la dama', 'error');
                 } else {
-                    this.showMessage('Estás obligado a capturar', 'error');
+                    this.showMessage('🚫 Estás obligado a capturar', 'error');
                 }
                 console.log(`=== END SELECTING PIECE DEBUG ===`);
                 return;
@@ -1251,15 +1251,15 @@ class DamasGame {
             const selectedPieceCaptures = this.getPossibleCaptures(this.selectedPiece.row, this.selectedPiece.col);
             
             if (selectedPieceCaptures.length === 0) {
-                this.showMessage('Esta pieza no puede capturar. Debes usar la pieza que puede capturar', 'error');
+                this.showMessage('🚫 Esta pieza no puede capturar. Debes usar la pieza que puede capturar', 'error');
             } else {
                 // Verificar si hay damas disponibles
                 const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
                 
                 if (damaCaptures.length > 0) {
-                    this.showMessage('Debes capturar con la dama', 'error');
+                    this.showMessage('🚫 Debes capturar con la dama', 'error');
                 } else {
-                    this.showMessage('Estás obligado a capturar', 'error');
+                    this.showMessage('🚫 Estás obligado a capturar', 'error');
                 }
             }
         } else {
@@ -1270,12 +1270,12 @@ class DamasGame {
                 const isValidNormalMove = normalMoves.some(move => move.row === row && move.col === col);
                 
                 if (!isValidNormalMove) {
-                    this.showMessage('Solo puedes mover a las casillas iluminadas en azul', 'error');
+                    this.showMessage('🚫 Solo puedes mover a las casillas en azul', 'error');
                 } else {
-                    this.showMessage('Movimiento no válido', 'error');
+                    this.showMessage('🚫 Movimiento no válido', 'error');
                 }
             } else {
-                this.showMessage('Movimiento no válido', 'error');
+                this.showMessage('🚫 Movimiento no válido', 'error');
             }
         }
     }
