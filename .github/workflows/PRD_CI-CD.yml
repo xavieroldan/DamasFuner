@@ -15,17 +15,20 @@ jobs:
     name: Hostalia PRD FTP-Deploy
     runs-on: ubuntu-latest
     environment: PRD
+    permissions:
+      contents: read
+      packages: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Cache apt packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
-            /var/cache/apt
-            /var/lib/apt/lists
+            ~/.cache/apt
+            ~/.apt-cache
           key: ${{ runner.os }}-apt-${{ hashFiles('**/lockfiles') }}
           restore-keys: |
             ${{ runner.os }}-apt-
