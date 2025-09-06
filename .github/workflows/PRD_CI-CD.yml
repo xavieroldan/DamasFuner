@@ -23,9 +23,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install lftp and deploy
+      - name: Install lftp
         run: |
-          # Instalar lftp de forma más rápida usando snap (más rápido que apt)
-          sudo snap install lftp
-          # Deploy via lftp
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Deploy via lftp
+        run: |
           lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /; quit"
