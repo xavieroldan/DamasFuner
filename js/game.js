@@ -431,10 +431,23 @@ class DamasGame {
             
             if (thisPieceCaptures.length > 0) {
                 // Si esta pieza puede capturar, usar la función getPossibleCaptures
+                console.log('=== GETTING CAPTURES FOR THIS PIECE ===');
                 const captures = this.getPossibleCaptures(row, col);
+                console.log('Capturas encontradas para esta pieza:', captures);
+                console.log('Número de capturas:', captures.length);
+                
+                // Mostrar detalles de cada captura
+                captures.forEach((capture, index) => {
+                    console.log(`Captura ${index + 1}:`, {
+                        row: capture.row,
+                        col: capture.col,
+                        type: capture.type,
+                        captured: capture.captured
+                    });
+                });
+                console.log('=== END GETTING CAPTURES ===');
                 
                 if (captures.length > 0) {
-                    console.log('Capturas encontradas para esta pieza:', captures);
                     return captures;
                 }
             } else {
@@ -444,32 +457,12 @@ class DamasGame {
         }
 
         // Si no hay captura obligatoria, mostrar movimientos normales
-        const moves = [];
-        const directions = piece.isKing ? 
-            [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
-        
         console.log(`=== NORMAL MOVEMENTS DEBUG ===`);
-        console.log(`Piece player: ${piece.player}, isKing: ${piece.isKing}`);
-        console.log(`Directions for this piece:`, directions);
-
-        for (const [dr, dc] of directions) {
-            const newRow = row + dr;
-            const newCol = col + dc;
-
-            console.log(`Checking direction [${dr}, ${dc}] -> (${newRow}, ${newCol})`);
-            console.log(`Is valid position: ${this.isValidPosition(newRow, newCol)}`);
-            console.log(`Is empty: ${!this.board[newRow][newCol]}`);
-
-            // Movimiento simple
-            if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
-                moves.push({ row: newRow, col: newCol, type: 'move' });
-                console.log(`Added move to (${newRow}, ${newCol})`);
-            }
-        }
-
-        console.log(`Movimientos posibles para pieza en (${row}, ${col}):`, moves);
-        return moves;
+        const normalMoves = this.getNormalMoves(row, col);
+        console.log(`Normal moves found:`, normalMoves);
+        console.log(`=== END NORMAL MOVEMENTS DEBUG ===`);
+        
+        return normalMoves;
     }
 
     isValidMove(from, to) {
@@ -561,16 +554,50 @@ class DamasGame {
         if (!piece) return [];
 
         const moves = [];
-        const directions = piece.isKing ? 
-            [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
-
-        for (const [dRow, dCol] of directions) {
-            const newRow = row + dRow;
-            const newCol = col + dCol;
+        
+        if (piece.isKing) {
+            // Para damas: buscar todas las casillas vacías en diagonal
+            const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
             
-            if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
-                moves.push({ row: newRow, col: newCol, type: 'normal' });
+            console.log(`=== GET NORMAL MOVES FOR QUEEN AT (${row}, ${col}) ===`);
+            
+            for (const [dRow, dCol] of directions) {
+                let currentRow = row + dRow;
+                let currentCol = col + dCol;
+                
+                console.log(`Checking direction: (${dRow}, ${dCol})`);
+                
+                // Buscar casillas vacías en esta dirección diagonal
+                while (this.isValidPosition(currentRow, currentCol)) {
+                    console.log(`Checking position: (${currentRow}, ${currentCol})`);
+                    if (!this.board[currentRow][currentCol]) {
+                        // Casilla vacía, es un movimiento válido
+                        console.log(`Empty cell found at (${currentRow}, ${currentCol}) - adding to moves`);
+                        moves.push({ row: currentRow, col: currentCol, type: 'normal' });
+                    } else {
+                        // Hay una pieza, no podemos continuar en esta dirección
+                        console.log(`Piece found at (${currentRow}, ${currentCol}) - stopping in this direction`);
+                        break;
+                    }
+                    currentRow += dRow;
+                    currentCol += dCol;
+                }
+            }
+            
+            console.log(`Total normal moves found: ${moves.length}`);
+            console.log(`Moves:`, moves);
+            console.log(`=== END GET NORMAL MOVES ===`);
+        } else {
+            // Para peones: solo movimientos de una casilla
+            const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+
+            for (const [dRow, dCol] of directions) {
+                const newRow = row + dRow;
+                const newCol = col + dCol;
+                
+                if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                    moves.push({ row: newRow, col: newCol, type: 'normal' });
+                }
             }
         }
         
@@ -582,8 +609,12 @@ class DamasGame {
         const piece = this.board[row][col];
         if (!piece) return [];
 
+        console.log(`=== GET POSSIBLE CAPTURES DEBUG ===`);
+        console.log(`Getting captures for piece at (${row}, ${col}):`, piece);
+
         // Encontrar todas las secuencias de capturas posibles
         const captureSequences = this.findCaptureSequences(row, col, piece, []);
+        console.log(`Found ${captureSequences.length} capture sequences`);
         
         // Si hay secuencias de captura, devolver todas las de la longitud máxima
         if (captureSequences.length > 0) {
@@ -594,81 +625,231 @@ class DamasGame {
                     maxLength = sequence.length;
                 }
             }
+            console.log(`Maximum sequence length: ${maxLength}`);
             
-            // Filtrar solo las secuencias de longitud máxima
-            const bestSequences = captureSequences.filter(sequence => sequence.length === maxLength);
+            // Incluir todas las secuencias, no solo las de longitud máxima
+            // para mostrar todas las opciones de captura posibles
+            console.log(`All sequences:`, captureSequences.length);
             
             // Convertir todas las secuencias al formato esperado por makeMove
             const moves = [];
-            for (const sequence of bestSequences) {
+            const uniquePositions = new Set(); // Para evitar posiciones duplicadas
+            
+            for (const sequence of captureSequences) {
                 if (sequence.length > 0) {
                     const finalPosition = sequence[sequence.length - 1];
-                    moves.push({
-                        row: finalPosition.row,
-                        col: finalPosition.col,
-                        type: 'multiple_capture',
-                        captured: sequence.map(capture => ({
-                            row: capture.capturedRow,
-                            col: capture.capturedCol
-                        }))
-                    });
+                    const positionKey = `${finalPosition.row},${finalPosition.col}`;
+                    
+                    // Solo añadir si no hemos visto esta posición final antes
+                    if (!uniquePositions.has(positionKey)) {
+                        console.log(`Adding final position: (${finalPosition.row}, ${finalPosition.col})`);
+                        uniquePositions.add(positionKey);
+                        moves.push({
+                            row: finalPosition.row,
+                            col: finalPosition.col,
+                            type: 'multiple_capture',
+                            captured: sequence.map(capture => ({
+                                row: capture.capturedRow,
+                                col: capture.capturedCol
+                            }))
+                        });
+                    } else {
+                        console.log(`Skipping duplicate final position: (${finalPosition.row}, ${finalPosition.col})`);
+                    }
                 }
             }
             
+            console.log(`Final moves to return:`, moves.length);
+            moves.forEach((move, index) => {
+                console.log(`Move ${index + 1}: (${move.row}, ${move.col})`);
+            });
+            console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+            
             return moves;
         }
-
+        
+        console.log(`No capture sequences found`);
+        console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
         return [];
     }
 
     // Function to encontrar todas las secuencias de capturas posibles
-    findCaptureSequences(row, col, piece, capturedPieces) {
+    findCaptureSequences(row, col, piece, capturedPieces, visited = new Set()) {
         const sequences = [];
-        const directions = piece.isKing ? 
-            [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
-            (piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
+        const positionKey = `${row},${col}`;
+        
+        // Evitar procesar la misma posición múltiples veces
+        if (visited.has(positionKey)) {
+            return sequences;
+        }
+        
+        visited.add(positionKey);
+        
+        if (piece.isKing) {
+            // Para damas: buscar capturas a distancia en diagonal
+            const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            
+            for (const [dr, dc] of directions) {
+                const queenCaptures = this.findQueenCapturesInDirection(row, col, piece, dr, dc, capturedPieces, visited);
+                sequences.push(...queenCaptures);
+            }
+        } else {
+            // Para peones: lógica original de capturas adyacentes
+            const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
 
-        for (const [dr, dc] of directions) {
-            const newRow = row + dr;
-            const newCol = col + dc;
+            for (const [dr, dc] of directions) {
+                const newRow = row + dr;
+                const newCol = col + dc;
 
-            // Verificar si hay una pieza enemiga para capturar
-            if (this.isValidPosition(newRow, newCol) && 
-                this.board[newRow][newCol] && 
-                this.board[newRow][newCol].player !== piece.player) {
-                
-                const jumpRow = newRow + dr;
-                const jumpCol = newCol + dc;
-                
-                if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
-                    // Crear una copia del tablero para simular la captura
-                    const simulatedBoard = this.simulateCapture(row, col, newRow, newCol, jumpRow, jumpCol);
+                // Verificar si hay una pieza enemiga para capturar
+                if (this.isValidPosition(newRow, newCol) && 
+                    this.board[newRow][newCol] && 
+                    this.board[newRow][newCol].player !== piece.player) {
                     
-                    // Crear la captura actual
-                    const currentCapture = { 
-                        row: jumpRow, 
-                        col: jumpCol, 
-                        capturedRow: newRow, 
-                        capturedCol: newCol,
-                        pieceType: piece.isKing ? 'dama' : 'peon'
-                    };
+                    const jumpRow = newRow + dr;
+                    const jumpCol = newCol + dc;
                     
-                    // Verificar si puede hacer más capturas desde la nueva posición
-                    const moreCaptures = this.findCaptureSequences(jumpRow, jumpCol, piece, [...capturedPieces, currentCapture]);
-                    
-                    if (moreCaptures.length > 0) {
-                        // Agregar todas las secuencias que continúan desde aquí
-                        for (const sequence of moreCaptures) {
-                            sequences.push([currentCapture, ...sequence]);
+                    if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
+                        // Crear la captura actual
+                        const currentCapture = { 
+                            row: jumpRow, 
+                            col: jumpCol, 
+                            capturedRow: newRow, 
+                            capturedCol: newCol,
+                            pieceType: 'peon'
+                        };
+                        
+                        // Verificar si puede hacer más capturas desde la nueva posición
+                        const moreCaptures = this.findCaptureSequences(jumpRow, jumpCol, piece, [...capturedPieces, currentCapture], new Set(visited));
+                        
+                        if (moreCaptures.length > 0) {
+                            // Agregar todas las secuencias que continúan desde aquí
+                            for (const sequence of moreCaptures) {
+                                sequences.push([currentCapture, ...sequence]);
+                            }
+                        } else {
+                            // Esta es una captura simple
+                            sequences.push([currentCapture]);
                         }
-                    } else {
-                        // Esta es una captura simple
-                        sequences.push([currentCapture]);
                     }
                 }
             }
         }
 
+        return sequences;
+    }
+
+    // Function específica para capturas de dama en una dirección diagonal
+    findQueenCapturesInDirection(row, col, piece, dr, dc, capturedPieces, visited = new Set()) {
+        const sequences = [];
+        let currentRow = row + dr;
+        let currentCol = col + dc;
+        let foundEnemy = false;
+        let enemyRow = -1;
+        let enemyCol = -1;
+
+        console.log(`=== FINDING QUEEN CAPTURES IN DIRECTION ===`);
+        console.log(`From (${row}, ${col}) in direction (${dr}, ${dc})`);
+
+        // Buscar la primera pieza enemiga en esta dirección diagonal
+        while (this.isValidPosition(currentRow, currentCol)) {
+            console.log(`Checking position (${currentRow}, ${currentCol})`);
+            if (this.board[currentRow][currentCol]) {
+                console.log(`Piece found at (${currentRow}, ${currentCol}):`, this.board[currentRow][currentCol]);
+                if (this.board[currentRow][currentCol].player !== piece.player) {
+                    // Encontramos una pieza enemiga
+                    foundEnemy = true;
+                    enemyRow = currentRow;
+                    enemyCol = currentCol;
+                    console.log(`Enemy piece found at (${enemyRow}, ${enemyCol})`);
+                    break;
+                } else {
+                    // Pieza propia, no podemos saltar por encima
+                    console.log(`Own piece found, stopping in this direction`);
+                    break;
+                }
+            } else {
+                console.log(`Empty cell at (${currentRow}, ${currentCol})`);
+            }
+            currentRow += dr;
+            currentCol += dc;
+        }
+
+        if (foundEnemy) {
+            console.log(`Enemy found, looking for landing positions after (${enemyRow}, ${enemyCol})`);
+            // Buscar todas las casillas vacías después de la pieza enemiga en la misma diagonal
+            let landingRow = enemyRow + dr;
+            let landingCol = enemyCol + dc;
+            
+            while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
+                console.log(`Checking landing position (${landingRow}, ${landingCol})`);
+                const positionKey = `${landingRow},${landingCol}`;
+                
+                // Evitar procesar la misma posición múltiples veces
+                if (!visited.has(positionKey)) {
+                    console.log(`Adding capture to (${landingRow}, ${landingCol})`);
+                    // Crear la captura actual
+                    const currentCapture = { 
+                        row: landingRow, 
+                        col: landingCol, 
+                        capturedRow: enemyRow, 
+                        capturedCol: enemyCol,
+                        pieceType: 'dama'
+                    };
+
+                    // Después de una captura, la dama puede cambiar de diagonal
+                    // Buscar capturas en todas las direcciones desde la nueva posición
+                    const newVisited = new Set(visited);
+                    newVisited.add(positionKey);
+                    const moreCaptures = this.findQueenCapturesFromAllDirections(landingRow, landingCol, piece, [...capturedPieces, currentCapture], newVisited);
+                    
+                    if (moreCaptures.length > 0) {
+                        console.log(`More captures found from (${landingRow}, ${landingCol}):`, moreCaptures.length);
+                        // Agregar todas las secuencias que continúan desde aquí
+                        for (const sequence of moreCaptures) {
+                            sequences.push([currentCapture, ...sequence]);
+                        }
+                    } else {
+                        console.log(`Simple capture to (${landingRow}, ${landingCol})`);
+                        // Esta es una captura simple
+                        sequences.push([currentCapture]);
+                    }
+                } else {
+                    console.log(`Position (${landingRow}, ${landingCol}) already visited`);
+                }
+
+                // Continuar buscando más casillas vacías en la misma dirección
+                landingRow += dr;
+                landingCol += dc;
+            }
+        } else {
+            console.log(`No enemy found in direction (${dr}, ${dc})`);
+        }
+        
+        console.log(`Sequences found in direction (${dr}, ${dc}):`, sequences.length);
+        console.log(`=== END FINDING QUEEN CAPTURES IN DIRECTION ===`);
+
+        return sequences;
+    }
+
+    // Function para buscar capturas de dama en todas las direcciones después de una captura
+    findQueenCapturesFromAllDirections(row, col, piece, capturedPieces, visited = new Set()) {
+        const sequences = [];
+        const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        
+        console.log(`=== FINDING QUEEN CAPTURES FROM ALL DIRECTIONS ===`);
+        console.log(`From position (${row}, ${col})`);
+        
+        for (const [dr, dc] of directions) {
+            console.log(`Checking direction (${dr}, ${dc})`);
+            const queenCaptures = this.findQueenCapturesInDirection(row, col, piece, dr, dc, capturedPieces, visited);
+            console.log(`Direction (${dr}, ${dc}) found ${queenCaptures.length} sequences`);
+            sequences.push(...queenCaptures);
+        }
+        
+        console.log(`Total sequences found from all directions: ${sequences.length}`);
+        console.log(`=== END FINDING QUEEN CAPTURES FROM ALL DIRECTIONS ===`);
+        
         return sequences;
     }
 
@@ -1357,23 +1538,26 @@ class DamasGame {
             return;
         }
 
-        // Array de frases motivadoras
+        // Obtener nombre del jugador
+        const playerName = this.playerNames[this.myPlayerNumber] || 'Jugador';
+        
+        // Array de frases motivadoras con nombre del jugador y emoji de llamada a la acción
         const motivationalPhrases = [
-            "¡Vamos! 🚀",
-            "¡No te duermas! 😴",
-            "¡Es tu momento! ⚡",
-            "¡A por todas! 🎯",
-            "¡No dejes que se enfríe! 🔥",
-            "¡Tu oponente está temblando! 😱",
-            "¡Es hora de brillar! ✨",
-            "¡No pienses, actúa! 🎭",
-            "¡Tu turno, tu gloria! 👑",
-            "¡La suerte está de tu lado! 🍀",
-            "¡No hay tiempo que perder! ⏰",
-            "¡Tu oponente está perdiendo paciencia! 😤",
-            "¡Es tu turno de ser leyenda! 🏆",
-            "¡No dejes que se enfríe el tablero! ❄️",
-            "¡Tu momento de gloria! 🌟"
+            `↘️ ${playerName}, ¡Vamos! 🚀`,
+            `↘️ ${playerName}, ¡No te duermas! 😴`,
+            `↘️ ${playerName}, ¡Es tu momento! ⚡`,
+            `↘️ ${playerName}, ¡A por todas! 🎯`,
+            `↘️ ${playerName}, ¡No dejes que se enfríe! 🔥`,
+            `↘️ ${playerName}, ¡Tu oponente está temblando! 😱`,
+            `↘️ ${playerName}, ¡Es hora de brillar! ✨`,
+            `↘️ ${playerName}, ¡No pienses, actúa! 🎭`,
+            `↘️ ${playerName}, ¡Tu turno, tu gloria! 👑`,
+            `↘️ ${playerName}, ¡La suerte está de tu lado! 🍀`,
+            `↘️ ${playerName}, ¡No hay tiempo que perder! ⏰`,
+            `↘️ ${playerName}, ¡Tu oponente está perdiendo paciencia! 😤`,
+            `↘️ ${playerName}, ¡Es tu turno de ser leyenda! 🏆`,
+            `↘️ ${playerName}, ¡No dejes que se enfríe el tablero! ❄️`,
+            `↘️ ${playerName}, ¡Tu momento de gloria! 🌟`
         ];
 
         // Seleccionar frase aleatoria

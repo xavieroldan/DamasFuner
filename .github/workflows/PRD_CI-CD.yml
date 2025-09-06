@@ -23,21 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/apt
-            ~/.apt-cache
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/lockfiles') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
-      - name: Install lftp
+      - name: Install lftp and deploy
         run: |
-          sudo apt-get update
-          sudo apt-get install -y lftp
-
-      - name: Deploy via lftp
-        run: |
+          # Instalar lftp de forma más rápida usando snap (más rápido que apt)
+          sudo snap install lftp
+          # Deploy via lftp
           lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /; quit"
