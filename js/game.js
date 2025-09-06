@@ -12,6 +12,7 @@ class DamasGame {
         this.playerName = null; // Current player name
         this.playerNames = { 1: null, 2: null }; // Store both player names
         this.gameEndNotified = false; // Flag to prevent multiple end game notifications
+        this.motivationalMessageShown = false; // Flag to prevent showing motivational message multiple times per turn
         
         this.initializeBoard();
         this.setupEventListeners();
@@ -271,6 +272,7 @@ class DamasGame {
                         console.log(`=== SENDING MOVE TO SERVER ===`);
                         console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
                         console.log(`Captured pieces to send:`, capturedPieces);
+                        this.motivationalMessageShown = false; // Reset flag when making a move
                         window.network.sendMove(fromPiece, { row, col }, capturedPieces);
                     }
                     this.selectedPiece = null;
@@ -1032,6 +1034,9 @@ class DamasGame {
         const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
         const winnerName = `${winnerPlayerName} ${colorText}`;
         
+        // Limpiar mensajes anteriores antes de mostrar el mensaje de victoria
+        this.clearMessages();
+        
         // Actualizar la interfaz
         const statusElement = document.getElementById('game-status');
         statusElement.textContent = `¡${winnerName} ha ganado!`;
@@ -1148,11 +1153,13 @@ class DamasGame {
         // Don't set myPlayerNumber here - it will be set by loadInitialGameState
         this.gameState = 'playing';
         this.gameEndNotified = false;
+        this.motivationalMessageShown = false; // Reset flag for new game
         
         document.getElementById('new-game-btn').style.display = 'none';
         document.getElementById('join-game-btn').style.display = 'none';
         document.getElementById('leave-game-btn').style.display = 'inline-block';
         
+        this.clearMessages(); // Limpiar mensajes al iniciar nueva partida
         this.updateGameStatus();
         this.addChatMessage('system', '¡Partida iniciada! ¡Buena suerte!');
     }
@@ -1310,11 +1317,138 @@ class DamasGame {
     updateBoardFromServer(boardData) {
         this.board = boardData;
         this.renderBoard();
+        // No limpiar mensajes aquí, dejar que updateCurrentPlayer() maneje la lógica
     }
 
     updateCurrentPlayer(player) {
         this.currentPlayer = player;
         this.updateGameStatus();
+        
+        // Mostrar mensaje de espera si no es tu turno
+        if (this.myPlayerNumber && this.currentPlayer !== this.myPlayerNumber) {
+            this.showWaitingMessage();
+        } else if (this.myPlayerNumber && this.currentPlayer === this.myPlayerNumber && !this.motivationalMessageShown) {
+            this.showMotivationalMessage(); // Mostrar mensaje motivador solo si es tu turno y no se ha mostrado
+            this.motivationalMessageShown = true; // Marcar que ya se mostró
+        } else {
+            this.clearMessages(); // Limpiar mensajes en otros casos
+        }
+    }
+
+    // Function to clear all messages
+    clearMessages() {
+        const messageElement = document.getElementById('game-message');
+        if (messageElement) {
+            // No limpiar mensajes motivadores o de espera que deberían persistir
+            const isMotivational = messageElement.className.includes('motivational');
+            const isWaiting = messageElement.className.includes('waiting');
+            const isError = messageElement.className.includes('error');
+            
+            if (!isMotivational && !isWaiting && !isError) {
+                messageElement.style.display = 'none';
+                messageElement.textContent = '';
+                messageElement.className = 'game-message';
+            }
+        }
+    }
+
+    // Function to show motivational message when it's your turn
+    showMotivationalMessage() {
+        const messageElement = document.getElementById('game-message');
+        if (!messageElement) {
+            console.error('Game message element not found!');
+            return;
+        }
+
+        // Array de frases motivadoras
+        const motivationalPhrases = [
+            "¡Vamos! 🚀",
+            "¡No te duermas! 😴",
+            "¡Es tu momento! ⚡",
+            "¡A por todas! 🎯",
+            "¡No dejes que se enfríe! 🔥",
+            "¡Tu oponente está temblando! 😱",
+            "¡Es hora de brillar! ✨",
+            "¡No pienses, actúa! 🎭",
+            "¡Tu turno, tu gloria! 👑",
+            "¡La suerte está de tu lado! 🍀",
+            "¡No hay tiempo que perder! ⏰",
+            "¡Tu oponente está perdiendo paciencia! 😤",
+            "¡Es tu turno de ser leyenda! 🏆",
+            "¡No dejes que se enfríe el tablero! ❄️",
+            "¡Tu momento de gloria! 🌟"
+        ];
+
+        // Seleccionar frase aleatoria
+        const randomIndex = Math.floor(Math.random() * motivationalPhrases.length);
+        const selectedPhrase = motivationalPhrases[randomIndex];
+        
+        // Configurar el mensaje motivador
+        messageElement.textContent = selectedPhrase;
+        messageElement.className = 'game-message motivational';
+        
+        // Aplicar estilos para el mensaje motivador
+        messageElement.style.cssText = `
+            position: fixed !important;
+            top: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 15px 25px !important;
+            border-radius: 25px !important;
+            font-weight: bold !important;
+            font-size: 1.1em !important;
+            z-index: 10000 !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+            max-width: 90% !important;
+            text-align: center !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: linear-gradient(135deg, #51cf66, #40c057) !important;
+            color: white !important;
+            border: 2px solid #51cf66 !important;
+            animation: motivationalBounce 1.5s ease-in-out !important;
+        `;
+    }
+
+    // Function to show waiting message when it's not your turn
+    showWaitingMessage() {
+        const messageElement = document.getElementById('game-message');
+        if (!messageElement) {
+            console.error('Game message element not found!');
+            return;
+        }
+
+        // Obtener el nombre del oponente
+        const opponentNumber = this.currentPlayer;
+        const opponentName = this.playerNames[opponentNumber] || `Jugador ${opponentNumber}`;
+        
+        // Configurar el mensaje de espera
+        messageElement.textContent = `⏳ Esperando a que ${opponentName} mueva...`;
+        messageElement.className = 'game-message waiting';
+        
+        // Aplicar estilos para el mensaje de espera
+        messageElement.style.cssText = `
+            position: fixed !important;
+            top: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 15px 25px !important;
+            border-radius: 25px !important;
+            font-weight: bold !important;
+            font-size: 1.1em !important;
+            z-index: 10000 !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+            max-width: 90% !important;
+            text-align: center !important;
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: linear-gradient(135deg, #ffd43b, #fab005) !important;
+            color: #2d3436 !important;
+            border: 2px solid #ffd43b !important;
+            animation: waitingPulse 2s infinite !important;
+        `;
     }
 
     // Function to añadir efecto cómico de captura
