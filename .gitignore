@@ -1,0 +1,33 @@
+# Configuration files with sensitive data
+config/server_config.php
+
+# Log files
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database files
+*.sql
+*.db
+
+# Temporary files
+temp/
+tmp/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
