@@ -13,6 +13,8 @@ class DamasGame {
         this.playerNames = { 1: null, 2: null }; // Store both player names
         this.gameEndNotified = false; // Flag to prevent multiple end game notifications
         this.motivationalMessageShown = false; // Flag to prevent showing motivational message multiple times per turn
+        this.multipleCaptureInProgress = false; // Flag to track if multiple captures are in progress
+        this.capturedPiecesInSequence = []; // Store pieces captured during current sequence
         
         this.initializeBoard();
         this.setupEventListeners();
@@ -192,8 +194,16 @@ class DamasGame {
         
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
-            // Si haces clic en otra pieza del mismo color, reiniciar turno
+            // Si haces clic en otra pieza del mismo color, verificar si hay capturas múltiples en progreso
             if (piece && piece.player === this.myPlayerNumber) {
+                // Verificar si hay capturas múltiples en progreso
+                if (this.multipleCaptureInProgress) {
+                    console.log('=== CAPTURAS MÚLTIPLES EN PROGRESO ===');
+                    console.log('Hay capturas múltiples en progreso, no permitir cambio de pieza');
+                    this.showMessage('🚫 Debes continuar con la misma pieza para completar las capturas', 'error');
+                    return;
+                }
+                
                 console.log('=== REINICIANDO TURNO ===');
                 console.log('Deseleccionando pieza anterior:', this.selectedPiece);
                 this.selectedPiece = null;
@@ -264,19 +274,17 @@ class DamasGame {
                     console.log(`To position: (${row}, ${col})`);
                     console.log(`Selected piece data:`, selectedPieceData);
                     
-                    // Aplicar movimiento localmente PRIMERO
+                    // Aplicar movimiento localmente - makeMove se encarga de enviar al servidor cuando corresponda
                     const capturedPieces = this.makeMove(fromPiece, { row, col });
                     
-                    // Enviar movimiento al servidor
-                    if (window.network) {
-                        console.log(`=== SENDING MOVE TO SERVER ===`);
-                        console.log(`Sending move from (${fromPiece.row}, ${fromPiece.col}) to (${row}, ${col})`);
-                        console.log(`Captured pieces to send:`, capturedPieces);
-                        this.motivationalMessageShown = false; // Reset flag when making a move
-                        window.network.sendMove(fromPiece, { row, col }, capturedPieces);
+                    // Reset flag when making a move
+                    this.motivationalMessageShown = false;
+                    
+                    // Solo limpiar possibleMoves si no hay capturas múltiples en progreso
+                    if (!this.multipleCaptureInProgress) {
+                        this.possibleMoves = [];
                     }
-                    this.selectedPiece = null;
-                    this.possibleMoves = [];
+                    
                     this.renderBoard();
                 } else {
                     // Show invalid move message
@@ -303,28 +311,30 @@ class DamasGame {
                 return;
             }
             
-            // Verificar si hay capturas obligatorias antes de seleccionar
-            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
-            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
-                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
-                const canThisPieceCapture = mandatoryCaptures.some(capture => 
-                    capture.piece.row === row && capture.piece.col === col
-                );
-                
-                console.log(`Verificando pieza en (${row}, ${col})`);
-                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
-                console.log(`Capturas obligatorias:`, mandatoryCaptures);
-                
-                if (!canThisPieceCapture) {
-                    // Verificar si hay damas disponibles
-                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+            // Verificar si hay capturas obligatorias antes de seleccionar (solo si no hay capturas múltiples en progreso)
+            if (!this.multipleCaptureInProgress) {
+                const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+                if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                    // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                    const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                        capture.piece.row === row && capture.piece.col === col
+                    );
                     
-                    if (damaCaptures.length > 0) {
-                        this.showMessage('🚫 Debes capturar con la dama', 'error');
-                    } else {
-                        this.showMessage('🚫 Estás obligado a capturar', 'error');
+                    console.log(`Verificando pieza en (${row}, ${col})`);
+                    console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                    console.log(`Capturas obligatorias:`, mandatoryCaptures);
+                    
+                    if (!canThisPieceCapture) {
+                        // Verificar si hay damas disponibles
+                        const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                        
+                        if (damaCaptures.length > 0) {
+                            this.showMessage('🚫 Debes capturar con la dama', 'error');
+                        } else {
+                            this.showMessage('🚫 Estás obligado a capturar', 'error');
+                        }
+                        return;
                     }
-                    return;
                 }
             }
             // Seleccionar pieza del jugador actual
@@ -334,8 +344,8 @@ class DamasGame {
             this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
         } else {
             // Click on empty cell without selected piece
-            // Solo mostrar mensajes si es mi turno
-            if (this.currentPlayer === this.myPlayerNumber) {
+            // Solo mostrar mensajes si es mi turno y no hay capturas múltiples en progreso
+            if (this.currentPlayer === this.myPlayerNumber && !this.multipleCaptureInProgress) {
                 const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
                 if (mandatoryCaptures && mandatoryCaptures.length > 0) {
                     // Verificar si hay damas disponibles
@@ -350,7 +360,7 @@ class DamasGame {
                     this.showMessage('Selecciona una pieza primero', 'info');
                 }
             }
-            // Si no es mi turno, no mostrar ningún mensaje
+            // Si no es mi turno o hay capturas múltiples en progreso, no mostrar ningún mensaje
         }
     }
 
@@ -627,34 +637,59 @@ class DamasGame {
             }
             console.log(`Maximum sequence length: ${maxLength}`);
             
-            // Incluir todas las secuencias, no solo las de longitud máxima
-            // para mostrar todas las opciones de captura posibles
-            console.log(`All sequences:`, captureSequences.length);
-            
-            // Convertir todas las secuencias al formato esperado por makeMove
+            // Para capturas obligatorias, SOLO incluir posiciones de longitud máxima
+            // Si hay opciones de capturar más piezas, NO se pueden mostrar opciones de capturar menos
             const moves = [];
             const uniquePositions = new Set(); // Para evitar posiciones duplicadas
             
-            for (const sequence of captureSequences) {
+            // Filtrar solo las secuencias de longitud máxima
+            const bestSequences = captureSequences.filter(sequence => sequence.length === maxLength);
+            console.log(`Best sequences (length ${maxLength}):`, bestSequences.length);
+            console.log(`Only showing positions from maximum length sequences (${maxLength} captures)`);
+            
+            for (const sequence of bestSequences) {
                 if (sequence.length > 0) {
-                    const finalPosition = sequence[sequence.length - 1];
-                    const positionKey = `${finalPosition.row},${finalPosition.col}`;
-                    
-                    // Solo añadir si no hemos visto esta posición final antes
-                    if (!uniquePositions.has(positionKey)) {
-                        console.log(`Adding final position: (${finalPosition.row}, ${finalPosition.col})`);
-                        uniquePositions.add(positionKey);
-                        moves.push({
-                            row: finalPosition.row,
-                            col: finalPosition.col,
-                            type: 'multiple_capture',
-                            captured: sequence.map(capture => ({
-                                row: capture.capturedRow,
-                                col: capture.capturedCol
-                            }))
-                        });
+                    // Para peones, solo mostrar capturas individuales
+                    if (!piece.isKing) {
+                        // Solo agregar la primera captura de cada secuencia (captura individual)
+                        const firstCapture = sequence[0];
+                        const positionKey = `${firstCapture.row},${firstCapture.col}`;
+                        
+                        if (!uniquePositions.has(positionKey)) {
+                            console.log(`Adding individual pawn capture: (${firstCapture.row}, ${firstCapture.col})`);
+                            uniquePositions.add(positionKey);
+                            moves.push({
+                                row: firstCapture.row,
+                                col: firstCapture.col,
+                                type: 'single_capture',
+                                captured: [{
+                                    row: firstCapture.capturedRow,
+                                    col: firstCapture.capturedCol
+                                }]
+                            });
+                        } else {
+                            console.log(`Skipping duplicate pawn capture: (${firstCapture.row}, ${firstCapture.col})`);
+                        }
                     } else {
-                        console.log(`Skipping duplicate final position: (${finalPosition.row}, ${finalPosition.col})`);
+                        // Para damas, solo la posición final (comportamiento original)
+                        const finalPosition = sequence[sequence.length - 1];
+                        const positionKey = `${finalPosition.row},${finalPosition.col}`;
+                        
+                        if (!uniquePositions.has(positionKey)) {
+                            console.log(`Adding final position from max length sequence: (${finalPosition.row}, ${finalPosition.col})`);
+                            uniquePositions.add(positionKey);
+                            moves.push({
+                                row: finalPosition.row,
+                                col: finalPosition.col,
+                                type: 'multiple_capture',
+                                captured: sequence.map(capture => ({
+                                    row: capture.capturedRow,
+                                    col: capture.capturedCol
+                                }))
+                            });
+                        } else {
+                            console.log(`Skipping duplicate final position: (${finalPosition.row}, ${finalPosition.col})`);
+                        }
                     }
                 }
             }
@@ -694,7 +729,7 @@ class DamasGame {
                 sequences.push(...queenCaptures);
             }
         } else {
-            // Para peones: lógica original de capturas adyacentes
+            // Para peones: solo capturas individuales (sin secuencias múltiples)
             const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
 
             for (const [dr, dc] of directions) {
@@ -710,7 +745,7 @@ class DamasGame {
                     const jumpCol = newCol + dc;
                     
                     if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
-                        // Crear la captura actual
+                        // Crear la captura individual
                         const currentCapture = { 
                             row: jumpRow, 
                             col: jumpCol, 
@@ -719,18 +754,8 @@ class DamasGame {
                             pieceType: 'peon'
                         };
                         
-                        // Verificar si puede hacer más capturas desde la nueva posición
-                        const moreCaptures = this.findCaptureSequences(jumpRow, jumpCol, piece, [...capturedPieces, currentCapture], new Set(visited));
-                        
-                        if (moreCaptures.length > 0) {
-                            // Agregar todas las secuencias que continúan desde aquí
-                            for (const sequence of moreCaptures) {
-                                sequences.push([currentCapture, ...sequence]);
-                            }
-                        } else {
-                            // Esta es una captura simple
-                            sequences.push([currentCapture]);
-                        }
+                        // Solo agregar capturas individuales para peones
+                        sequences.push([currentCapture]);
                     }
                 }
             }
@@ -989,16 +1014,65 @@ class DamasGame {
         }
         
         // Promover a rey
-        if ((piece.player === 1 && to.row === 7) || (piece.player === 2 && to.row === 0)) {
+        if ((piece.player === 1 && to.row === 0) || (piece.player === 2 && to.row === 7)) {
             piece.isKing = true;
+            console.log(`=== PAWN PROMOTED TO KING ===`);
+            console.log(`Piece at (${to.row}, ${to.col}) promoted to king`);
+            console.log(`=== END PAWN PROMOTION ===`);
             // Add comic promotion effect
             this.addPromotionEffect(to.row, to.col);
         }
         
-        // Change turn only if no more captures
-        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-        this.selectedPiece = null;
-        this.possibleMoves = [];
+        // LÓGICA DE CAPTURAS MÚLTIPLES PARA PEONES
+        // Verificar si es un peón y puede seguir capturando
+        let canContinueCapturing = false;
+        if (!piece.isKing && move && move.captured && move.captured.length > 0) {
+            console.log(`=== CHECKING FOR ADDITIONAL PAWN CAPTURES ===`);
+            console.log(`Checking if pawn at (${to.row}, ${to.col}) can capture more pieces`);
+            
+            // Agregar piezas capturadas a la secuencia
+            this.capturedPiecesInSequence.push(...move.captured);
+            this.multipleCaptureInProgress = true;
+            
+            // Verificar si el peón puede hacer más capturas desde su nueva posición
+            const additionalCaptures = this.getPossibleCaptures(to.row, to.col);
+            console.log(`Additional captures found:`, additionalCaptures.length);
+            
+            if (additionalCaptures.length > 0) {
+                console.log(`Pawn can continue capturing! Not changing turn.`);
+                canContinueCapturing = true;
+                
+                // Mantener la pieza seleccionada y mostrar las nuevas opciones
+                this.selectedPiece = { row: to.row, col: to.col };
+                this.possibleMoves = additionalCaptures;
+                this.renderBoard();
+                
+                // Mostrar mensaje motivador actualizado
+                this.showMotivationalMessage();
+            } else {
+                // No puede seguir capturando, finalizar secuencia
+                this.multipleCaptureInProgress = false;
+                this.capturedPiecesInSequence = [];
+            }
+        }
+        
+        // Solo cambiar turno y enviar al servidor si no puede seguir capturando
+        if (!canContinueCapturing) {
+            console.log(`No more captures possible, changing turn`);
+            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            this.selectedPiece = null;
+            this.possibleMoves = [];
+            this.multipleCaptureInProgress = false;
+            this.capturedPiecesInSequence = [];
+            
+            // Enviar movimiento al servidor solo cuando termine toda la secuencia
+            // Enviar todas las capturas acumuladas de la secuencia múltiple
+            this.sendMoveToServer(from, to, this.capturedPiecesInSequence);
+        } else {
+            console.log(`Pawn can continue capturing, not sending to server yet`);
+            // No enviar al servidor todavía, mantener el turno
+        }
+        
         this.updateGameStatus();
         
         // Check winner only after a valid move
@@ -1006,6 +1080,27 @@ class DamasGame {
         
         // Devolver las capturas para enviar al servidor
         return capturedPieces;
+    }
+
+    async sendMoveToServer(from, to, capturedPieces) {
+        console.log(`=== SENDING MOVE TO SERVER ===`);
+        console.log(`Sending move from (${from.row}, ${from.col}) to (${to.row}, ${to.col})`);
+        console.log(`Captured pieces to send:`, capturedPieces);
+        console.log(`Complete board state to send:`, this.board);
+        
+        if (window.network && window.network.sendMove) {
+            try {
+                // Enviar el estado completo del tablero para que el servidor confíe en él
+                await window.network.sendMove(from, to, capturedPieces, this.board);
+                console.log(`Move sent to server successfully`);
+            } catch (error) {
+                console.error(`Error sending move to server:`, error);
+                this.showMessage('Error al enviar movimiento al servidor', 'error');
+            }
+        } else {
+            console.error(`Network manager not available`);
+            this.showMessage('Error de conexión', 'error');
+        }
     }
 
     isValidPosition(row, col) {
@@ -1425,6 +1520,12 @@ class DamasGame {
 
     // Function to mostrar mensaje específico de movimiento no válido
     showInvalidMoveMessage(row, col) {
+        // No mostrar mensajes de captura obligatoria si hay capturas múltiples en progreso
+        if (this.multipleCaptureInProgress) {
+            this.showMessage('🚫 Solo puedes mover a las casillas en azul', 'error');
+            return;
+        }
+        
         const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
         
         if (mandatoryCaptures && mandatoryCaptures.length > 0) {

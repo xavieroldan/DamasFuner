@@ -68,30 +68,32 @@ try {
     $piece = $board[$fromRow][$fromCol];
     $newBoard = $board;
     
-    // Mover la pieza
-    $newBoard[$toRow][$toCol] = $newBoard[$fromRow][$fromCol];
-    $newBoard[$fromRow][$fromCol] = null;
+    // EL CLIENTE MANEJA TODA LA LÓGICA - EL SERVIDOR SOLO CONFÍA EN EL ESTADO FINAL
+    // El cliente envía el tablero completo ya procesado con todas las capturas y promociones
     
-    // Procesar capturas enviadas por el cliente
-    $capturedPieces = isset($input['captured_pieces']) ? $input['captured_pieces'] : [];
+    // Si el cliente envía el tablero completo, usarlo directamente
+    if (isset($input['board_state'])) {
+        $newBoard = $input['board_state'];
+        error_log("Using complete board state from client");
+    } else {
+        // Fallback: procesar movimiento básico (para compatibilidad)
+        $newBoard[$toRow][$toCol] = $newBoard[$fromRow][$fromCol];
+        $newBoard[$fromRow][$fromCol] = null;
+        error_log("Using fallback movement processing");
+    }
+    
+    // Calcular capturas comparando el tablero anterior con el nuevo
     $capturedBlack = 0;
     $capturedWhite = 0;
     
-    // Procesar cada captura enviada por el cliente
-    foreach ($capturedPieces as $captured) {
-        if (isset($captured['row']) && isset($captured['col']) && isset($captured['player'])) {
-            $capturedRow = $captured['row'];
-            $capturedCol = $captured['col'];
-            $capturedPlayer = $captured['player'];
+    for ($i = 0; $i < 8; $i++) {
+        for ($j = 0; $j < 8; $j++) {
+            $oldPiece = $board[$i][$j];
+            $newPiece = $newBoard[$i][$j];
             
-            // Eliminar la pieza capturada del tablero
-            if ($capturedRow >= 0 && $capturedRow < 8 && $capturedCol >= 0 && $capturedCol < 8) {
-                $newBoard[$capturedRow][$capturedCol] = null;
-                
-                // Asignar capturas al jugador que las realiza (no al que las recibe)
-                // Si el jugador actual es 1 (blancas), suma a blancas
-                // Si el jugador actual es 2 (negras), suma a negras
-                if ($playerNumber === 1) {
+            // Si había una pieza antes y ahora no hay nada, se capturó
+            if ($oldPiece && !$newPiece) {
+                if ($oldPiece['player'] === 1) {
                     $capturedWhite++;
                 } else {
                     $capturedBlack++;
@@ -100,12 +102,7 @@ try {
         }
     }
     
-    // Verificar promoción a rey
-    if (!$piece['isKing']) {
-        if (($piece['player'] === 1 && $toRow === 0) || ($piece['player'] === 2 && $toRow === 7)) {
-            $newBoard[$toRow][$toCol]['isKing'] = true;
-        }
-    }
+    error_log("Captures calculated - Player: $playerNumber, Black: $capturedBlack, White: $capturedWhite");
     
     // Obtener capturas actuales de la base de datos y sumar las nuevas
     $currentCaptured = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);

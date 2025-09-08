@@ -114,13 +114,14 @@ class NetworkManager {
         }
     }
 
-    async sendMove(from, to, capturedPieces = []) {
+    async sendMove(from, to, capturedPieces = [], boardState = null) {
         console.log(`=== SENDMOVE DEBUG ===`);
         console.log(`this.gameId:`, this.gameId);
         console.log(`this.playerId:`, this.playerId);
         console.log(`from:`, from);
         console.log(`to:`, to);
         console.log(`capturedPieces:`, capturedPieces);
+        console.log(`boardState:`, boardState);
         console.log(`window.network === this:`, window.network === this);
         console.log(`window.network.gameId:`, window.network ? window.network.gameId : 'window.network is null');
         console.log(`window.network.playerId:`, window.network ? window.network.playerId : 'window.network is null');
@@ -132,26 +133,28 @@ class NetworkManager {
 
         try {
             console.log(`=== SENDING MOVE REQUEST ===`);
-            console.log(`Request data:`, {
+            const requestData = {
                 game_id: this.gameId,
                 player_id: this.playerId,
                 from: from,
                 to: to,
                 captured_pieces: capturedPieces
-            });
+            };
+            
+            // Si se proporciona el estado del tablero, incluirlo en la petición
+            if (boardState) {
+                requestData.board_state = boardState;
+                console.log(`Including complete board state in request`);
+            }
+            
+            console.log(`Request data:`, requestData);
             
             const response = await fetch('api/make_move.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    game_id: this.gameId,
-                    player_id: this.playerId,
-                    from: from,
-                    to: to,
-                    captured_pieces: capturedPieces
-                })
+                body: JSON.stringify(requestData)
             });
             
             console.log(`Response status: ${response.status}`);
@@ -171,7 +174,12 @@ class NetworkManager {
                 console.log(`Move accepted by server`);
                 // El servidor ha procesado el movimiento, actualizar el tablero desde el servidor
                 if (data.game_data && data.game_data.board) {
-                    window.game.updateBoardFromServer(data.game_data.board);
+                    // No actualizar el tablero si hay capturas múltiples en progreso
+                    if (!window.game.multipleCaptureInProgress) {
+                        window.game.updateBoardFromServer(data.game_data.board);
+                    } else {
+                        console.log('Skipping board update after move - multiple captures in progress');
+                    }
                     if (data.game_data.current_player) {
                         window.game.updateCurrentPlayer(data.game_data.current_player);
                     }
@@ -234,9 +242,14 @@ class NetworkManager {
     }
 
     handleGameUpdate(gameData) {
-        // Actualizar tablero
+        // Actualizar tablero solo si no hay capturas múltiples en progreso
         if (gameData.board) {
-            window.game.updateBoardFromServer(gameData.board);
+            // No actualizar el tablero si hay capturas múltiples en progreso
+            if (!window.game.multipleCaptureInProgress) {
+                window.game.updateBoardFromServer(gameData.board);
+            } else {
+                console.log('Skipping board update - multiple captures in progress');
+            }
         }
         
         // Actualizar jugador actual
