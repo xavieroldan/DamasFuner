@@ -51,6 +51,11 @@ class HomeManager {
             }
         });
 
+        // Real-time validation for create game form
+        document.getElementById('create-player-name-input').addEventListener('input', (e) => {
+            this.validateCreateForm();
+        });
+
         document.getElementById('game-code-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -64,16 +69,61 @@ class HomeManager {
                 this.joinGame();
             }
         });
+
+        // Real-time validation for join game form
+        document.getElementById('player-name-input').addEventListener('input', (e) => {
+            this.validateJoinForm();
+        });
+
+        document.getElementById('game-code-input').addEventListener('input', (e) => {
+            this.validateJoinForm();
+        });
+    }
+
+    // Validation functions for forms
+    validateCreateForm() {
+        const playerName = document.getElementById('create-player-name-input').value.trim();
+        const createBtn = document.getElementById('confirm-create-btn');
+        
+        if (playerName.length >= 3 && playerName.length <= 10) {
+            createBtn.disabled = false;
+            createBtn.style.opacity = '1';
+        } else {
+            createBtn.disabled = true;
+            createBtn.style.opacity = '0.5';
+        }
+    }
+
+    validateJoinForm() {
+        const gameCode = document.getElementById('game-code-input').value.trim();
+        const playerName = document.getElementById('player-name-input').value.trim();
+        const joinBtn = document.getElementById('confirm-join-btn');
+        
+        if (gameCode.length === 3 && playerName.length >= 3 && playerName.length <= 10) {
+            joinBtn.disabled = false;
+            joinBtn.style.opacity = '1';
+        } else {
+            joinBtn.disabled = true;
+            joinBtn.style.opacity = '0.5';
+        }
     }
 
     showCreateModal() {
         document.getElementById('create-modal').style.display = 'flex';
         document.getElementById('create-player-name-input').focus();
+        // Initialize button as disabled
+        const createBtn = document.getElementById('confirm-create-btn');
+        createBtn.disabled = true;
+        createBtn.style.opacity = '0.5';
     }
 
     showJoinModal() {
         document.getElementById('join-modal').style.display = 'flex';
         document.getElementById('game-code-input').focus();
+        // Initialize button as disabled
+        const joinBtn = document.getElementById('confirm-join-btn');
+        joinBtn.disabled = true;
+        joinBtn.style.opacity = '0.5';
     }
 
     hideModal(modalId) {
@@ -92,8 +142,7 @@ class HomeManager {
     async createGame() {
         const playerName = document.getElementById('create-player-name-input').value.trim();
         
-        if (!playerName || playerName.length < 3) {
-            alert('El nombre debe tener al menos 3 caracteres');
+        if (!playerName || playerName.length < 3 || playerName.length > 10) {
             return;
         }
         
@@ -133,13 +182,7 @@ class HomeManager {
         const gameCode = document.getElementById('game-code-input').value.trim();
         const playerName = document.getElementById('player-name-input').value.trim();
         
-        if (!gameCode || !playerName) {
-            alert('Por favor, ingresa el código de partida y tu nombre');
-            return;
-        }
-        
-        if (playerName.length < 3) {
-            alert('El nombre debe tener al menos 3 caracteres');
+        if (!gameCode || !playerName || playerName.length < 3 || playerName.length > 10) {
             return;
         }
         

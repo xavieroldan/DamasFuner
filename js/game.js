@@ -24,6 +24,35 @@ class DamasGame {
         this.setupEventListeners();
     }
 
+
+    // Validation functions for forms
+    validateCreateForm() {
+        const playerName = document.getElementById('create-player-name-input').value.trim();
+        const createBtn = document.getElementById('confirm-create-btn');
+        
+        if (playerName.length >= 3 && playerName.length <= 10) {
+            createBtn.disabled = false;
+            createBtn.style.opacity = '1';
+        } else {
+            createBtn.disabled = true;
+            createBtn.style.opacity = '0.5';
+        }
+    }
+
+    validateJoinForm() {
+        const gameCode = document.getElementById('game-code-input').value.trim();
+        const playerName = document.getElementById('player-name-input').value.trim();
+        const joinBtn = document.getElementById('confirm-join-btn');
+        
+        if (gameCode.length === 3 && playerName.length >= 3 && playerName.length <= 10) {
+            joinBtn.disabled = false;
+            joinBtn.style.opacity = '1';
+        } else {
+            joinBtn.disabled = true;
+            joinBtn.style.opacity = '0.5';
+        }
+    }
+
     initializeBoard() {
         // Create 8x8 board
         this.board = Array(8).fill().map(() => Array(8).fill(null));
@@ -103,6 +132,20 @@ class DamasGame {
                 e.preventDefault();
                 this.createGame();
             }
+        });
+
+        // Real-time validation for create game form
+        document.getElementById('create-player-name-input').addEventListener('input', (e) => {
+            this.validateCreateForm();
+        });
+
+        // Real-time validation for join game form
+        document.getElementById('player-name-input').addEventListener('input', (e) => {
+            this.validateJoinForm();
+        });
+
+        document.getElementById('game-code-input').addEventListener('input', (e) => {
+            this.validateJoinForm();
         });
 
         // Los event listeners del chat se configuran en setupChatEventListeners()
@@ -203,7 +246,7 @@ class DamasGame {
         // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
         if (this.currentPlayer !== this.myPlayerNumber) {
             // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
-            return;
+            return; 
         }
         
         const piece = this.board[row][col];
@@ -298,7 +341,7 @@ class DamasGame {
                     
                     // Solo limpiar possibleMoves si no hay capturas múltiples en progreso
                     if (!this.multipleCaptureInProgress) {
-                        this.possibleMoves = [];
+                    this.possibleMoves = [];
                     }
                     
                     this.renderBoard();
@@ -329,27 +372,27 @@ class DamasGame {
             
             // Verificar si hay capturas obligatorias antes de seleccionar (solo si no hay capturas múltiples en progreso)
             if (!this.multipleCaptureInProgress) {
-                const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
-                if (mandatoryCaptures && mandatoryCaptures.length > 0) {
-                    // Verificar si la pieza seleccionada puede hacer una captura obligatoria
-                    const canThisPieceCapture = mandatoryCaptures.some(capture => 
-                        capture.piece.row === row && capture.piece.col === col
-                    );
-                    
-                    console.log(`Verificando pieza en (${row}, ${col})`);
-                    console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
-                    console.log(`Capturas obligatorias:`, mandatoryCaptures);
-                    
-                    if (!canThisPieceCapture) {
-                        // Verificar si hay damas disponibles
+            const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                    capture.piece.row === row && capture.piece.col === col
+                );
+                
+                console.log(`Verificando pieza en (${row}, ${col})`);
+                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                console.log(`Capturas obligatorias:`, mandatoryCaptures);
+                
+                if (!canThisPieceCapture) {
+                    // Verificar si hay damas disponibles
                         const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
-                        
-                        if (damaCaptures.length > 0) {
+                    
+                    if (damaCaptures.length > 0) {
                             this.showMessage('🚫 Debes capturar con la dama', 'error');
-                        } else {
+                    } else {
                             this.showMessage('🚫 Estás obligado a capturar', 'error');
-                        }
-                        return;
+                    }
+                    return;
                     }
                 }
             }
@@ -446,12 +489,12 @@ class DamasGame {
         console.log(`My player number: ${this.myPlayerNumber}`);
 
         // Usar la misma lógica que getPossibleMovesDebug: siempre verificar capturas primero
-        const captures = this.getPossibleCaptures(row, col);
-        
-        if (captures.length > 0) {
+                const captures = this.getPossibleCaptures(row, col);
+                
+                if (captures.length > 0) {
             console.log(`Found ${captures.length} captures, using capture moves`);
             console.log(`=== END GET POSSIBLE MOVES ===`);
-            return captures;
+                    return captures;
         }
         
         // Si no hay capturas, mostrar movimientos normales
@@ -588,12 +631,12 @@ class DamasGame {
             // Para peones: solo movimientos de una casilla
             const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
 
-            for (const [dRow, dCol] of directions) {
-                const newRow = row + dRow;
-                const newCol = col + dCol;
-                
-                if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
-                    moves.push({ row: newRow, col: newCol, type: 'normal' });
+        for (const [dRow, dCol] of directions) {
+            const newRow = row + dRow;
+            const newCol = col + dCol;
+            
+            if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                moves.push({ row: newRow, col: newCol, type: 'normal' });
                 }
             }
         }
@@ -681,7 +724,7 @@ class DamasGame {
             
             console.log(`No capture options found`);
             console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
-            return [];
+        return [];
         } else {
             // Para peones: analizar capturas y priorizar las que permiten más capturas totales
             const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
@@ -849,25 +892,25 @@ class DamasGame {
             // Para peones: solo capturas individuales (sin secuencias múltiples)
             const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
 
-            for (const [dr, dc] of directions) {
-                const newRow = row + dr;
-                const newCol = col + dc;
+        for (const [dr, dc] of directions) {
+            const newRow = row + dr;
+            const newCol = col + dc;
 
-                // Verificar si hay una pieza enemiga para capturar
-                if (this.isValidPosition(newRow, newCol) && 
-                    this.board[newRow][newCol] && 
-                    this.board[newRow][newCol].player !== piece.player) {
-                    
-                    const jumpRow = newRow + dr;
-                    const jumpCol = newCol + dc;
-                    
-                    if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
+            // Verificar si hay una pieza enemiga para capturar
+            if (this.isValidPosition(newRow, newCol) && 
+                this.board[newRow][newCol] && 
+                this.board[newRow][newCol].player !== piece.player) {
+                
+                const jumpRow = newRow + dr;
+                const jumpCol = newCol + dc;
+                
+                if (this.isValidPosition(jumpRow, jumpCol) && !this.board[jumpRow][jumpCol]) {
                         // Crear la captura individual
-                        const currentCapture = { 
-                            row: jumpRow, 
-                            col: jumpCol, 
-                            capturedRow: newRow, 
-                            capturedCol: newCol,
+                    const currentCapture = { 
+                        row: jumpRow, 
+                        col: jumpCol, 
+                        capturedRow: newRow, 
+                        capturedCol: newCol,
                             pieceType: 'peon'
                         };
                         
@@ -905,7 +948,7 @@ class DamasGame {
                     enemyCol = currentCol;
                     console.log(`Enemy piece found at (${enemyRow}, ${enemyCol})`);
                     break;
-                } else {
+                    } else {
                     // Pieza propia, no podemos saltar por encima
                     console.log(`Own piece found, stopping in this direction`);
                     break;
@@ -936,7 +979,7 @@ class DamasGame {
                 };
 
                 console.log(`Adding simple capture to (${landingRow}, ${landingCol})`);
-                sequences.push([currentCapture]);
+                        sequences.push([currentCapture]);
 
                 // Continuar buscando más casillas vacías en la misma dirección
                 landingRow += dr;
@@ -969,7 +1012,7 @@ class DamasGame {
         
         console.log(`Total sequences found from all directions: ${sequences.length}`);
         console.log(`=== END FINDING QUEEN CAPTURES FROM ALL DIRECTIONS ===`);
-        
+
         return sequences;
     }
 
@@ -1136,9 +1179,9 @@ class DamasGame {
             } else {
                 console.log(`No more captures available - changing turn`);
                 // No hay más capturas, cambiar turno normalmente
-                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-                this.selectedPiece = null;
-                this.possibleMoves = [];
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.selectedPiece = null;
+        this.possibleMoves = [];
                 this.multipleCaptureInProgress = false;
                 
                 // Limpiar el tablero visualmente
@@ -1693,18 +1736,26 @@ class DamasGame {
     showCreateModal() {
         this.hideModal('game-modal');
         document.getElementById('create-modal').style.display = 'block';
+        // Initialize button as disabled
+        const createBtn = document.getElementById('confirm-create-btn');
+        createBtn.disabled = true;
+        createBtn.style.opacity = '0.5';
     }
 
     showJoinModal() {
         this.hideModal('game-modal');
         document.getElementById('join-modal').style.display = 'block';
+        // Initialize button as disabled
+        const joinBtn = document.getElementById('confirm-join-btn');
+        joinBtn.disabled = true;
+        joinBtn.style.opacity = '0.5';
     }
 
     createGame() {
         const playerName = document.getElementById('create-player-name-input').value.trim();
         
-        if (!playerName || playerName.length < 3) {
-            alert('El nombre debe tener al menos 3 caracteres');
+        // Validation is already handled by the disabled button
+        if (!playerName || playerName.length < 3 || playerName.length > 10) {
             return;
         }
         
@@ -1718,13 +1769,8 @@ class DamasGame {
         const gameCode = document.getElementById('game-code-input').value.trim();
         const playerName = document.getElementById('player-name-input').value.trim();
         
-        if (!gameCode || !playerName) {
-            alert('Por favor, ingresa el código de partida y tu nombre');
-            return;
-        }
-        
-        if (playerName.length < 3) {
-            alert('El nombre debe tener al menos 3 caracteres');
+        // Validation is already handled by the disabled button
+        if (!gameCode || !playerName || playerName.length < 3 || playerName.length > 10) {
             return;
         }
         
@@ -1737,7 +1783,7 @@ class DamasGame {
     async leaveGame() {
         console.log('🔧 LEAVE GAME CALLED - VERSION 2.1 - NO RESETGAME CALL');
         try {
-            if (window.network) {
+        if (window.network) {
                 console.log('🔧 CALLING NETWORK.LEAVEGAME');
                 await window.network.leaveGame();
                 console.log('🔧 NETWORK.LEAVEGAME COMPLETED');
@@ -1794,8 +1840,8 @@ class DamasGame {
         // Restaurar estilos del estado del juego
         const statusElement = document.getElementById('game-status');
         if (statusElement) {
-            statusElement.style.color = '';
-            statusElement.style.fontWeight = '';
+        statusElement.style.color = '';
+        statusElement.style.fontWeight = '';
         }
         
         this.renderBoard();
@@ -2168,32 +2214,32 @@ document.addEventListener('DOMContentLoaded', () => {
             window.game.updateGameStatus();
         } else {
             // Initialize game with URL parameters (normal mode)
-            console.log('=== GAME INITIALIZATION ===');
-            console.log('URL params - gameId:', gameId, 'playerId:', playerId, 'playerName:', playerName);
-            console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
-            
-            window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
-            
-            console.log('=== SETTING NETWORK VALUES ===');
-            console.log('Before setting - window.network.gameId:', window.network.gameId);
-            console.log('Before setting - window.network.playerId:', window.network.playerId);
-            console.log('Setting gameId to:', parseInt(gameId));
-            console.log('Setting playerId to:', parseInt(playerId));
-            
-            window.network.gameId = parseInt(gameId);
-            window.network.playerId = parseInt(playerId);
-            window.network.playerName = decodeURIComponent(playerName);
-            
-            console.log('After setting - window.network.gameId:', window.network.gameId);
-            console.log('After setting - window.network.playerId:', window.network.playerId);
-            console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
-            console.log('=== END GAME INITIALIZATION ===');
-            
-            // Load initial game state to get both player names
-            window.network.loadInitialGameState();
-            
-            // Start polling for game updates
-            window.network.startPolling();
+        console.log('=== GAME INITIALIZATION ===');
+        console.log('URL params - gameId:', gameId, 'playerId:', playerId, 'playerName:', playerName);
+        console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
+        
+        window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
+        
+        console.log('=== SETTING NETWORK VALUES ===');
+        console.log('Before setting - window.network.gameId:', window.network.gameId);
+        console.log('Before setting - window.network.playerId:', window.network.playerId);
+        console.log('Setting gameId to:', parseInt(gameId));
+        console.log('Setting playerId to:', parseInt(playerId));
+        
+        window.network.gameId = parseInt(gameId);
+        window.network.playerId = parseInt(playerId);
+        window.network.playerName = decodeURIComponent(playerName);
+        
+        console.log('After setting - window.network.gameId:', window.network.gameId);
+        console.log('After setting - window.network.playerId:', window.network.playerId);
+        console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
+        console.log('=== END GAME INITIALIZATION ===');
+        
+        // Load initial game state to get both player names
+        window.network.loadInitialGameState();
+        
+        // Start polling for game updates
+        window.network.startPolling();
         }
     } else {
         // Redirect to home if no valid parameters

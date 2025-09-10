@@ -16,6 +16,7 @@ class NetworkManager {
         console.log('=== END NETWORKMANAGER CONSTRUCTOR ===');
     }
 
+
     setupEventListeners() {
         // Los event listeners del chat se manejan en game.js
     }

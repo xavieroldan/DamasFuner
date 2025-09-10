@@ -410,7 +410,7 @@ main {
     border-radius: 25px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    font-size: 14px;
+    font-size: 17px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -476,11 +476,11 @@ main {
 
 .modal-content {
     background-color: white;
-    margin: 15% auto;
-    padding: 30px;
-    border-radius: 20px;
+    margin: 30% auto;
+    padding: 20px 20px 0px 20px;
+    border-radius: 15px;
     width: 90%;
-    max-width: 500px;
+    max-width: 400px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease;
 }
@@ -497,21 +497,22 @@ main {
 }
 
 .modal-content h2 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #333;
     text-align: center;
+    font-size: 1.4em;
 }
 
 .modal-body {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .modal-body input {
     width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
+    padding: 10px;
+    margin-bottom: 12px;
     border: 1px solid #ddd;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 16px;
     outline: none;
 }
@@ -526,6 +527,7 @@ main {
     gap: 10px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: -30px;
 }
 
 /* Board overlay for inactive player */
@@ -632,13 +634,18 @@ main {
 }
 
 .btn-info {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    background: linear-gradient(135deg, #17a2b8, #007bff);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
     color: white;
 }
 
 .btn-small {
     padding: 8px 16px;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
 }
 
 /* Waiting spinner styles */
@@ -734,14 +741,15 @@ main {
     
     .btn {
         padding: 12px 20px;
-        font-size: 0.9rem;
+        font-size: 1.1rem;
     }
     
     /* Modal responsive */
     .modal-content {
-        margin: 20px;
-        max-width: calc(100vw - 40px);
-        max-height: calc(100vh - 40px);
+        margin: 15px;
+        max-width: calc(100vw - 30px);
+        max-height: calc(100vh - 30px);
+        padding: 15px 15px 10px 15px;
     }
     
     .waiting-content {
@@ -820,8 +828,8 @@ main {
     }
     
     .modal-content {
-        margin: 10% auto;
-        padding: 20px;
+        margin: 15% auto;
+        padding: 15px 15px 10px 15px;
     }
 }
 
