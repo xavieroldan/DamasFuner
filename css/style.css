@@ -91,10 +91,12 @@ header h1 .home-link:hover {
 
 .game-info {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     color: white;
     font-size: 1.1em;
+    text-align: center;
+    min-height: 60px;
 }
 
 .player-info, .game-status {
@@ -326,12 +328,12 @@ main {
 }
 
 /* Efecto de brillo para damas */
-.piece.king {
+.piece.queen {
     position: relative;
     overflow: visible;
 }
 
-.piece.king::after {
+.piece.queen::after {
     content: '✨';
     position: absolute;
     top: -10px;
@@ -365,7 +367,7 @@ main {
     color: #333;
 }
 
-.piece.king {
+.piece.queen {
     border-color: #FFD700;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
@@ -458,6 +460,10 @@ main {
     background: linear-gradient(135deg, #95a5a6, #7f8c8d);
 }
 
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -475,95 +481,6 @@ main {
     overflow: hidden;
 }
 
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
-    background: #f9f9f9;
-}
-
-.chat-message {
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    border-radius: 15px;
-    max-width: 80%;
-    word-wrap: break-word;
-}
-
-.chat-message.system {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-    color: white;
-    text-align: center;
-    margin: 0 auto 10px;
-    max-width: 100%;
-    box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-weight: 500;
-}
-
-.chat-message.player1 {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    margin-left: 0;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.chat-message.player2 {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    color: white;
-    margin-left: auto;
-    box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.chat-input {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-    min-height: 50px;
-    align-items: center;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.chat-input input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
-    font-size: 14px;
-    outline: none;
-    box-sizing: border-box;
-    min-width: 0;
-}
-
-.chat-input input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-}
-
-.chat-input button {
-    padding: 12px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    min-width: 80px;
-    white-space: nowrap;
-}
-
-.chat-input button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
 
 .modal {
     display: none;
@@ -940,6 +857,10 @@ main {
     .game-info {
         flex-direction: column;
         gap: 10px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 80px;
     }
     
     .board {
@@ -961,54 +882,56 @@ main {
 
 /* Estilos para mensajes informativos */
 .game-message {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 15px 25px;
-    border-radius: 10px;
-    font-weight: bold;
-    font-size: 1.1em;
-    z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    animation: slideInDown 0.3s ease-out;
-    max-width: 90%;
-    text-align: center;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    padding: 10px 20px !important;
+    border-radius: 20px !important;
+    font-weight: bold !important;
+    font-size: 1em !important;
+    z-index: 1 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    animation: slideInDown 0.3s ease-out !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    margin: 5px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .game-message.error {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-    color: white;
-    border: 2px solid #ff5252;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+    color: white !important;
+    border: 2px solid #ff5252 !important;
 }
 
 .game-message.info {
-    background: linear-gradient(135deg, #4ecdc4, #44a08d);
-    color: white;
-    border: 2px solid #26a69a;
+    background: linear-gradient(135deg, #4ecdc4, #44a08d) !important;
+    color: white !important;
+    border: 2px solid #26a69a !important;
 }
 
 .game-message.success {
-    background: linear-gradient(135deg, #45b7d1, #96c93d);
-    color: white;
-    border: 2px solid #4caf50;
+    background: linear-gradient(135deg, #45b7d1, #96c93d) !important;
+    color: white !important;
+    border: 2px solid #4caf50 !important;
 }
 
 .game-message.warning {
-    background: linear-gradient(135deg, #feca57, #ff9ff3);
-    color: white;
-    border: 2px solid #ff9800;
+    background: linear-gradient(135deg, #feca57, #ff9ff3) !important;
+    color: white !important;
+    border: 2px solid #ff9800 !important;
 }
 
 @keyframes slideInDown {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(-20px);
+        transform: translateY(-20px);
     }
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateY(0);
     }
 }
 

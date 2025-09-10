@@ -1,7 +1,9 @@
 // Home page functionality
 class HomeManager {
     constructor() {
-        this.network = new NetworkManager();
+        this.gameId = null;
+        this.playerId = null;
+        this.playerName = null;
         this.setupEventListeners();
     }
 
@@ -15,6 +17,8 @@ class HomeManager {
         document.getElementById('join-game-btn').addEventListener('click', () => {
             this.showJoinModal();
         });
+
+        // Debug mode button - will be set up after DOM is ready
 
         // Create game modal
         document.getElementById('confirm-create-btn').addEventListener('click', () => {
@@ -110,9 +114,9 @@ class HomeManager {
             
             if (data.success) {
                 this.showWaitingSpinner(data.game_code);
-                this.network.gameId = data.game_id;
-                this.network.playerId = data.player_id;
-                this.network.playerName = playerName;
+                this.gameId = data.game_id;
+                this.playerId = data.player_id;
+                this.playerName = playerName;
                 
                 // Start polling to check when second player joins
                 this.startWaitingPolling();
@@ -170,7 +174,7 @@ class HomeManager {
     startWaitingPolling() {
         const pollInterval = setInterval(async () => {
             try {
-                const response = await fetch(`api/get_game_state.php?game_id=${this.network.gameId}&player_id=${this.network.playerId}`);
+                const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
                 const data = await response.json();
                 
                 console.log('Polling game state:', data);
@@ -193,7 +197,7 @@ class HomeManager {
                         console.log('Second player detected, redirecting...');
                         clearInterval(pollInterval);
                         this.hideWaitingSpinner();
-                        window.location.href = `game.html?game=${this.network.gameId}&player=${this.network.playerId}&name=${encodeURIComponent(this.network.playerName)}`;
+                        window.location.href = `game.html?game=${this.gameId}&player=${this.playerId}&name=${encodeURIComponent(this.playerName)}`;
                     }
                 }
             } catch (error) {
@@ -218,9 +222,29 @@ class HomeManager {
             alert('No se pudo copiar el código. Código: ' + gameCode);
         });
     }
+
+    activateDebugMode() {
+        console.log('🔧 activateDebugMode called');
+        console.log('🔧 Redirecting to game.html?debug=true');
+        // Redirect directly to debug mode without creating a real game
+        window.location.href = 'game.html?debug=true';
+    }
 }
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.homeManager = new HomeManager();
+    
+    // Set up debug button after DOM is ready
+    const debugBtn = document.getElementById('debug-mode-btn');
+    console.log('🔧 Debug button found:', !!debugBtn);
+    if (debugBtn) {
+        debugBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🔧 Debug button clicked');
+            window.location.href = 'debug.html';
+        });
+    } else {
+        console.log('🔧 Debug button not found!');
+    }
 });

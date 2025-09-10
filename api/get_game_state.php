@@ -120,29 +120,30 @@ try {
 
 /**
  * Crea el estado inicial del tablero de damas
+ * CONSISTENTE con create_game.php: Player 1 = Blancas, Player 2 = Negras
  */
 function createInitialBoard() {
     $board = array_fill(0, 8, array_fill(0, 8, null));
     
-    // Colocar piezas negras (jugador 1) en las primeras 3 filas
+    // Colocar piezas negras (jugador 2) en las primeras 3 filas
     for ($row = 0; $row < 3; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
-                    'player' => 1,
-                    'isKing' => false
+                    'player' => 2,
+                    'isQueen' => false
                 ];
             }
         }
     }
     
-    // Colocar piezas blancas (jugador 2) en las últimas 3 filas
+    // Colocar piezas blancas (jugador 1) en las últimas 3 filas
     for ($row = 5; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
-                    'player' => 2,
-                    'isKing' => false
+                    'player' => 1,
+                    'isQueen' => false
                 ];
             }
         }

@@ -71,11 +71,7 @@ function setupKeyboardShortcuts() {
 }
 
 function showWelcomeMessage() {
-    setTimeout(() => {
-        if (window.game) {
-            window.game.addChatMessage('system', '¡Bienvenido a Damas Funer Online!');
-        }
-    }, 1000);
+    // Welcome message removed - using game message panel instead
 }
 
 // Function to show notifications
@@ -203,8 +199,8 @@ Atajos de teclado:
 Reglas:
 - Las piezas se mueven diagonalmente
 - Las capturas son obligatorias
-- Las piezas se convierten en reyes al llegar al final
-- Las reyes pueden moverse en cualquier dirección diagonal
+- Las piezas se convierten en damas al llegar al final
+- Las damas pueden moverse en cualquier dirección diagonal
 - Gana quien capture todas las piezas del oponente
 
 ¡Disfruta jugando!

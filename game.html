@@ -14,10 +14,28 @@
         const gameId = urlParams.get('game');
         const playerId = urlParams.get('player');
         const playerName = urlParams.get('name');
+        const debugMode = urlParams.get('debug') === 'true';
         
-        if (!gameId || !playerId || !playerName) {
+        console.log('🔧 Game.html validation:');
+        console.log('🔧 gameId:', gameId);
+        console.log('🔧 playerId:', playerId);
+        console.log('🔧 playerName:', playerName);
+        console.log('🔧 debugMode:', debugMode);
+        console.log('🔧 debug param:', urlParams.get('debug'));
+        
+        // Skip validation completely for debug mode
+        if (debugMode) {
+            console.log('🔧 Debug mode detected - skipping all validation');
+            // Add debug parameter to URL to maintain debug state
+            if (!window.location.href.includes('debug=true')) {
+                window.history.replaceState({}, '', window.location.href + '&debug=true');
+            }
+        } else if (!gameId || !playerId || !playerName) {
+            console.log('🔧 Redirecting to home - no valid parameters');
             // Redirect to home page if parameters are missing
             window.location.href = 'home.html';
+        } else {
+            console.log('🔧 Access allowed - normal game');
         }
     </script>
     <div class="container">
@@ -26,17 +44,14 @@
             <p>Un juego de damas multijugador en tiempo real desarrollado con HTML5, CSS3, JavaScript y PHP.</p>
         </header>
         
-        <div class="game-info">
-            <div class="player-info">
-                <span id="current-player">Esperando jugadores...</span>
-            </div>
-            <div class="game-status">
-                <span id="game-status">Esperando jugadores...</span>
-            </div>
-        </div>
 
         <main>
             <div class="game-area">
+                <!-- Panel de mensajes encima del tablero -->
+                <div class="message-panel">
+                    <div id="game-message" class="game-message" style="display: none;"></div>
+                </div>
+                
                 <div class="board-container">
                     <div id="game-board" class="board"></div>
                     <div id="board-overlay" class="board-overlay inactive"></div>
@@ -57,19 +72,12 @@
                     </div>
                     
                     <div class="controls">
-                        <button id="new-game-btn" class="btn">Nueva Partida</button>
-                        <button id="join-game-btn" class="btn">Unirse a Partida</button>
+                        <button id="new-game-btn" class="btn" style="display: none;">Nueva Partida</button>
+                        <button id="join-game-btn" class="btn" style="display: none;">Unirse a Partida</button>
                         <button id="leave-game-btn" class="btn" style="display: none;">Abandonar</button>
-                        <a href="about.html" class="btn" style="text-decoration: none; display: inline-block;">ℹ️ Acerca de</a>
+                        <button id="debug-reset-btn" class="btn" style="display: none;">Reset Debug</button>
+                        <button id="exit-debug-btn" class="btn btn-secondary" style="display: none;">Salir del Modo Debug</button>
                     </div>
-                </div>
-            </div>
-
-            <div class="chat-area">
-                <div class="chat-messages" id="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="chat-input" placeholder="Escribe un mensaje..." maxlength="100">
-                    <button id="send-btn">Enviar</button>
                 </div>
             </div>
         </main>
@@ -114,13 +122,70 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Game Message Container -->
-    <div id="game-message" class="game-message" style="display: none;"></div>
+        <div class="modal" id="exit-modal">
+            <div class="modal-content">
+                <h2>Salir del Modo Debug</h2>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que quieres salir del modo debug?</p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirm-exit-btn" class="btn">Sí, Salir</button>
+                    <button id="cancel-exit-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/game.js?v=20250903-73"></script>
     <script src="js/network.js?v=20250903-73"></script>
     <script src="js/app.js?v=20250903-73"></script>
+    
+    <script>
+        // Debug mode initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const debugMode = urlParams.get('debug') === 'true';
+            
+            if (debugMode) {
+                console.log('🔧 DEBUG MODE DETECTED - SHOWING DEBUG CONTROLS');
+                
+                // Show only exit debug button and hide normal controls
+                const exitDebugBtn = document.getElementById('exit-debug-btn');
+                const newGameBtn = document.getElementById('new-game-btn');
+                const joinGameBtn = document.getElementById('join-game-btn');
+                
+                if (exitDebugBtn) exitDebugBtn.style.display = 'inline-block';
+                if (newGameBtn) newGameBtn.style.display = 'none';
+                if (joinGameBtn) joinGameBtn.style.display = 'none';
+                
+                // Add exit debug button functionality
+                const exitModal = document.getElementById('exit-modal');
+                const confirmExitBtn = document.getElementById('confirm-exit-btn');
+                const cancelExitBtn = document.getElementById('cancel-exit-btn');
+                
+                if (exitDebugBtn) {
+                    exitDebugBtn.addEventListener('click', function() {
+                        console.log('🔧 EXIT DEBUG CLICKED');
+                        exitModal.style.display = 'flex';
+                    });
+                }
+                
+                if (confirmExitBtn) {
+                    confirmExitBtn.addEventListener('click', function() {
+                        console.log('🔧 CONFIRM EXIT CLICKED');
+                        window.location.href = 'home.html';
+                    });
+                }
+                
+                if (cancelExitBtn) {
+                    cancelExitBtn.addEventListener('click', function() {
+                        console.log('🔧 CANCEL EXIT CLICKED');
+                        exitModal.style.display = 'none';
+                    });
+                }
+            }
+        });
+    </script>
 </body>
 </html>

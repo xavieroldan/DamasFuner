@@ -41,7 +41,6 @@ class NetworkManager {
                 
                 window.game.startGame(this.playerId, this.gameId, playerName);
                 this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
-                window.game.addChatMessage('system', `Partida creada. Código: ${data.game_code}`);
                 
                 // Iniciar polling para actualizaciones
                 this.startPolling();
@@ -76,7 +75,6 @@ class NetworkManager {
                 
                 window.game.startGame(this.playerId, this.gameId, playerName);
                 this.processedMessages.clear(); // Limpiar mensajes procesados para nueva partida
-                window.game.addChatMessage('system', `Te has unido a la partida como ${playerName}`);
                 
                 // Iniciar polling para actualizaciones
                 this.startPolling();
@@ -114,7 +112,7 @@ class NetworkManager {
         }
     }
 
-    async sendMove(from, to, capturedPieces = [], boardState = null) {
+    async sendMove(from, to, capturedPieces = [], boardState = null, totalCaptures = null) {
         console.log(`=== SENDMOVE DEBUG ===`);
         console.log(`this.gameId:`, this.gameId);
         console.log(`this.playerId:`, this.playerId);
@@ -122,6 +120,7 @@ class NetworkManager {
         console.log(`to:`, to);
         console.log(`capturedPieces:`, capturedPieces);
         console.log(`boardState:`, boardState);
+        console.log(`totalCaptures:`, totalCaptures);
         console.log(`window.network === this:`, window.network === this);
         console.log(`window.network.gameId:`, window.network ? window.network.gameId : 'window.network is null');
         console.log(`window.network.playerId:`, window.network ? window.network.playerId : 'window.network is null');
@@ -138,13 +137,20 @@ class NetworkManager {
                 player_id: this.playerId,
                 from: from,
                 to: to,
-                captured_pieces: capturedPieces
+                captured_pieces: capturedPieces,
+                debug: window.game ? window.game.debugMode : false
             };
             
             // Si se proporciona el estado del tablero, incluirlo en la petición
             if (boardState) {
                 requestData.board_state = boardState;
                 console.log(`Including complete board state in request`);
+            }
+            
+            // Si se proporcionan las capturas totales, incluirlas en la petición
+            if (totalCaptures) {
+                requestData.total_captures = totalCaptures;
+                console.log(`Including total captures in request:`, totalCaptures);
             }
             
             console.log(`Request data:`, requestData);
@@ -241,12 +247,34 @@ class NetworkManager {
         }
     }
 
+    async getCurrentCaptures() {
+        try {
+            const response = await fetch(`api/get_game_state.php?game_id=${this.gameId}&player_id=${this.playerId}`);
+            const data = await response.json();
+            
+            console.log('Current captures response:', data);
+            
+            if (data.success && data.game_data && data.game_data.captured_pieces) {
+                return data.game_data.captured_pieces;
+            } else {
+                // Si no hay datos válidos, devolver 0 para ambos
+                return { black: 0, white: 0 };
+            }
+        } catch (error) {
+            console.error('Error getting current captures:', error);
+            // En caso de error, devolver 0 para ambos
+            return { black: 0, white: 0 };
+        }
+    }
+
     handleGameUpdate(gameData) {
         // Actualizar tablero solo si no hay capturas múltiples en progreso
         if (gameData.board) {
             // No actualizar el tablero si hay capturas múltiples en progreso
             if (!window.game.multipleCaptureInProgress) {
                 window.game.updateBoardFromServer(gameData.board);
+                
+                // No calcular nada - solo usar lo que viene del servidor
             } else {
                 console.log('Skipping board update - multiple captures in progress');
             }
@@ -257,16 +285,17 @@ class NetworkManager {
             window.game.updateCurrentPlayer(gameData.current_player);
         }
         
-        // Actualizar piezas capturadas
+        // Actualizar piezas capturadas - solo usar lo que viene del servidor
         if (gameData.captured_pieces) {
             console.log(`=== UPDATING CAPTURED PIECES ===`);
             console.log(`Server captured pieces:`, gameData.captured_pieces);
-            console.log(`Current captured pieces:`, window.game.capturedPieces);
-            console.log(`Black pieces captured:`, gameData.captured_pieces.black);
-            console.log(`White pieces captured:`, gameData.captured_pieces.white);
+            
+            // Usar directamente lo que viene del servidor
             window.game.capturedPieces = gameData.captured_pieces;
+            console.log(`Updated captured pieces from server:`, window.game.capturedPieces);
+            
             window.game.updateCapturedPieces();
-            console.log(`Updated captured pieces:`, window.game.capturedPieces);
+            console.log(`Final captured pieces:`, window.game.capturedPieces);
             console.log(`=== END UPDATING CAPTURED PIECES ===`);
         }
         
@@ -299,13 +328,7 @@ class NetworkManager {
                     
                     // Solo procesar si no se ha procesado antes
                     if (!this.processedMessages.has(messageId)) {
-                        // Determinar el tipo de mensaje
-                        if (msg.player_name === 'Sistema') {
-                            window.game.addChatMessage('system', msg.message);
-                        } else {
-                    const sender = msg.player_id === 1 ? 'player1' : 'player2';
-                            window.game.addChatMessage(sender, msg.message);
-                        }
+                        // Chat messages removed - no longer needed
                         this.processedMessages.add(messageId);
                     }
                 }
@@ -318,7 +341,15 @@ class NetworkManager {
             const winnerPlayerName = window.game.playerNames[winnerNumber] || `Jugador ${winnerNumber}`;
             const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
             const winnerName = `${winnerPlayerName} ${colorText}`;
-            window.game.addChatMessage('system', `¡${winnerName} ha ganado la partida!`);
+            
+            // Verificar si fue por abandono
+            const isAbandonment = gameData.game_status === 'finished' && gameData.winner;
+            if (isAbandonment) {
+                window.game.handleGameAbandonment(winnerName);
+            } else {
+                // Game won - no chat message needed
+            }
+            
             window.game.gameState = 'finished';
             this.stopPolling();
         }

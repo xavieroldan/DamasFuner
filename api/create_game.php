@@ -122,7 +122,7 @@ function createInitialBoard() {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
                     'player' => 2,
-                    'isKing' => false
+                    'isQueen' => false
                 ];
             }
         }
@@ -134,7 +134,7 @@ function createInitialBoard() {
             if (($row + $col) % 2 === 1) {
                 $board[$row][$col] = [
                     'player' => 1,
-                    'isKing' => false
+                    'isQueen' => false
                 ];
             }
         }

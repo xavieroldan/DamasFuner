@@ -18,12 +18,13 @@ Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin 
 ## Características
 
 - 🎮 **Multijugador en tiempo real**: Dos jugadores pueden jugar simultáneamente
-- 💬 **Chat integrado**: Los jugadores pueden comunicarse durante la partida
+- 🐛 **Modo debug**: Página dedicada para probar la lógica del juego sin restricciones
 - 📱 **Diseño responsive**: Funciona en dispositivos móviles y de escritorio
-- 🎨 **Interfaz moderna**: Diseño atractivo con animaciones suaves
+- 🎨 **Interfaz moderna**: Diseño atractivo con animaciones suaves y efectos cómicos
 - 🔒 **Sistema seguro**: Validación de movimientos y protección contra spam
-- 📊 **Estadísticas**: Seguimiento de partidas y movimientos
+- 📊 **Estadísticas**: Seguimiento de partidas y movimientos en tiempo real
 - 🌐 **Multiplataforma**: Funciona en cualquier navegador moderno
+- 💬 **Sistema de mensajes**: Panel de mensajes para motivación, errores y notificaciones
 
 ## Requisitos del Servidor
 
@@ -91,10 +92,15 @@ http://tu-servidor.com/damas-online/
 ## Estructura del Proyecto
 
 ```
-damas-online/
-├── game.html               # Página del juego
+damas-funer/
+├── game.html               # Página del juego principal
+├── debug.html              # Página de debug para pruebas
+├── home.html               # Página de inicio
+├── about.html              # Página de información
 ├── css/
-│   └── style.css          # Estilos del juego
+│   ├── style.css          # Estilos generales
+│   ├── game.css           # Estilos específicos del juego
+│   └── game-only.css      # Estilos para carga directa del juego
 ├── js/
 │   ├── game.js            # Lógica del juego
 │   ├── network.js         # Comunicación con el servidor
@@ -104,7 +110,6 @@ damas-online/
 │   ├── join_game.php      # Unirse a partida
 │   ├── get_game_state.php # Obtener estado del juego
 │   ├── make_move.php      # Realizar movimiento
-│   ├── send_chat.php      # Enviar mensaje de chat
 │   ├── leave_game.php     # Abandonar partida
 │   └── health_check.php   # Verificar estado del servidor
 ├── config/
@@ -148,7 +153,7 @@ damas-online/
 - **Click**: Seleccionar pieza y mover
 - **Ctrl+L**: Abandonar partida
 - **ESC**: Cerrar modales
-- **Enter**: Enviar mensaje de chat
+- **Debug**: Acceder a `debug.html` para pruebas sin restricciones
 
 ## API Endpoints
 
@@ -191,15 +196,14 @@ Content-Type: application/json
 }
 ```
 
-### Enviar Mensaje de Chat
+### Abandonar Partida
 ```
-POST /api/send_chat.php
+POST /api/leave_game.php
 Content-Type: application/json
 
 {
     "game_id": 1,
-    "player_id": 1,
-    "message": "¡Hola!"
+    "player_id": 1
 }
 ```
 
@@ -292,6 +296,16 @@ Si tienes problemas o preguntas:
 3. Crea un nuevo Issue con detalles del problema
 
 ## Changelog
+
+### v1.3.0 - "Estabilización y Optimización"
+- ✅ **Eliminado sistema de chat** - Simplificación de la interfaz
+- ✅ **Añadido modo debug** - Página `debug.html` para pruebas sin restricciones
+- ✅ **Sistema de mensajes mejorado** - Panel dedicado para notificaciones
+- ✅ **Jerarquía de mensajes** - Victoria > Espera > Error > Motivacional
+- ✅ **Corrección del contador de capturas** - Eliminado problema de doble conteo
+- ✅ **Mensajes de victoria mejorados** - Con emojis y personalización
+- ✅ **Optimización de la interfaz** - Eliminación de elementos innecesarios
+- ✅ **Estabilización del código** - Corrección de errores y mejoras de rendimiento
 
 ### v1.2.0 - "Efectos Cómicos"
 - ✅ Cambio de nombre a "Damas Funer"

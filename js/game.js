@@ -15,6 +15,10 @@ class DamasGame {
         this.motivationalMessageShown = false; // Flag to prevent showing motivational message multiple times per turn
         this.multipleCaptureInProgress = false; // Flag to track if multiple captures are in progress
         this.capturedPiecesInSequence = []; // Store pieces captured during current sequence
+        this.debugMode = false; // Debug mode for testing
+        this.debugEditMode = true; // Debug edit mode (true = edit board, false = play game)
+        this.debugPieceType = 'pawn'; // Current piece type to place in debug mode
+        this.debugPlayer = 1; // Current player for debug mode
         
         this.initializeBoard();
         this.setupEventListeners();
@@ -28,7 +32,7 @@ class DamasGame {
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 8; col++) {
                 if ((row + col) % 2 === 1) {
-                    this.board[row][col] = { player: 1, isKing: false };
+                    this.board[row][col] = { player: 1, isQueen: false };
                 }
             }
         }
@@ -37,7 +41,7 @@ class DamasGame {
         for (let row = 5; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 if ((row + col) % 2 === 1) {
-                    this.board[row][col] = { player: 2, isKing: false };
+                    this.board[row][col] = { player: 2, isQueen: false };
                 }
             }
         }
@@ -149,8 +153,8 @@ class DamasGame {
                         piece.classList.add('black');
                     }
                     
-                    if (this.board[realRow][realCol].isKing) {
-                        piece.classList.add('king');
+                    if (this.board[realRow][realCol].isQueen) {
+                        piece.classList.add('queen');
                         piece.textContent = '♔';
                     }
                     
@@ -177,6 +181,18 @@ class DamasGame {
     }
 
     handleCellClick(row, col) {
+        // Debug mode handling
+        if (this.debugMode) {
+            this.handleDebugClick(row, col);
+            return;
+        }
+        
+        this.handleNormalCellClick(row, col);
+    }
+
+    handleNormalCellClick(row, col) {
+        // No limpiar mensaje motivacional al hacer clic - debe ser persistente
+        
         if (this.gameState !== 'playing') {
             if (this.gameState === 'finished') {
                 this.showMessage('La partida ha terminado', 'info');
@@ -187,7 +203,7 @@ class DamasGame {
         // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
         if (this.currentPlayer !== this.myPlayerNumber) {
             // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
-            return; 
+            return;
         }
         
         const piece = this.board[row][col];
@@ -231,7 +247,7 @@ class DamasGame {
                 
                 if (!canThisPieceCapture) {
                     // Verificar si hay damas disponibles
-                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
                     
                     console.log(`Dama captures:`, damaCaptures);
                     
@@ -326,7 +342,7 @@ class DamasGame {
                     
                     if (!canThisPieceCapture) {
                         // Verificar si hay damas disponibles
-                        const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                        const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
                         
                         if (damaCaptures.length > 0) {
                             this.showMessage('🚫 Debes capturar con la dama', 'error');
@@ -349,7 +365,7 @@ class DamasGame {
                 const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
                 if (mandatoryCaptures && mandatoryCaptures.length > 0) {
                     // Verificar si hay damas disponibles
-                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
                     
                     if (damaCaptures.length > 0) {
                         this.showMessage('🚫 Debes capturar con la dama', 'error');
@@ -399,7 +415,7 @@ class DamasGame {
             if (!canThisPieceCapture) {
                 console.log('No se puede seleccionar esta pieza, hay captura obligatoria con otra');
                 // Verificar si hay damas disponibles
-                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
                 if (damaCaptures.length > 0) {
                     this.showMessage('🚫 Debes capturar con la dama', 'error');
                 } else {
@@ -411,7 +427,7 @@ class DamasGame {
         }
         
         this.selectedPiece = { row, col };
-        this.possibleMoves = this.getPossibleMoves(row, col);
+        this.possibleMoves = this.getPossibleMovesDebug(row, col);
         
         console.log(`Possible moves:`, this.possibleMoves);
         console.log(`=== END SELECTING PIECE DEBUG ===`);
@@ -423,55 +439,26 @@ class DamasGame {
         const piece = this.board[row][col];
         if (!piece) return [];
 
-        console.log(`=== GET POSSIBLE MOVES DEBUG ===`);
+        console.log(`=== GET POSSIBLE MOVES (NORMAL MODE) ===`);
         console.log(`Piece at (${row}, ${col}):`, piece);
         console.log(`Piece player: ${piece.player}`);
         console.log(`Current player: ${this.currentPlayer}`);
         console.log(`My player number: ${this.myPlayerNumber}`);
 
-        // Verificar si hay capturas obligatorias para el jugador de esta pieza
-        const mandatoryCaptures = this.applyCaptureRules(piece.player);
+        // Usar la misma lógica que getPossibleMovesDebug: siempre verificar capturas primero
+        const captures = this.getPossibleCaptures(row, col);
         
-        if (mandatoryCaptures && mandatoryCaptures.length > 0) {
-            console.log('Capturas obligatorias detectadas:', mandatoryCaptures);
-            // Buscar si esta pieza específica puede hacer una captura obligatoria
-            const thisPieceCaptures = mandatoryCaptures.filter(capture => 
-                capture.piece.row === row && capture.piece.col === col
-            );
-            
-            if (thisPieceCaptures.length > 0) {
-                // Si esta pieza puede capturar, usar la función getPossibleCaptures
-                console.log('=== GETTING CAPTURES FOR THIS PIECE ===');
-                const captures = this.getPossibleCaptures(row, col);
-                console.log('Capturas encontradas para esta pieza:', captures);
-                console.log('Número de capturas:', captures.length);
-                
-                // Mostrar detalles de cada captura
-                captures.forEach((capture, index) => {
-                    console.log(`Captura ${index + 1}:`, {
-                        row: capture.row,
-                        col: capture.col,
-                        type: capture.type,
-                        captured: capture.captured
-                    });
-                });
-                console.log('=== END GETTING CAPTURES ===');
-                
-                if (captures.length > 0) {
-                    return captures;
-                }
-            } else {
-                console.log('No se puede mover esta pieza, hay captura obligatoria con otra');
-                return []; // No se puede mover esta pieza si hay captura obligatoria con otra
-            }
+        if (captures.length > 0) {
+            console.log(`Found ${captures.length} captures, using capture moves`);
+            console.log(`=== END GET POSSIBLE MOVES ===`);
+            return captures;
         }
-
-        // Si no hay captura obligatoria, mostrar movimientos normales
-        console.log(`=== NORMAL MOVEMENTS DEBUG ===`);
+        
+        // Si no hay capturas, mostrar movimientos normales
+        console.log(`=== NORMAL MOVEMENTS ===`);
         const normalMoves = this.getNormalMoves(row, col);
         console.log(`Normal moves found:`, normalMoves);
-        console.log(`=== END NORMAL MOVEMENTS DEBUG ===`);
-        
+        console.log(`=== END GET POSSIBLE MOVES ===`);
         return normalMoves;
     }
 
@@ -565,7 +552,7 @@ class DamasGame {
 
         const moves = [];
         
-        if (piece.isKing) {
+        if (piece.isQueen) {
             // Para damas: buscar todas las casillas vacías en diagonal
             const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
             
@@ -614,98 +601,228 @@ class DamasGame {
         return moves;
     }
 
-    // Function to obtener capturas posibles de una pieza específica (incluyendo múltiples)
+    // Function to obtener capturas posibles de una pieza específica (CON PRIORIZACIÓN DE CAPTURAS MÚLTIPLES)
     getPossibleCaptures(row, col) {
         const piece = this.board[row][col];
         if (!piece) return [];
 
-        console.log(`=== GET POSSIBLE CAPTURES DEBUG ===`);
+        console.log(`=== GET POSSIBLE CAPTURES DEBUG (WITH MULTIPLE CAPTURE PRIORITY) ===`);
         console.log(`Getting captures for piece at (${row}, ${col}):`, piece);
 
-        // Encontrar todas las secuencias de capturas posibles
-        const captureSequences = this.findCaptureSequences(row, col, piece, []);
-        console.log(`Found ${captureSequences.length} capture sequences`);
-        
-        // Si hay secuencias de captura, devolver todas las de la longitud máxima
-        if (captureSequences.length > 0) {
-            // Encontrar la longitud máxima
-            let maxLength = 0;
-            for (const sequence of captureSequences) {
-                if (sequence.length > maxLength) {
-                    maxLength = sequence.length;
+        if (piece.isQueen) {
+            // Para damas: analizar cada captura inicial y ver cuántas capturas adicionales permite
+            const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            const captureOptions = [];
+            
+            for (const [dr, dc] of directions) {
+                let currentRow = row + dr;
+                let currentCol = col + dc;
+                let foundEnemy = false;
+                let enemyRow = -1;
+                let enemyCol = -1;
+
+                // Buscar la primera pieza enemiga en esta dirección
+                while (this.isValidPosition(currentRow, currentCol)) {
+                    if (this.board[currentRow][currentCol]) {
+                        if (this.board[currentRow][currentCol].player !== piece.player) {
+                            foundEnemy = true;
+                            enemyRow = currentRow;
+                            enemyCol = currentCol;
+                            break;
+                        } else {
+                            break; // Pieza propia, no podemos saltar
+                        }
+                    }
+                    currentRow += dr;
+                    currentCol += dc;
                 }
-            }
-            console.log(`Maximum sequence length: ${maxLength}`);
-            
-            // Para capturas obligatorias, SOLO incluir posiciones de longitud máxima
-            // Si hay opciones de capturar más piezas, NO se pueden mostrar opciones de capturar menos
-            const moves = [];
-            const uniquePositions = new Set(); // Para evitar posiciones duplicadas
-            
-            // Filtrar solo las secuencias de longitud máxima
-            const bestSequences = captureSequences.filter(sequence => sequence.length === maxLength);
-            console.log(`Best sequences (length ${maxLength}):`, bestSequences.length);
-            console.log(`Only showing positions from maximum length sequences (${maxLength} captures)`);
-            
-            for (const sequence of bestSequences) {
-                if (sequence.length > 0) {
-                    // Para peones, solo mostrar capturas individuales
-                    if (!piece.isKing) {
-                        // Solo agregar la primera captura de cada secuencia (captura individual)
-                        const firstCapture = sequence[0];
-                        const positionKey = `${firstCapture.row},${firstCapture.col}`;
+
+                // Si encontramos enemigo, analizar todas las posiciones de aterrizaje
+                if (foundEnemy) {
+                    let landingRow = enemyRow + dr;
+                    let landingCol = enemyCol + dc;
+                    
+                    while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
+                        // Simular la captura y ver cuántas capturas adicionales permite
+                        const additionalCaptures = this.countAdditionalCaptures(landingRow, landingCol, piece);
                         
-                        if (!uniquePositions.has(positionKey)) {
-                            console.log(`Adding individual pawn capture: (${firstCapture.row}, ${firstCapture.col})`);
-                            uniquePositions.add(positionKey);
-                            moves.push({
-                                row: firstCapture.row,
-                                col: firstCapture.col,
-                                type: 'single_capture',
-                                captured: [{
-                                    row: firstCapture.capturedRow,
-                                    col: firstCapture.capturedCol
-                                }]
-                            });
-                        } else {
-                            console.log(`Skipping duplicate pawn capture: (${firstCapture.row}, ${firstCapture.col})`);
-                        }
-                    } else {
-                        // Para damas, solo la posición final (comportamiento original)
-                        const finalPosition = sequence[sequence.length - 1];
-                        const positionKey = `${finalPosition.row},${finalPosition.col}`;
+                        captureOptions.push({
+                            row: landingRow,
+                            col: landingCol,
+                            type: 'single_capture',
+                            captured: [{
+                                row: enemyRow,
+                                col: enemyCol
+                            }],
+                            additionalCaptures: additionalCaptures,
+                            totalCaptures: 1 + additionalCaptures
+                        });
                         
-                        if (!uniquePositions.has(positionKey)) {
-                            console.log(`Adding final position from max length sequence: (${finalPosition.row}, ${finalPosition.col})`);
-                            uniquePositions.add(positionKey);
-                            moves.push({
-                                row: finalPosition.row,
-                                col: finalPosition.col,
-                                type: 'multiple_capture',
-                                captured: sequence.map(capture => ({
-                                    row: capture.capturedRow,
-                                    col: capture.capturedCol
-                                }))
-                            });
-                        } else {
-                            console.log(`Skipping duplicate final position: (${finalPosition.row}, ${finalPosition.col})`);
-                        }
+                        console.log(`Capture option: (${landingRow}, ${landingCol}) after enemy at (${enemyRow}, ${enemyCol}) - Additional captures: ${additionalCaptures}`);
+                        
+                        landingRow += dr;
+                        landingCol += dc;
                     }
                 }
             }
             
-            console.log(`Final moves to return:`, moves.length);
-            moves.forEach((move, index) => {
-                console.log(`Move ${index + 1}: (${move.row}, ${move.col})`);
-            });
-            console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+            // Ordenar por número total de capturas (mayor primero)
+            captureOptions.sort((a, b) => b.totalCaptures - a.totalCaptures);
             
-            return moves;
+            // Si hay opciones con diferentes números de capturas, solo devolver las de mayor número
+            if (captureOptions.length > 0) {
+                const maxCaptures = captureOptions[0].totalCaptures;
+                const bestOptions = captureOptions.filter(option => option.totalCaptures === maxCaptures);
+                
+                console.log(`Best capture options with ${maxCaptures} total captures:`, bestOptions.length);
+                console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+                return bestOptions;
+            }
+            
+            console.log(`No capture options found`);
+            console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+            return [];
+        } else {
+            // Para peones: analizar capturas y priorizar las que permiten más capturas totales
+            const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+            const captureOptions = [];
+
+            for (const [dr, dc] of directions) {
+                const enemyRow = row + dr;
+                const enemyCol = col + dc;
+                const landingRow = enemyRow + dr;
+                const landingCol = enemyCol + dc;
+
+                if (this.isValidPosition(enemyRow, enemyCol) && 
+                    this.board[enemyRow][enemyCol] && 
+                    this.board[enemyRow][enemyCol].player !== piece.player &&
+                    this.isValidPosition(landingRow, landingCol) && 
+                    !this.board[landingRow][landingCol]) {
+                    
+                    // Simular la captura y ver cuántas capturas adicionales permite
+                    const additionalCaptures = this.countAdditionalCaptures(landingRow, landingCol, piece);
+                    
+                    captureOptions.push({
+                        row: landingRow,
+                        col: landingCol,
+                        type: 'single_capture',
+                        captured: [{
+                            row: enemyRow,
+                            col: enemyCol
+                        }],
+                        additionalCaptures: additionalCaptures,
+                        totalCaptures: 1 + additionalCaptures
+                    });
+                    
+                    console.log(`Pawn capture option: (${landingRow}, ${landingCol}) after enemy at (${enemyRow}, ${enemyCol}) - Additional captures: ${additionalCaptures}`);
+                }
+            }
+            
+            // Ordenar por número total de capturas (mayor primero)
+            captureOptions.sort((a, b) => b.totalCaptures - a.totalCaptures);
+            
+            // Si hay opciones con diferentes números de capturas, solo devolver las de mayor número
+            if (captureOptions.length > 0) {
+                const maxCaptures = captureOptions[0].totalCaptures;
+                const bestOptions = captureOptions.filter(option => option.totalCaptures === maxCaptures);
+                
+                console.log(`Best pawn capture options with ${maxCaptures} total captures:`, bestOptions.length);
+                console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+                return bestOptions;
+            }
+            
+            console.log(`No pawn capture options found`);
+            console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
+            return [];
+        }
+    }
+    
+    // Function to contar capturas adicionales desde una posición
+    countAdditionalCaptures(row, col, piece) {
+        let count = 0;
+        const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        
+        for (const [dr, dc] of directions) {
+            let currentRow = row + dr;
+            let currentCol = col + dc;
+            let foundEnemy = false;
+            let enemyRow = -1;
+            let enemyCol = -1;
+
+            // Buscar la primera pieza enemiga en esta dirección
+            while (this.isValidPosition(currentRow, currentCol)) {
+                if (this.board[currentRow][currentCol]) {
+                    if (this.board[currentRow][currentCol].player !== piece.player) {
+                        foundEnemy = true;
+                        enemyRow = currentRow;
+                        enemyCol = currentCol;
+                        break;
+                    } else {
+                        break; // Pieza propia, no podemos saltar
+                    }
+                }
+                currentRow += dr;
+                currentCol += dc;
+            }
+
+            // Si encontramos enemigo, contar posiciones de aterrizaje
+            if (foundEnemy) {
+                let landingRow = enemyRow + dr;
+                let landingCol = enemyCol + dc;
+                
+                while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
+                    count++;
+                    landingRow += dr;
+                    landingCol += dc;
+                }
+            }
         }
         
-        console.log(`No capture sequences found`);
-        console.log(`=== END GET POSSIBLE CAPTURES DEBUG ===`);
-        return [];
+        return count;
+    }
+    
+    // Function to contar capturas adicionales desde una posición usando un tablero simulado
+    countAdditionalCapturesFromBoard(row, col, piece, board) {
+        let count = 0;
+        const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        
+        for (const [dr, dc] of directions) {
+            let currentRow = row + dr;
+            let currentCol = col + dc;
+            let foundEnemy = false;
+            let enemyRow = -1;
+            let enemyCol = -1;
+
+            // Buscar la primera pieza enemiga en esta dirección
+            while (this.isValidPosition(currentRow, currentCol)) {
+                if (board[currentRow][currentCol]) {
+                    if (board[currentRow][currentCol].player !== piece.player) {
+                        foundEnemy = true;
+                        enemyRow = currentRow;
+                        enemyCol = currentCol;
+                        break;
+                    } else {
+                        break; // Pieza propia, no podemos saltar
+                    }
+                }
+                currentRow += dr;
+                currentCol += dc;
+            }
+
+            // Si encontramos enemigo, contar posiciones de aterrizaje
+            if (foundEnemy) {
+                let landingRow = enemyRow + dr;
+                let landingCol = enemyCol + dc;
+                
+                while (this.isValidPosition(landingRow, landingCol) && !board[landingRow][landingCol]) {
+                    count++;
+                    landingRow += dr;
+                    landingCol += dc;
+                }
+            }
+        }
+        
+        return count;
     }
 
     // Function to encontrar todas las secuencias de capturas posibles
@@ -720,7 +837,7 @@ class DamasGame {
         
         visited.add(positionKey);
         
-        if (piece.isKing) {
+        if (piece.isQueen) {
             // Para damas: buscar capturas a distancia en diagonal
             const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
             
@@ -764,7 +881,7 @@ class DamasGame {
         return sequences;
     }
 
-    // Function específica para capturas de dama en una dirección diagonal
+    // Function específica para capturas de dama en una dirección diagonal (SIMPLIFICADA)
     findQueenCapturesInDirection(row, col, piece, dr, dc, capturedPieces, visited = new Set()) {
         const sequences = [];
         let currentRow = row + dr;
@@ -773,7 +890,7 @@ class DamasGame {
         let enemyRow = -1;
         let enemyCol = -1;
 
-        console.log(`=== FINDING QUEEN CAPTURES IN DIRECTION ===`);
+        console.log(`=== FINDING QUEEN CAPTURES IN DIRECTION (SIMPLIFIED) ===`);
         console.log(`From (${row}, ${col}) in direction (${dr}, ${dc})`);
 
         // Buscar la primera pieza enemiga en esta dirección diagonal
@@ -808,40 +925,18 @@ class DamasGame {
             
             while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
                 console.log(`Checking landing position (${landingRow}, ${landingCol})`);
-                const positionKey = `${landingRow},${landingCol}`;
                 
-                // Evitar procesar la misma posición múltiples veces
-                if (!visited.has(positionKey)) {
-                    console.log(`Adding capture to (${landingRow}, ${landingCol})`);
-                    // Crear la captura actual
-                    const currentCapture = { 
-                        row: landingRow, 
-                        col: landingCol, 
-                        capturedRow: enemyRow, 
-                        capturedCol: enemyCol,
-                        pieceType: 'dama'
-                    };
+                // Crear la captura simple
+                const currentCapture = { 
+                    row: landingRow, 
+                    col: landingCol, 
+                    capturedRow: enemyRow, 
+                    capturedCol: enemyCol,
+                    pieceType: 'dama'
+                };
 
-                    // Después de una captura, la dama puede cambiar de diagonal
-                    // Buscar capturas en todas las direcciones desde la nueva posición
-                    const newVisited = new Set(visited);
-                    newVisited.add(positionKey);
-                    const moreCaptures = this.findQueenCapturesFromAllDirections(landingRow, landingCol, piece, [...capturedPieces, currentCapture], newVisited);
-                    
-                    if (moreCaptures.length > 0) {
-                        console.log(`More captures found from (${landingRow}, ${landingCol}):`, moreCaptures.length);
-                        // Agregar todas las secuencias que continúan desde aquí
-                        for (const sequence of moreCaptures) {
-                            sequences.push([currentCapture, ...sequence]);
-                        }
-                    } else {
-                        console.log(`Simple capture to (${landingRow}, ${landingCol})`);
-                        // Esta es una captura simple
-                        sequences.push([currentCapture]);
-                    }
-                } else {
-                    console.log(`Position (${landingRow}, ${landingCol}) already visited`);
-                }
+                console.log(`Adding simple capture to (${landingRow}, ${landingCol})`);
+                sequences.push([currentCapture]);
 
                 // Continuar buscando más casillas vacías en la misma dirección
                 landingRow += dr;
@@ -918,10 +1013,10 @@ class DamasGame {
         
         // Regla 2: SIEMPRE priorizar damas sobre peones, independientemente del número de capturas
         const damaCaptures = multipleCaptures.filter(capture => 
-            capture.piece.piece.isKing
+            capture.piece.piece.isQueen
         );
         const peonCaptures = multipleCaptures.filter(capture => 
-            !capture.piece.piece.isKing
+            !capture.piece.piece.isQueen
         );
         
         console.log(`Capturas con dama:`, damaCaptures);
@@ -1001,11 +1096,7 @@ class DamasGame {
             console.log(`All captured pieces:`, this.capturedPieces);
             this.updateCapturedPieces();
             
-            // Mostrar mensaje de captura exitosa
-            const message = totalCaptured === 1 ? 
-                `¡${totalCaptured} pieza capturada!` : 
-                `¡${totalCaptured} piezas capturadas!`;
-            this.showMessage(message, 'success');
+            // Mensaje de captura eliminado - no necesario
             
             // No need for the 'else' block for simple captures, as all captures are now
             // formatted as 'multiple_capture' with a 'captured' array.
@@ -1013,64 +1104,70 @@ class DamasGame {
             // is expected in one move.
         }
         
-        // Promover a rey
+        // Promover a dama
         if ((piece.player === 1 && to.row === 0) || (piece.player === 2 && to.row === 7)) {
-            piece.isKing = true;
-            console.log(`=== PAWN PROMOTED TO KING ===`);
-            console.log(`Piece at (${to.row}, ${to.col}) promoted to king`);
+            piece.isQueen = true;
+            console.log(`=== PAWN PROMOTED TO QUEEN ===`);
+            console.log(`Piece at (${to.row}, ${to.col}) promoted to queen`);
             console.log(`=== END PAWN PROMOTION ===`);
             // Add comic promotion effect
             this.addPromotionEffect(to.row, to.col);
         }
         
-        // LÓGICA DE CAPTURAS MÚLTIPLES PARA PEONES
-        // Verificar si es un peón y puede seguir capturando
-        let canContinueCapturing = false;
-        if (!piece.isKing && move && move.captured && move.captured.length > 0) {
-            console.log(`=== CHECKING FOR ADDITIONAL PAWN CAPTURES ===`);
-            console.log(`Checking if pawn at (${to.row}, ${to.col}) can capture more pieces`);
+        // LÓGICA SIMPLIFICADA DE CAPTURAS MÚLTIPLES
+        if (move && move.captured && move.captured.length > 0) {
+            console.log(`=== CAPTURE MADE - CHECKING FOR MORE CAPTURES ===`);
+            console.log(`Piece at (${to.row}, ${to.col}) after capture`);
             
-            // Agregar piezas capturadas a la secuencia
-            this.capturedPiecesInSequence.push(...move.captured);
-            this.multipleCaptureInProgress = true;
-            
-            // Verificar si el peón puede hacer más capturas desde su nueva posición
+            // Verificar si hay más capturas disponibles desde la nueva posición
             const additionalCaptures = this.getPossibleCaptures(to.row, to.col);
-            console.log(`Additional captures found:`, additionalCaptures.length);
+            console.log(`Additional captures available:`, additionalCaptures.length);
             
             if (additionalCaptures.length > 0) {
-                console.log(`Pawn can continue capturing! Not changing turn.`);
-                canContinueCapturing = true;
-                
-                // Mantener la pieza seleccionada y mostrar las nuevas opciones
+                console.log(`More captures available - keeping turn and piece selected`);
+                // Mantener el turno y la pieza seleccionada para continuar capturando
                 this.selectedPiece = { row: to.row, col: to.col };
                 this.possibleMoves = additionalCaptures;
+                this.multipleCaptureInProgress = true;
                 this.renderBoard();
                 
-                // Mostrar mensaje motivador actualizado
+                // Mostrar mensaje motivador
                 this.showMotivationalMessage();
             } else {
-                // No puede seguir capturando, finalizar secuencia
+                console.log(`No more captures available - changing turn`);
+                // No hay más capturas, cambiar turno normalmente
+                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                this.selectedPiece = null;
+                this.possibleMoves = [];
                 this.multipleCaptureInProgress = false;
-                this.capturedPiecesInSequence = [];
+                
+                // Limpiar el tablero visualmente
+                this.renderBoard();
+                
+                // Enviar al servidor si no estamos en modo debug
+                if (!this.debugMode) {
+                    this.sendMoveToServer(from, to, move.captured);
+                } else {
+                    console.log(`🔧 Debug mode: skipping server communication`);
+                }
             }
-        }
-        
-        // Solo cambiar turno y enviar al servidor si no puede seguir capturando
-        if (!canContinueCapturing) {
-            console.log(`No more captures possible, changing turn`);
+        } else {
+            console.log(`No capture made - changing turn normally`);
+            // No hubo captura, cambiar turno normalmente
             this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
             this.selectedPiece = null;
             this.possibleMoves = [];
             this.multipleCaptureInProgress = false;
-            this.capturedPiecesInSequence = [];
             
-            // Enviar movimiento al servidor solo cuando termine toda la secuencia
-            // Enviar todas las capturas acumuladas de la secuencia múltiple
-            this.sendMoveToServer(from, to, this.capturedPiecesInSequence);
-        } else {
-            console.log(`Pawn can continue capturing, not sending to server yet`);
-            // No enviar al servidor todavía, mantener el turno
+            // Limpiar el tablero visualmente
+            this.renderBoard();
+            
+            // Enviar al servidor si no estamos en modo debug
+            if (!this.debugMode) {
+                this.sendMoveToServer(from, to, []);
+            } else {
+                console.log(`🔧 Debug mode: skipping server communication`);
+            }
         }
         
         this.updateGameStatus();
@@ -1090,8 +1187,13 @@ class DamasGame {
         
         if (window.network && window.network.sendMove) {
             try {
-                // Enviar el estado completo del tablero para que el servidor confíe en él
-                await window.network.sendMove(from, to, capturedPieces, this.board);
+                // Enviar las capturas actuales del cliente (ya calculadas localmente)
+                console.log(`Sending current client captures:`, this.capturedPieces);
+                
+                // Enviar movimiento con las capturas actuales del cliente
+                await window.network.sendMove(from, to, capturedPieces, this.board, {
+                    captured_pieces: this.capturedPieces
+                });
                 console.log(`Move sent to server successfully`);
             } catch (error) {
                 console.error(`Error sending move to server:`, error);
@@ -1102,10 +1204,13 @@ class DamasGame {
             this.showMessage('Error de conexión', 'error');
         }
     }
+    
 
     isValidPosition(row, col) {
         return row >= 0 && row < 8 && col >= 0 && col < 8;
     }
+
+    // Función eliminada - no necesitamos calcular desde el tablero
 
     updateGameStatus() {
         const statusElement = document.getElementById('game-status');
@@ -1168,9 +1273,19 @@ class DamasGame {
                 if (this.currentPlayer === this.myPlayerNumber) {
                     statusElement.textContent = `Tu turno`;
                     statusElement.className = 'my-turn';
+                    
+                    // Mostrar mensaje motivacional si es tu turno y no se ha mostrado
+                    if (!this.motivationalMessageShown) {
+                        this.showMotivationalMessage();
+                        this.motivationalMessageShown = true;
+                    }
                 } else {
                     statusElement.textContent = `Turno de ${currentPlayerName}`;
                     statusElement.className = 'not-my-turn';
+                    statusElement.style.cssText = ''; // Limpiar estilos del mensaje motivacional
+                    
+                    // Limpiar mensaje motivacional cuando no es tu turno
+                    this.clearMotivationalMessage();
                 }
             }
             
@@ -1195,10 +1310,10 @@ class DamasGame {
         }
         
         // Check if it's the current player's turn
-        // this.currentPlayer is who should play now, this.myPlayerNumber is my player number (1 or 2)
-        const isMyTurn = this.currentPlayer === this.myPlayerNumber;
+        // En modo debug, siempre permitir jugar
+        const isMyTurn = this.debugMode ? true : (this.currentPlayer === this.myPlayerNumber);
         
-        console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerNumber=${this.myPlayerNumber}, isMyTurn=${isMyTurn}`);
+        console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerNumber=${this.myPlayerNumber}, isMyTurn=${isMyTurn}, debugMode=${this.debugMode}`);
         
         if (isMyTurn) {
             overlay.className = 'board-overlay active';
@@ -1259,7 +1374,7 @@ class DamasGame {
                 const pieceObj = this.board[piece.row][piece.col];
                 if (pieceObj) {
                     // Verificar movimientos simples (no solo capturas)
-                    const directions = pieceObj.isKing ? 
+                    const directions = pieceObj.isQueen ? 
                         [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
                         (pieceObj.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
                     
@@ -1307,20 +1422,18 @@ class DamasGame {
         const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
         const winnerName = `${winnerPlayerName} ${colorText}`;
         
-        // Limpiar mensajes anteriores antes de mostrar el mensaje de victoria
-        this.clearMessages();
+        // Mostrar mensaje de victoria en el panel
+        const isCurrentPlayerWinner = (this.myPlayerNumber === winnerNumber);
+            if (isCurrentPlayerWinner) {
+                this.showMessage(`🏆 ¡Has ganado la partida! ¡Felicidades! 🥇`, 'victory');
+            } else {
+                this.showMessage(`😔 Has perdido la partida ¡Mejor suerte la próxima vez! 🥈`, 'victory');
+            }
         
-        // Actualizar la interfaz
-        const statusElement = document.getElementById('game-status');
-        statusElement.textContent = `¡${winnerName} ha ganado!`;
-        statusElement.style.color = '#4CAF50';
-        statusElement.style.fontWeight = 'bold';
+        // Mostrar pantalla de fin de partida con opciones
+        this.showGameEndScreen(winnerName, winnerNumber);
         
-        // Mostrar mensaje de victoria
-        this.showMessage(`¡${winnerName} ha ganado la partida!`, 'success');
-        
-        // Add message to chat
-        this.addChatMessage('system', `🎉 ¡${winnerName} ha ganado la partida!`);
+        // Game ended - no chat needed
         
         // Deshabilitar interacciones del tablero
         this.selectedPiece = null;
@@ -1336,6 +1449,240 @@ class DamasGame {
 
     showGameModal() {
         document.getElementById('game-modal').style.display = 'block';
+    }
+
+    // Mostrar pantalla de fin de partida con opciones
+    showGameEndScreen(winnerName, winnerNumber) {
+        // Crear el modal de fin de partida si no existe
+        let endGameModal = document.getElementById('end-game-modal');
+        if (!endGameModal) {
+            endGameModal = this.createEndGameModal();
+        }
+
+        // Actualizar el contenido del modal
+        const winnerText = document.getElementById('end-game-winner');
+        const player1Name = this.playerNames[1] || 'Jugador 1';
+        const player2Name = this.playerNames[2] || 'Jugador 2';
+        
+        // Determinar si el jugador actual es el ganador
+        const isWinner = (this.myPlayerNumber === winnerNumber);
+        const statusText = isWinner ? '¡Has ganado!' : 'Has perdido';
+        const emoji = isWinner ? '🏆' : '😔';
+        const victoryEmoji = isWinner ? '🥇' : '🥈';
+        
+        winnerText.innerHTML = `
+            <h2>${emoji} ${statusText} ${victoryEmoji}</h2>
+            <p>¡${winnerName} ha ganado la partida!</p>
+            <p>¿Qué quieres hacer ahora?</p>
+        `;
+
+        // Mostrar el modal
+        endGameModal.style.display = 'block';
+        
+        // Configurar los botones
+        this.setupEndGameButtons(winnerNumber, player1Name, player2Name);
+    }
+
+    // Crear el modal de fin de partida
+    createEndGameModal() {
+        const modal = document.createElement('div');
+        modal.id = 'end-game-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                color: white;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                max-width: 500px;
+                width: 90%;
+            ">
+                <div id="end-game-winner"></div>
+                <div id="end-game-options" style="margin-top: 30px;">
+                    <button id="btn-same-colors" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #4CAF50, #45a049);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🔄 Nueva partida<br>(mismos colores)</button>
+                    <br>
+                    <button id="btn-swap-colors" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #2196F3, #1976D2);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🔄 Nueva partida<br>(cambiar colores)</button>
+                    <br>
+                    <button id="btn-main-menu" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #f44336, #d32f2f);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🏠 Salir al menú principal</button>
+                </div>
+                <div id="end-game-status" style="margin-top: 20px; font-size: 14px; opacity: 0.8;"></div>
+            </div>
+        `;
+
+        // Agregar efectos hover a los botones
+        const style = document.createElement('style');
+        style.textContent = `
+            .end-game-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+            }
+            .end-game-btn:active {
+                transform: translateY(0);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Cerrar modal al hacer clic fuera de él
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                // No cerrar automáticamente para evitar pérdida de opciones
+                // El usuario debe elegir una opción
+            }
+        });
+
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    // Configurar los botones del modal de fin de partida
+    setupEndGameButtons(winnerNumber, player1Name, player2Name) {
+        const btnSameColors = document.getElementById('btn-same-colors');
+        const btnSwapColors = document.getElementById('btn-swap-colors');
+        const btnMainMenu = document.getElementById('btn-main-menu');
+        const statusDiv = document.getElementById('end-game-status');
+
+        // Limpiar event listeners anteriores
+        btnSameColors.replaceWith(btnSameColors.cloneNode(true));
+        btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
+        btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
+
+        const newBtnSameColors = document.getElementById('btn-same-colors');
+        const newBtnSwapColors = document.getElementById('btn-swap-colors');
+        const newBtnMainMenu = document.getElementById('btn-main-menu');
+
+        // Nueva partida con mismos colores
+        newBtnSameColors.addEventListener('click', () => {
+            this.handleNewGame('same', statusDiv);
+        });
+
+        // Nueva partida cambiando colores
+        newBtnSwapColors.addEventListener('click', () => {
+            this.handleNewGame('swap', statusDiv);
+        });
+
+        // Salir al menú principal
+        newBtnMainMenu.addEventListener('click', () => {
+            this.handleMainMenu();
+        });
+
+        // Mostrar estado inicial
+        statusDiv.textContent = 'Esperando decisión...';
+    }
+
+    // Manejar nueva partida
+    async handleNewGame(colorMode, statusDiv) {
+        try {
+            statusDiv.textContent = 'Creando nueva partida...';
+            statusDiv.style.color = '#FFD700';
+
+            // Determinar los colores para la nueva partida
+            let newPlayer1Name, newPlayer2Name;
+            if (colorMode === 'same') {
+                // Mismos colores
+                newPlayer1Name = this.playerNames[1] || 'Jugador 1';
+                newPlayer2Name = this.playerNames[2] || 'Jugador 2';
+            } else {
+                // Cambiar colores
+                newPlayer1Name = this.playerNames[2] || 'Jugador 2';
+                newPlayer2Name = this.playerNames[1] || 'Jugador 1';
+            }
+
+            // Crear nueva partida con el mismo código
+            const response = await fetch('api/reset_game.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: this.gameId,
+                    player1_name: newPlayer1Name,
+                    player2_name: newPlayer2Name
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                statusDiv.textContent = '¡Nueva partida creada! Redirigiendo...';
+                statusDiv.style.color = '#4CAF50';
+                
+                // Cerrar modal
+                document.getElementById('end-game-modal').style.display = 'none';
+                
+                // Recargar la página con los nuevos datos
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Error al crear nueva partida');
+            }
+        } catch (error) {
+            console.error('Error creating new game:', error);
+            statusDiv.textContent = 'Error al crear nueva partida. Inténtalo de nuevo.';
+            statusDiv.style.color = '#f44336';
+        }
+    }
+
+    // Manejar salida al menú principal
+    handleMainMenu() {
+        // Cerrar modal
+        document.getElementById('end-game-modal').style.display = 'none';
+        
+        // Redirigir al menú principal
+        window.location.href = 'index.html';
     }
 
     hideModal(modalId) {
@@ -1391,6 +1738,34 @@ class DamasGame {
             window.network.leaveGame();
         }
         this.resetGame();
+        // Redirigir a la home después de abandonar
+        window.location.href = 'home.html';
+    }
+
+    handleGameAbandonment(winnerName) {
+        console.log('Game abandoned by opponent');
+        
+        // Game abandoned - no chat needed
+        
+        // Cambiar el botón abandonar por un botón de "Salir"
+        const leaveBtn = document.getElementById('leave-game-btn');
+        leaveBtn.textContent = 'Salir';
+        leaveBtn.style.backgroundColor = '#28a745'; // Verde
+        leaveBtn.onclick = () => {
+            window.location.href = 'home.html';
+        };
+        
+        // Deshabilitar el tablero
+        this.gameState = 'finished';
+        this.updateGameStatus();
+        
+        // Obtener el nombre del jugador que abandonó (el que no es el ganador)
+        const abandonedPlayerName = this.myPlayerNumber === 1 ? 
+            (this.playerNames[2] || 'Jugador 2') : 
+            (this.playerNames[1] || 'Jugador 1');
+        
+        // Mostrar mensaje de victoria
+        this.showMessage(`🏆 ¡${abandonedPlayerName} ha abandonado! ¡Has ganado la partida! 🥇`, 'victory');
     }
 
     resetGame() {
@@ -1434,41 +1809,40 @@ class DamasGame {
         
         this.clearMessages(); // Limpiar mensajes al iniciar nueva partida
         this.updateGameStatus();
-        this.addChatMessage('system', '¡Partida iniciada! ¡Buena suerte!');
     }
 
-    addChatMessage(sender, message) {
-        const chatMessages = document.getElementById('chat-messages');
-        
-        // Check if last message is the same to avoid duplicates
-        const lastMessage = chatMessages.lastElementChild;
-        if (lastMessage && lastMessage.textContent === message) {
-            return; // Don't add duplicate message
-        }
-        
-        const messageElement = document.createElement('div');
-        messageElement.className = `chat-message ${sender}`;
-        
-        // Para mensajes de sistema, mostrar solo el mensaje sin prefijos
-        if (sender === 'system') {
-            messageElement.textContent = message;
-        } else {
-            // For player messages, add player name
-            const playerNumber = sender === 'player1' ? 1 : 2;
-            const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
-            console.log(`Chat message: sender=${sender}, playerNumber=${playerNumber}, playerName=${playerName}, playerNames=`, this.playerNames);
-            messageElement.textContent = `${playerName}: ${message}`;
-        }
-        
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
 
-    // Function to mostrar mensajes informativos
+    // Function to mostrar mensajes informativos con jerarquía
     showMessage(message, type = 'info') {
         console.log(`=== SHOWING MESSAGE ===`);
         console.log(`Message: ${message}`);
         console.log(`Type: ${type}`);
+        
+        // Definir jerarquía de mensajes (mayor número = mayor prioridad)
+        const messageHierarchy = {
+            'victory': 4,
+            'waiting': 3,
+            'error': 2,
+            'motivational': 1,
+            'info': 1,
+            'success': 1
+        };
+        
+        const currentPriority = messageHierarchy[type] || 1;
+        const currentMessageType = this.currentMessageType || 'none';
+        const currentMessagePriority = messageHierarchy[currentMessageType] || 0;
+        
+        // Solo mostrar el mensaje si tiene mayor o igual prioridad que el actual
+        if (currentPriority < currentMessagePriority) {
+            console.log(`Message blocked by higher priority message: ${currentMessageType} (${currentMessagePriority}) > ${type} (${currentPriority})`);
+            return;
+        }
+        
+        // Limpiar timeout anterior si existe
+        if (this.messageTimeout) {
+            clearTimeout(this.messageTimeout);
+            this.messageTimeout = null;
+        }
         
         // Usar el elemento HTML existente
         const messageElement = document.getElementById('game-message');
@@ -1480,42 +1854,25 @@ class DamasGame {
         // Configurar el mensaje
         messageElement.textContent = message;
         messageElement.className = `game-message ${type}`;
+        messageElement.style.display = 'block';
+        messageElement.style.opacity = '1';
+        messageElement.style.visibility = 'visible';
         
-        // Forzar estilos inline para asegurar visibilidad
-        messageElement.style.cssText = `
-            position: fixed !important;
-            top: 20px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding: 15px 25px !important;
-            border-radius: 25px !important;
-            font-weight: bold !important;
-            font-size: 1.1em !important;
-            z-index: 10000 !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-            max-width: 90% !important;
-            text-align: center !important;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            background: ${type === 'error' ? 'linear-gradient(135deg, #ff6b6b, #ee5a52)' : 
-                        type === 'success' ? 'linear-gradient(135deg, #51cf66, #40c057)' : 
-                        'linear-gradient(135deg, #74c0fc, #339af0)'} !important;
-            color: white !important;
-            border: 2px solid ${type === 'error' ? '#ff5252' : 
-                              type === 'success' ? '#51cf66' : 
-                              '#74c0fc'} !important;
-        `;
+        // Guardar el tipo de mensaje actual
+        this.currentMessageType = type;
         
         console.log(`Message element display: ${messageElement.style.display}`);
         console.log(`Message element text: ${messageElement.textContent}`);
         console.log(`Message element classes: ${messageElement.className}`);
+        console.log(`Current message type: ${this.currentMessageType}`);
         console.log(`=== END SHOWING MESSAGE ===`);
 
-        // Hide message after 5 seconds (más tiempo para verlo)
-        setTimeout(() => {
+        // Hide message after different times based on type
+        const timeoutDuration = type === 'motivational' ? 10000 : 5000; // 10s for motivational, 5s for others
+        this.messageTimeout = setTimeout(() => {
             messageElement.style.display = 'none';
-        }, 5000);
+            this.currentMessageType = null;
+        }, timeoutDuration);
     }
 
     // Function to mostrar mensaje específico de movimiento no válido
@@ -1536,7 +1893,7 @@ class DamasGame {
                 this.showMessage('🚫 Esta pieza no puede capturar. Debes usar la pieza que puede capturar', 'error');
             } else {
                 // Verificar si hay damas disponibles
-                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isKing);
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
                 
                 if (damaCaptures.length > 0) {
                     this.showMessage('🚫 Debes capturar con la dama', 'error');
@@ -1606,9 +1963,14 @@ class DamasGame {
         // Mostrar mensaje de espera si no es tu turno
         if (this.myPlayerNumber && this.currentPlayer !== this.myPlayerNumber) {
             this.showWaitingMessage();
+            // Limpiar mensaje motivacional cuando no es tu turno
+            this.clearMotivationalMessage();
         } else if (this.myPlayerNumber && this.currentPlayer === this.myPlayerNumber && !this.motivationalMessageShown) {
             this.showMotivationalMessage(); // Mostrar mensaje motivador solo si es tu turno y no se ha mostrado
             this.motivationalMessageShown = true; // Marcar que ya se mostró
+        } else if (this.myPlayerNumber && this.currentPlayer === this.myPlayerNumber) {
+            // Si es tu turno y ya se mostró el mensaje, mantenerlo visible
+            // No hacer nada para mantener el mensaje motivacional
         } else {
             this.clearMessages(); // Limpiar mensajes en otros casos
         }
@@ -1618,27 +1980,30 @@ class DamasGame {
     clearMessages() {
         const messageElement = document.getElementById('game-message');
         if (messageElement) {
-            // No limpiar mensajes motivadores o de espera que deberían persistir
-            const isMotivational = messageElement.className.includes('motivational');
-            const isWaiting = messageElement.className.includes('waiting');
-            const isError = messageElement.className.includes('error');
-            
-            if (!isMotivational && !isWaiting && !isError) {
-                messageElement.style.display = 'none';
-                messageElement.textContent = '';
-                messageElement.className = 'game-message';
-            }
+            messageElement.style.display = 'none';
+            messageElement.textContent = '';
+            messageElement.className = 'game-message';
         }
+        
+        // Limpiar timeout y tipo de mensaje actual
+        if (this.messageTimeout) {
+            clearTimeout(this.messageTimeout);
+            this.messageTimeout = null;
+        }
+        this.currentMessageType = null;
+    }
+
+    // Function to clear only the motivational message
+    clearMotivationalMessage() {
+        const messageElement = document.getElementById('game-message');
+        if (messageElement && messageElement.classList.contains('motivational')) {
+            messageElement.style.display = 'none';
+        }
+        this.motivationalMessageShown = false; // Reset flag
     }
 
     // Function to show motivational message when it's your turn
     showMotivationalMessage() {
-        const messageElement = document.getElementById('game-message');
-        if (!messageElement) {
-            console.error('Game message element not found!');
-            return;
-        }
-
         // Obtener nombre del jugador
         const playerName = this.playerNames[this.myPlayerNumber] || 'Jugador';
         
@@ -1665,32 +2030,8 @@ class DamasGame {
         const randomIndex = Math.floor(Math.random() * motivationalPhrases.length);
         const selectedPhrase = motivationalPhrases[randomIndex];
         
-        // Configurar el mensaje motivador
-        messageElement.textContent = selectedPhrase;
-        messageElement.className = 'game-message motivational';
-        
-        // Aplicar estilos para el mensaje motivador
-        messageElement.style.cssText = `
-            position: fixed !important;
-            top: 20px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding: 15px 25px !important;
-            border-radius: 25px !important;
-            font-weight: bold !important;
-            font-size: 1.1em !important;
-            z-index: 10000 !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-            max-width: 90% !important;
-            text-align: center !important;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            background: linear-gradient(135deg, #51cf66, #40c057) !important;
-            color: white !important;
-            border: 2px solid #51cf66 !important;
-            animation: motivationalBounce 1.5s ease-in-out !important;
-        `;
+        // Usar showMessage con tipo motivational y timeout más largo
+        this.showMessage(selectedPhrase, 'motivational');
     }
 
     // Function to show waiting message when it's not your turn
@@ -1705,32 +2046,11 @@ class DamasGame {
         const opponentNumber = this.currentPlayer;
         const opponentName = this.playerNames[opponentNumber] || `Jugador ${opponentNumber}`;
         
-        // Configurar el mensaje de espera
         messageElement.textContent = `⏳ Esperando a que ${opponentName} mueva...`;
         messageElement.className = 'game-message waiting';
-        
-        // Aplicar estilos para el mensaje de espera
-        messageElement.style.cssText = `
-            position: fixed !important;
-            top: 20px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding: 15px 25px !important;
-            border-radius: 25px !important;
-            font-weight: bold !important;
-            font-size: 1.1em !important;
-            z-index: 10000 !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-            max-width: 90% !important;
-            text-align: center !important;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            background: linear-gradient(135deg, #ffd43b, #fab005) !important;
-            color: #2d3436 !important;
-            border: 2px solid #ffd43b !important;
-            animation: waitingPulse 2s infinite !important;
-        `;
+        messageElement.style.display = 'block';
+        messageElement.style.opacity = '1';
+        messageElement.style.visibility = 'visible';
     }
 
     // Function to añadir efecto cómico de captura
@@ -1747,8 +2067,7 @@ class DamasGame {
             }
         }
         
-        // Show comic message
-        this.showMessage('¡BOOM! 💥 ¡Captura épica!', 'success');
+        // Mensaje de captura épica eliminado - no necesario
     }
 
     // Function to añadir efecto cómico de promoción
@@ -1792,42 +2111,566 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameId = urlParams.get('game');
     const playerId = urlParams.get('player');
     const playerName = urlParams.get('name');
+    const debugMode = urlParams.get('debug') === 'true';
     
-    if (gameId && playerId && playerName) {
+    if ((gameId && playerId && playerName) || debugMode) {
         window.game = new DamasGame();
         window.network = new NetworkManager();
         window.game.renderBoard();
         window.game.setupChatEventListeners(); // Ensure chat event listeners are added after DOM
         
-        // Initialize game with URL parameters
-        console.log('=== GAME INITIALIZATION ===');
-        console.log('URL params - gameId:', gameId, 'playerId:', playerId, 'playerName:', playerName);
-        console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
-        
-        window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
-        
-        console.log('=== SETTING NETWORK VALUES ===');
-        console.log('Before setting - window.network.gameId:', window.network.gameId);
-        console.log('Before setting - window.network.playerId:', window.network.playerId);
-        console.log('Setting gameId to:', parseInt(gameId));
-        console.log('Setting playerId to:', parseInt(playerId));
-        
-        window.network.gameId = parseInt(gameId);
-        window.network.playerId = parseInt(playerId);
-        window.network.playerName = decodeURIComponent(playerName);
-        
-        console.log('After setting - window.network.gameId:', window.network.gameId);
-        console.log('After setting - window.network.playerId:', window.network.playerId);
-        console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
-        console.log('=== END GAME INITIALIZATION ===');
-        
-        // Load initial game state to get both player names
-        window.network.loadInitialGameState();
-        
-        // Start polling for game updates
-        window.network.startPolling();
+        // Check debug mode first
+        console.log('=== DEBUG CHECK ===');
+        console.log('debugMode:', debugMode);
+        console.log('URL debug param:', urlParams.get('debug'));
+        if (debugMode) {
+            console.log('=== DEBUG MODE INITIALIZATION ===');
+            console.log('Debug mode activated - skipping network initialization');
+            window.game.debugMode = true;
+            window.game.createDebugPanel();
+            // Don't call toggleDebugMode() - just show the panel
+            const panel = document.getElementById('debug-panel');
+            const board = document.getElementById('game-board');
+            
+            console.log('🔧 Panel found:', !!panel);
+            console.log('🔧 Board found:', !!board);
+            
+            if (panel && board) {
+                panel.style.display = 'block';
+                board.style.border = '3px solid red';
+                console.log('🔧 Debug mode activated');
+            } else {
+                console.log('🔧 Error: Panel or board not found');
+            }
+            // Clear board for debug mode
+            window.game.clearBoard();
+            // Set fake game parameters for debug mode
+            window.game.gameId = 999;
+            window.game.myPlayerNumber = 1;
+            window.game.playerName = 'Debug Player';
+            window.game.playerNames = { 1: 'Debug Player', 2: 'Debug Opponent' };
+            window.game.currentPlayer = 1;
+            window.game.gameState = 'playing';
+            window.game.updateGameStatus();
+        } else {
+            // Initialize game with URL parameters (normal mode)
+            console.log('=== GAME INITIALIZATION ===');
+            console.log('URL params - gameId:', gameId, 'playerId:', playerId, 'playerName:', playerName);
+            console.log('Parsed - gameId:', parseInt(gameId), 'playerId:', parseInt(playerId), 'playerName:', decodeURIComponent(playerName));
+            
+            window.game.startGame(parseInt(playerId), parseInt(gameId), decodeURIComponent(playerName));
+            
+            console.log('=== SETTING NETWORK VALUES ===');
+            console.log('Before setting - window.network.gameId:', window.network.gameId);
+            console.log('Before setting - window.network.playerId:', window.network.playerId);
+            console.log('Setting gameId to:', parseInt(gameId));
+            console.log('Setting playerId to:', parseInt(playerId));
+            
+            window.network.gameId = parseInt(gameId);
+            window.network.playerId = parseInt(playerId);
+            window.network.playerName = decodeURIComponent(playerName);
+            
+            console.log('After setting - window.network.gameId:', window.network.gameId);
+            console.log('After setting - window.network.playerId:', window.network.playerId);
+            console.log('Network manager set - gameId:', window.network.gameId, 'playerId:', window.network.playerId, 'playerName:', window.network.playerName);
+            console.log('=== END GAME INITIALIZATION ===');
+            
+            // Load initial game state to get both player names
+            window.network.loadInitialGameState();
+            
+            // Start polling for game updates
+            window.network.startPolling();
+        }
     } else {
         // Redirect to home if no valid parameters
         window.location.href = 'home.html';
     }
 });
+
+// Debug functions
+DamasGame.prototype.createDebugPanel = function() {
+    // Create debug panel HTML
+    const debugPanel = document.createElement('div');
+    debugPanel.id = 'debug-panel';
+    debugPanel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        z-index: 10000;
+        display: none;
+        min-width: 200px;
+    `;
+    
+    debugPanel.innerHTML = `
+        <div style="margin-bottom: 10px; font-weight: bold;">🔧 MODO DEBUG</div>
+        <div style="margin-bottom: 8px;">
+            <button id="debug-mode-toggle" style="padding: 5px 10px; width: 100%; margin-bottom: 5px;">Modo: Editar Tablero</button>
+        </div>
+        <div id="debug-edit-controls" style="margin-bottom: 8px;">
+            <div style="margin-bottom: 8px;">
+                <label>Jugador: </label>
+                <select id="debug-player" style="margin-left: 5px;">
+                    <option value="1">1 (Blancas)</option>
+                    <option value="2">2 (Negras)</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label>Pieza: </label>
+                <select id="debug-piece" style="margin-left: 5px;">
+                    <option value="pawn">Peón</option>
+                    <option value="queen">Dama</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <button id="debug-clear" style="padding: 5px 10px; width: 100%;">Limpiar Tablero</button>
+            </div>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <button id="debug-turn" style="margin-right: 5px; padding: 5px 10px;">Cambiar Turno</button>
+            <span id="debug-turn-display">Turno: 1</span>
+        </div>
+        <div id="debug-mode-instructions" style="font-size: 10px; color: #ccc;">
+            Click en casilla para colocar/remover pieza
+        </div>
+    `;
+    
+    document.body.appendChild(debugPanel);
+    console.log('🔧 Debug panel created and appended to body');
+    
+    // Add event listeners
+    document.getElementById('debug-mode-toggle').addEventListener('click', () => {
+        this.toggleDebugEditMode();
+    });
+    
+    document.getElementById('debug-clear').addEventListener('click', () => {
+        this.clearBoard();
+    });
+    
+    document.getElementById('debug-turn').addEventListener('click', () => {
+        this.changeTurn();
+    });
+    
+    document.getElementById('debug-player').addEventListener('change', (e) => {
+        this.debugPlayer = parseInt(e.target.value);
+    });
+    
+    document.getElementById('debug-piece').addEventListener('change', (e) => {
+        this.debugPieceType = e.target.value;
+    });
+};
+
+DamasGame.prototype.toggleDebugMode = function() {
+    this.debugMode = !this.debugMode;
+    const panel = document.getElementById('debug-panel');
+    const button = document.getElementById('debug-toggle');
+    const board = document.getElementById('game-board');
+    
+    if (this.debugMode) {
+        panel.style.display = 'block';
+        button.textContent = 'Desactivar Debug';
+        board.style.border = '3px solid red';
+        console.log('🔧 Debug mode activated');
+    } else {
+        panel.style.display = 'none';
+        button.textContent = 'Activar Debug';
+        board.style.border = '';
+        console.log('🔧 Debug mode deactivated');
+    }
+};
+
+DamasGame.prototype.toggleDebugEditMode = function() {
+    this.debugEditMode = !this.debugEditMode;
+    const button = document.getElementById('debug-mode-toggle');
+    const instructions = document.getElementById('debug-mode-instructions');
+    
+    if (this.debugEditMode) {
+        button.textContent = 'Modo: Editar Tablero';
+        instructions.textContent = 'Click en casilla para colocar/remover pieza';
+    } else {
+        button.textContent = 'Modo: Jugar';
+        instructions.textContent = 'Click en pieza para seleccionar y mover';
+    }
+    
+    console.log(`🔧 Debug edit mode: ${this.debugEditMode ? 'EDIT' : 'PLAY'}`);
+};
+
+DamasGame.prototype.handleDebugClick = function(row, col) {
+    if (this.debugEditMode) {
+        // Edit mode: place/remove pieces
+        const piece = this.board[row][col];
+        
+        if (piece) {
+            // Remove piece
+            this.board[row][col] = null;
+            console.log(`🔧 Removed piece at (${row}, ${col})`);
+        } else {
+            // Add piece
+            this.board[row][col] = {
+                player: this.debugPlayer,
+                isQueen: this.debugPieceType === 'queen'
+            };
+            console.log(`🔧 Added ${this.debugPieceType} for player ${this.debugPlayer} at (${row}, ${col})`);
+        }
+        
+        this.renderBoard();
+    } else {
+        // Play mode: call debug-specific game logic
+        this.handleDebugPlayMode(row, col);
+    }
+};
+
+DamasGame.prototype.handleDebugPlayMode = function(row, col) {
+    console.log(`🔧 Debug play mode - handling click at (${row}, ${col})`);
+    console.log(`🔧 Current player: ${this.currentPlayer}`);
+    console.log(`🔧 Piece at (${row}, ${col}):`, this.board[row][col]);
+    
+    if (this.gameState !== 'playing') {
+        if (this.gameState === 'finished') {
+            this.showMessage('La partida ha terminado', 'info');
+        }
+        return;
+    }
+    
+    const piece = this.board[row][col];
+    
+    // Si hay una pieza seleccionada, intentar mover
+    if (this.selectedPiece) {
+        // Si haces clic en otra pieza del mismo color, verificar si hay capturas múltiples en progreso
+        if (piece && piece.player === this.currentPlayer) {
+            // Verificar si hay capturas múltiples en progreso
+            if (this.multipleCaptureInProgress) {
+                console.log('=== CAPTURAS MÚLTIPLES EN PROGRESO ===');
+                console.log('Hay capturas múltiples en progreso, no permitir cambio de pieza');
+                this.showMessage('🚫 Debes continuar con la misma pieza para completar las capturas', 'error');
+                return;
+            }
+            
+            console.log('=== REINICIANDO TURNO ===');
+            console.log('Deseleccionando pieza anterior:', this.selectedPiece);
+            this.selectedPiece = null;
+            this.possibleMoves = [];
+            // No llamar renderBoard aquí para evitar loops
+            // Reiniciar el proceso de selección desde cero
+            console.log('=== INICIANDO NUEVA SELECCIÓN ===');
+            console.log(`Nueva pieza en (${row}, ${col}):`, piece);
+            
+            // Verificar si hay capturas obligatorias antes de seleccionar
+            const mandatoryCaptures = this.applyCaptureRules(this.currentPlayer);
+            console.log(`=== VERIFICACIÓN DE CAPTURAS OBLIGATORIAS ===`);
+            console.log(`Mandatory captures:`, mandatoryCaptures);
+            console.log(`Length:`, mandatoryCaptures ? mandatoryCaptures.length : 'null');
+            
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                    capture.piece.row === row && capture.piece.col === col
+                );
+                
+                console.log(`Verificando pieza en (${row}, ${col})`);
+                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                console.log(`Capturas obligatorias:`, mandatoryCaptures);
+                
+                if (!canThisPieceCapture) {
+                    // Verificar si hay damas disponibles
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
+                    
+                    console.log(`Dama captures:`, damaCaptures);
+                    
+                    if (damaCaptures.length > 0) {
+                        this.showMessage('🚫 Debes capturar con la dama', 'error');
+                    } else {
+                        this.showMessage('🚫 Estás obligado a capturar', 'error');
+                    }
+                    return;
+                }
+            }
+            // Seleccionar la nueva pieza (modo debug)
+            this.selectPieceDebug(row, col);
+            return;
+        } else {
+            // Obtener la pieza seleccionada del tablero
+            const selectedPieceData = this.board[this.selectedPiece.row][this.selectedPiece.col];
+            
+            console.log(`=== MOVEMENT VALIDATION ===`);
+            console.log(`Selected piece data:`, selectedPieceData);
+            console.log(`Selected piece player:`, selectedPieceData ? selectedPieceData.player : 'null');
+            console.log(`Current player:`, this.currentPlayer);
+            console.log(`Is current player piece?`, selectedPieceData && selectedPieceData.player === this.currentPlayer);
+            
+            // Verificar que la pieza seleccionada es del jugador actual
+            if (selectedPieceData && selectedPieceData.player !== this.currentPlayer) {
+                console.log('❌ Cannot move opponent piece');
+                this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
+                this.selectedPiece = null;
+                this.possibleMoves = [];
+                // No llamar renderBoard aquí para evitar loops
+                return;
+            }
+            
+            if (this.isValidMove(this.selectedPiece, { row, col })) {
+                const fromPiece = { ...this.selectedPiece }; // Save position before moving
+                
+                console.log(`=== MOVEMENT APPROVED ===`);
+                console.log(`From piece:`, fromPiece);
+                console.log(`To position: (${row}, ${col})`);
+                console.log(`Selected piece data:`, selectedPieceData);
+                
+                // Aplicar movimiento localmente - makeMove se encarga de enviar al servidor cuando corresponda
+                const capturedPieces = this.makeMove(fromPiece, { row, col });
+                
+                // Reset flag when making a move
+                this.motivationalMessageShown = false;
+                
+                // Solo limpiar possibleMoves si no hay capturas múltiples en progreso
+                if (!this.multipleCaptureInProgress) {
+                    this.possibleMoves = [];
+                }
+                
+                // No llamar renderBoard aquí para evitar loops
+            } else {
+                // Show invalid move message
+                this.showInvalidMoveMessage(row, col);
+                // No seleccionar nueva pieza después de mostrar mensaje de movimiento inválido
+                return;
+            }
+        }
+    }
+    
+    // Si no hay pieza seleccionada o se está cambiando de pieza
+    if (piece && piece.player === this.currentPlayer) {
+        // Si es la misma pieza seleccionada, deseleccionarla
+        if (this.selectedPiece && this.selectedPiece.row === row && this.selectedPiece.col === col) {
+            console.log('Deseleccionando pieza actual:', this.selectedPiece);
+            this.selectedPiece = null;
+            this.possibleMoves = [];
+            // No llamar renderBoard aquí para evitar loops
+            return;
+        }
+        
+        // Verificar si hay capturas obligatorias antes de seleccionar (solo si no hay capturas múltiples en progreso)
+        if (!this.multipleCaptureInProgress) {
+            const mandatoryCaptures = this.applyCaptureRules(this.currentPlayer);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+                const canThisPieceCapture = mandatoryCaptures.some(capture => 
+                    capture.piece.row === row && capture.piece.col === col
+                );
+                
+                console.log(`Verificando pieza en (${row}, ${col})`);
+                console.log(`Puede esta pieza capturar: ${canThisPieceCapture}`);
+                console.log(`Capturas obligatorias:`, mandatoryCaptures);
+                
+                if (!canThisPieceCapture) {
+                    // Verificar si hay damas disponibles
+                    const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
+                    
+                    if (damaCaptures.length > 0) {
+                        this.showMessage('🚫 Debes capturar con la dama', 'error');
+                    } else {
+                        this.showMessage('🚫 Estás obligado a capturar', 'error');
+                    }
+                    return;
+                }
+            }
+        }
+        // Seleccionar pieza del jugador actual (modo debug)
+        this.selectPieceDebug(row, col);
+    } else if (piece && piece.player !== this.currentPlayer) {
+        // Intentar seleccionar pieza del oponente
+        console.log(`🔧 Piece player: ${piece.player}, Current player: ${this.currentPlayer}`);
+        console.log(`🔧 Cannot select opponent piece`);
+        this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
+    } else {
+        // Click on empty cell without selected piece
+        // Solo mostrar mensajes si es mi turno y no hay capturas múltiples en progreso
+        if (this.currentPlayer === this.currentPlayer && !this.multipleCaptureInProgress) {
+            const mandatoryCaptures = this.applyCaptureRules(this.currentPlayer);
+            if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+                // Verificar si hay damas disponibles
+                const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
+                
+                if (damaCaptures.length > 0) {
+                    this.showMessage('🚫 Debes capturar con la dama', 'error');
+                } else {
+                    this.showMessage('🚫 Estás obligado a capturar', 'error');
+                }
+            } else {
+                this.showMessage('Selecciona una pieza primero', 'info');
+            }
+        }
+        // Si no es mi turno o hay capturas múltiples en progreso, no mostrar ningún mensaje
+    }
+    
+    // Actualizar solo la visualización sin recrear event listeners
+    this.updateBoardVisualization();
+};
+
+DamasGame.prototype.selectPieceDebug = function(row, col) {
+    console.log(`=== SELECTING PIECE DEBUG (DEBUG MODE) ===`);
+    console.log(`Selected piece at (${row}, ${col}):`, this.board[row][col]);
+    console.log(`Current player: ${this.currentPlayer}`);
+    
+    const piece = this.board[row][col];
+    if (!piece) {
+        console.log('No piece at this position, cannot select');
+        console.log(`=== END SELECTING PIECE DEBUG ===`);
+        return;
+    }
+    
+    console.log(`Piece player: ${piece.player}`);
+    
+    // Verificar que la pieza es del jugador actual (usar currentPlayer en modo debug)
+    if (piece.player !== this.currentPlayer) {
+        console.log('Cannot select opponent piece');
+        this.showMessage('🚫 No puedes seleccionar las piezas del oponente', 'error');
+        console.log(`=== END SELECTING PIECE DEBUG ===`);
+        return;
+    }
+    
+    // Verificar si hay capturas obligatorias
+    const mandatoryCaptures = this.applyCaptureRules(this.currentPlayer);
+    if (mandatoryCaptures && mandatoryCaptures.length > 0) {
+        console.log('Capturas obligatorias detectadas:', mandatoryCaptures);
+        // Verificar si la pieza seleccionada puede hacer una captura obligatoria
+        const canThisPieceCapture = mandatoryCaptures.some(capture => 
+            capture.piece.row === row && capture.piece.col === col
+        );
+        
+        if (!canThisPieceCapture) {
+            console.log('No se puede seleccionar esta pieza, hay captura obligatoria con otra');
+            // Verificar si hay damas disponibles
+            const damaCaptures = mandatoryCaptures.filter(capture => capture.piece.piece.isQueen);
+            if (damaCaptures.length > 0) {
+                this.showMessage('🚫 Debes capturar con la dama', 'error');
+            } else {
+                this.showMessage('🚫 Estás obligado a capturar', 'error');
+            }
+            console.log(`=== END SELECTING PIECE DEBUG ===`);
+            return;
+        }
+    }
+    
+    this.selectedPiece = { row, col };
+    this.possibleMoves = this.getPossibleMovesDebug(row, col);
+    
+    console.log(`Possible moves:`, this.possibleMoves);
+    console.log(`=== END SELECTING PIECE DEBUG ===`);
+    
+    // No llamar renderBoard aquí para evitar loops - se llama desde handleDebugPlayMode
+};
+
+DamasGame.prototype.getPossibleMovesDebug = function(row, col) {
+    const piece = this.board[row][col];
+    if (!piece) return [];
+
+    console.log(`=== GET POSSIBLE MOVES DEBUG (DEBUG MODE) ===`);
+    console.log(`Piece at (${row}, ${col}):`, piece);
+    console.log(`Piece player: ${piece.player}`);
+    console.log(`Current player: ${this.currentPlayer}`);
+
+    // Para modo debug, usar la misma lógica que getPossibleCaptures
+    const captures = this.getPossibleCaptures(row, col);
+    
+    if (captures.length > 0) {
+        console.log(`Found ${captures.length} captures, using capture moves`);
+        console.log(`=== END GET POSSIBLE MOVES DEBUG ===`);
+        return captures;
+    }
+    
+    // Si no hay capturas, mostrar movimientos normales
+    const moves = [];
+    
+    if (piece.isQueen) {
+        // Para damas: buscar todas las casillas vacías en diagonal
+        const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        
+        for (const [dRow, dCol] of directions) {
+            let currentRow = row + dRow;
+            let currentCol = col + dCol;
+            
+            // Buscar casillas vacías en esta dirección diagonal
+            while (this.isValidPosition(currentRow, currentCol)) {
+                if (!this.board[currentRow][currentCol]) {
+                    // Casilla vacía, es un movimiento válido
+                    moves.push({ row: currentRow, col: currentCol, type: 'normal' });
+                } else {
+                    // Hay una pieza, no podemos continuar en esta dirección
+                    break;
+                }
+                currentRow += dRow;
+                currentCol += dCol;
+            }
+        }
+    } else {
+        // Para peones: solo movimientos de una casilla
+        const directions = piece.player === 1 ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+
+        for (const [dRow, dCol] of directions) {
+            const newRow = row + dRow;
+            const newCol = col + dCol;
+            
+            if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                moves.push({ row: newRow, col: newCol, type: 'normal' });
+            }
+        }
+    }
+    
+    console.log(`Debug moves found:`, moves.length);
+    console.log(`=== END GET POSSIBLE MOVES DEBUG ===`);
+    
+    return moves;
+};
+
+DamasGame.prototype.updateBoardVisualization = function() {
+    // Actualizar solo la visualización sin recrear event listeners
+    const boardElement = document.getElementById('game-board');
+    if (!boardElement) return;
+    
+    // Determinar si necesitamos rotar el tablero
+    const shouldRotate = this.myPlayerNumber === 2;
+    
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const realRow = shouldRotate ? 7 - row : row;
+            const realCol = shouldRotate ? 7 - col : col;
+            
+            const cell = document.querySelector(`[data-row="${realRow}"][data-col="${realCol}"]`);
+            if (!cell) continue;
+            
+            // Limpiar clases existentes
+            cell.classList.remove('possible-move', 'selected');
+            
+            // Marcar movimientos posibles
+            if (this.possibleMoves.some(move => move.row === realRow && move.col === realCol)) {
+                cell.classList.add('possible-move');
+            }
+
+            // Marcar pieza seleccionada
+            if (this.selectedPiece && this.selectedPiece.row === realRow && this.selectedPiece.col === realCol) {
+                cell.classList.add('selected');
+            }
+        }
+    }
+};
+
+DamasGame.prototype.clearBoard = function() {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            this.board[row][col] = null;
+        }
+    }
+    this.renderBoard();
+    console.log('🔧 Board cleared');
+};
+
+DamasGame.prototype.changeTurn = function() {
+    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+    document.getElementById('debug-turn-display').textContent = `Turno: ${this.currentPlayer}`;
+    console.log(`🔧 Turn changed to: ${this.currentPlayer}`);
+};
