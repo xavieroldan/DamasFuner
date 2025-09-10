@@ -267,19 +267,19 @@ main {
     }
     25% {
         transform: scale(1.4) rotate(90deg);
-        box-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
     50% {
         transform: scale(1.6) rotate(180deg);
-        box-shadow: 0 0 30px #FFD700, 0 0 60px #FFD700;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
     75% {
         transform: scale(1.4) rotate(270deg);
-        box-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
     100% {
         transform: scale(1.2) rotate(360deg);
-        box-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 }
 
@@ -331,26 +331,6 @@ main {
 .piece.queen {
     position: relative;
     overflow: visible;
-}
-
-.piece.queen::after {
-    content: '✨';
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    font-size: 12px;
-    animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-    0%, 100% {
-        opacity: 0;
-        transform: scale(0.5) rotate(0deg);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1) rotate(180deg);
-    }
 }
 
 .piece:hover {

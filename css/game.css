@@ -301,53 +301,106 @@ main {
     text-align: center;
 }
 
-.players {
+.players-info {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
 }
 
-.player {
+.player-info-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    min-width: 150px;
-}
-
-.white-player {
-    border-left: 5px solid #FFD700;
-}
-
-.black-player {
-    border-left: 5px solid #2C2C2C;
+    gap: 8px;
 }
 
 .player-piece {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    margin-bottom: 10px;
-    border: 2px solid #333;
+    border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
 .player-piece.black {
-    background: linear-gradient(135deg, #2C2C2C, #000);
+    background: #2C2C2C;
 }
 
 .player-piece.white {
-    background: linear-gradient(135deg, #F5F5F5, #E0E0E0);
+    background: #F5F5F5;
+}
+
+.player-info-item span {
+    color: white;
+    font-size: 1em;
+    font-weight: 600;
+    text-align: center;
+}
+
+.player-info-item span.active {
+    color: #FFD700;
+}
+
+.captures-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 300px;
+}
+
+.capture-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    gap: 20px;
+}
+
+.capture-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+.capture-piece {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.capture-piece.white {
+    background: #F5F5F5;
+}
+
+.capture-piece.black {
+    background: #2C2C2C;
+}
+
+.capture-label span {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: white;
 }
 
 .captured-pieces {
-    background: #FF6B6B;
+    background: rgba(255, 255, 255, 0.25);
     color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-weight: bold;
-    margin-top: 5px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1em;
+    min-width: 40px;
+    text-align: center;
 }
 
 /* Controls */

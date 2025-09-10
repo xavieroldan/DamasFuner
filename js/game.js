@@ -57,8 +57,8 @@ class DamasGame {
             this.showJoinModal();
         });
 
-        document.getElementById('leave-game-btn').addEventListener('click', () => {
-            this.leaveGame();
+        document.getElementById('leave-game-btn').addEventListener('click', async () => {
+            await this.leaveGame();
         });
 
         document.getElementById('create-game-btn').addEventListener('click', () => {
@@ -1215,34 +1215,35 @@ class DamasGame {
     updateGameStatus() {
         const statusElement = document.getElementById('game-status');
         const playerElement = document.getElementById('current-player');
-        const whitePlayerNameElement = document.getElementById('white-player-name');
-        const blackPlayerNameElement = document.getElementById('black-player-name');
         
         console.log('updateGameStatus called - gameState:', this.gameState);
         console.log('updateGameStatus called - currentPlayer:', this.currentPlayer);
         console.log('updateGameStatus called - playerNames:', this.playerNames);
         
-        // Update player names in the bottom section
-        if (whitePlayerNameElement) {
+        // Update player names in capture counters
+        const whiteCaptureNameElement = document.getElementById('white-capture-name');
+        const blackCaptureNameElement = document.getElementById('black-capture-name');
+        
+        if (whiteCaptureNameElement) {
             const whitePlayerName = this.playerNames[1] || 'Jugador 1';
-            whitePlayerNameElement.innerHTML = `${whitePlayerName}`;
+            whiteCaptureNameElement.textContent = whitePlayerName;
         }
-        if (blackPlayerNameElement) {
+        if (blackCaptureNameElement) {
             const blackPlayerName = this.playerNames[2] || 'Jugador 2';
-            blackPlayerNameElement.innerHTML = `${blackPlayerName}`;
+            blackCaptureNameElement.textContent = blackPlayerName;
         }
         
-        // Agregar clase 'active' al jugador que está jugando
+        // Agregar clase 'active' al jugador que está jugando en los contadores
         if (this.currentPlayer === 1) {
-            whitePlayerNameElement?.classList.add('active');
-            blackPlayerNameElement?.classList.remove('active');
+            whiteCaptureNameElement?.classList.add('active');
+            blackCaptureNameElement?.classList.remove('active');
         } else if (this.currentPlayer === 2) {
-            blackPlayerNameElement?.classList.add('active');
-            whitePlayerNameElement?.classList.remove('active');
+            blackCaptureNameElement?.classList.add('active');
+            whiteCaptureNameElement?.classList.remove('active');
         } else {
             // Si no hay jugador activo, quitar la clase active
-            whitePlayerNameElement?.classList.remove('active');
-            blackPlayerNameElement?.classList.remove('active');
+            whiteCaptureNameElement?.classList.remove('active');
+            blackCaptureNameElement?.classList.remove('active');
         }
         
         if (this.gameState === 'playing') {
@@ -1733,13 +1734,24 @@ class DamasGame {
         }
     }
 
-    leaveGame() {
-        if (window.network) {
-            window.network.leaveGame();
+    async leaveGame() {
+        console.log('🔧 LEAVE GAME CALLED - VERSION 2.1 - NO RESETGAME CALL');
+        try {
+            if (window.network) {
+                console.log('🔧 CALLING NETWORK.LEAVEGAME');
+                await window.network.leaveGame();
+                console.log('🔧 NETWORK.LEAVEGAME COMPLETED');
+            }
+            // Redirigir inmediatamente a la home después de abandonar
+            // No llamar resetGame() para evitar conflictos
+            console.log('🔧 REDIRECTING TO HOME - NO RESETGAME');
+            window.location.href = 'home.html';
+        } catch (error) {
+            console.error('Error in leaveGame:', error);
+            // Redirigir de todas formas
+            console.log('🔧 REDIRECTING TO HOME AFTER ERROR');
+            window.location.href = 'home.html';
         }
-        this.resetGame();
-        // Redirigir a la home después de abandonar
-        window.location.href = 'home.html';
     }
 
     handleGameAbandonment(winnerName) {
@@ -1781,8 +1793,10 @@ class DamasGame {
         
         // Restaurar estilos del estado del juego
         const statusElement = document.getElementById('game-status');
-        statusElement.style.color = '';
-        statusElement.style.fontWeight = '';
+        if (statusElement) {
+            statusElement.style.color = '';
+            statusElement.style.fontWeight = '';
+        }
         
         this.renderBoard();
         this.updateGameStatus();
