@@ -89,66 +89,21 @@ try {
     error_log("DEBUG: Input captured_pieces: " . (isset($input['captured_pieces']) ? json_encode($input['captured_pieces']) : 'NOT SET'));
     error_log("DEBUG: Input total_captures: " . (isset($input['total_captures']) ? json_encode($input['total_captures']) : 'NOT SET'));
     
+    // Usar las capturas enviadas por el cliente (formato actual)
     if (isset($input['total_captures']) && isset($input['total_captures']['captured_pieces'])) {
-        // Usar las capturas totales calculadas por el cliente (formato actual)
         $totalCapturedBlack = $input['total_captures']['captured_pieces']['black'];
         $totalCapturedWhite = $input['total_captures']['captured_pieces']['white'];
-        
-        // Validar que no sean null
-        if ($totalCapturedBlack === null || $totalCapturedWhite === null) {
-            error_log("Client sent null captures, using fallback calculation");
-            $totalCapturedBlack = 0;
-            $totalCapturedWhite = 0;
-        }
-        
-        error_log("Using client-calculated captures - Black: $totalCapturedBlack, White: $totalCapturedWhite");
+        error_log("Using client-calculated captures (total_captures) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     } else if (isset($input['captured_pieces'])) {
         // Compatibilidad con formato anterior
         $totalCapturedBlack = $input['captured_pieces']['black'];
         $totalCapturedWhite = $input['captured_pieces']['white'];
-        
-        // Validar que no sean null
-        if ($totalCapturedBlack === null || $totalCapturedWhite === null) {
-            error_log("Client sent null captures (legacy), using fallback calculation");
-            $totalCapturedBlack = 0;
-            $totalCapturedWhite = 0;
-        }
-        
-        error_log("Using client-calculated captures (legacy format) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
+        error_log("Using client-calculated captures (captured_pieces) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     } else {
-        // Fallback: calcular capturas comparando el tablero anterior con el nuevo
-        $capturedBlack = 0;
-        $capturedWhite = 0;
-        
-        for ($i = 0; $i < 8; $i++) {
-            for ($j = 0; $j < 8; $j++) {
-                $oldPiece = $board[$i][$j];
-                $newPiece = $newBoard[$i][$j];
-                
-                // Si había una pieza antes y ahora no hay nada, se capturó
-                if ($oldPiece && !$newPiece) {
-                    // La captura se suma al jugador que la realiza, no al que la recibe
-                    if ($playerNumber === 1) {
-                        // Jugador 1 (blancas) capturó una pieza
-                        if ($oldPiece['player'] === 2) {
-                            $capturedBlack++; // Blancas capturaron una pieza negra
-                        }
-                    } else {
-                        // Jugador 2 (negras) capturó una pieza
-                        if ($oldPiece['player'] === 1) {
-                            $capturedWhite++; // Negras capturaron una pieza blanca
-                        }
-                    }
-                }
-            }
-        }
-        
-        error_log("Fallback captures calculated - Player: $playerNumber, Black: $capturedBlack, White: $capturedWhite");
-        
-        // Obtener capturas actuales de la base de datos y sumar las nuevas
-        $currentCaptured = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
-        $totalCapturedBlack = $currentCaptured['captured_pieces_black'] + $capturedBlack;
-        $totalCapturedWhite = $currentCaptured['captured_pieces_white'] + $capturedWhite;
+        // Error: el cliente debe enviar las capturas
+        error_log("ERROR: Client did not send captures");
+        echo json_encode(['success' => false, 'message' => 'Cliente no envió información de capturas']);
+        exit;
     }
     
     // Determinar el siguiente jugador (cambiar de 1 a 2 o viceversa)

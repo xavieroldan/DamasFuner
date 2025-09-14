@@ -2,12 +2,6 @@
 
 Un juego de damas multijugador en tiempo real desarrollado con HTML5, CSS3, JavaScript y PHP.
 
-## 🚀 Estado del Proyecto
-
-**Versión Actual:** `v2.0.0` - **ESTABLE PARA PRODUCCIÓN** ✅
-
-Esta versión está completamente probada y lista para ser desplegada en producción. Incluye todas las funcionalidades principales, correcciones de bugs y optimizaciones de rendimiento.
-
 ## 🤖 Desarrollo con Cursor
 
 Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin teclear ni una sola línea de código manualmente. Cursor demostró su capacidad para:
@@ -24,15 +18,12 @@ Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin 
 ## Características
 
 - 🎮 **Multijugador en tiempo real**: Dos jugadores pueden jugar simultáneamente
-- 🐛 **Modo debug integrado**: Acceso directo desde `game.html?debug=true`
-- 📱 **Diseño responsive**: Funciona perfectamente en dispositivos móviles y de escritorio
-- 🎨 **Interfaz moderna**: Diseño atractivo con animaciones suaves y efectos cómicos
+- 💬 **Chat integrado**: Los jugadores pueden comunicarse durante la partida
+- 📱 **Diseño responsive**: Funciona en dispositivos móviles y de escritorio
+- 🎨 **Interfaz moderna**: Diseño atractivo con animaciones suaves
 - 🔒 **Sistema seguro**: Validación de movimientos y protección contra spam
-- 📊 **Contadores de capturas**: Seguimiento visual de piezas capturadas por jugador
+- 📊 **Estadísticas**: Seguimiento de partidas y movimientos
 - 🌐 **Multiplataforma**: Funciona en cualquier navegador moderno
-- 💬 **Sistema de mensajes inteligente**: Panel de mensajes con jerarquía y personalización
-- 🏆 **Mensajes de victoria**: Notificaciones personalizadas con emojis temáticos
-- 🚪 **Navegación mejorada**: Botones de abandonar y navegación optimizados
 
 ## Requisitos del Servidor
 
@@ -100,14 +91,10 @@ http://tu-servidor.com/damas-online/
 ## Estructura del Proyecto
 
 ```
-damas-funer/
-├── game.html               # Página del juego principal (con modo debug integrado)
-├── home.html               # Página de inicio
-├── about.html              # Página de información
+damas-online/
+├── game.html               # Página del juego
 ├── css/
-│   ├── style.css          # Estilos generales
-│   ├── game.css           # Estilos específicos del juego
-│   └── game-only.css      # Estilos para carga directa del juego
+│   └── style.css          # Estilos del juego
 ├── js/
 │   ├── game.js            # Lógica del juego
 │   ├── network.js         # Comunicación con el servidor
@@ -117,6 +104,7 @@ damas-funer/
 │   ├── join_game.php      # Unirse a partida
 │   ├── get_game_state.php # Obtener estado del juego
 │   ├── make_move.php      # Realizar movimiento
+│   ├── send_chat.php      # Enviar mensaje de chat
 │   ├── leave_game.php     # Abandonar partida
 │   └── health_check.php   # Verificar estado del servidor
 ├── config/
@@ -160,7 +148,7 @@ damas-funer/
 - **Click**: Seleccionar pieza y mover
 - **Ctrl+L**: Abandonar partida
 - **ESC**: Cerrar modales
-- **Debug**: Acceder a `game.html?debug=true` para pruebas sin restricciones
+- **Enter**: Enviar mensaje de chat
 
 ## API Endpoints
 
@@ -203,14 +191,15 @@ Content-Type: application/json
 }
 ```
 
-### Abandonar Partida
+### Enviar Mensaje de Chat
 ```
-POST /api/leave_game.php
+POST /api/send_chat.php
 Content-Type: application/json
 
 {
     "game_id": 1,
-    "player_id": 1
+    "player_id": 1,
+    "message": "¡Hola!"
 }
 ```
 
@@ -303,28 +292,6 @@ Si tienes problemas o preguntas:
 3. Crea un nuevo Issue con detalles del problema
 
 ## Changelog
-
-### v2.0.0 - "Versión Estable de Producción" 🚀
-- ✅ **Interfaz de jugadores rediseñada** - Contadores de capturas combinados con nombres reales
-- ✅ **Eliminación de información duplicada** - Diseño más limpio y centrado
-- ✅ **Bolitas de color para identificación** - Visualización clara de jugadores con sus colores
-- ✅ **Botón abandonar corregido** - Sin congelamiento, redirección garantizada
-- ✅ **Navegación móvil mejorada** - Botón "Volver al Juego" optimizado para todas las resoluciones
-- ✅ **Modo debug integrado** - Acceso directo desde `game.html?debug=true`
-- ✅ **Eliminación de efectos de sombra** - Diseño más limpio sin distracciones
-- ✅ **Tipografía mejorada** - Nombres de jugadores más legibles y prominentes
-- ✅ **Código optimizado** - Eliminación de referencias a elementos inexistentes
-- ✅ **Versión estable** - Lista para producción con todas las funcionalidades probadas
-
-### v1.3.0 - "Estabilización y Optimización"
-- ✅ **Eliminado sistema de chat** - Simplificación de la interfaz
-- ✅ **Añadido modo debug** - Página `debug.html` para pruebas sin restricciones
-- ✅ **Sistema de mensajes mejorado** - Panel dedicado para notificaciones
-- ✅ **Jerarquía de mensajes** - Victoria > Espera > Error > Motivacional
-- ✅ **Corrección del contador de capturas** - Eliminado problema de doble conteo
-- ✅ **Mensajes de victoria mejorados** - Con emojis y personalización
-- ✅ **Optimización de la interfaz** - Eliminación de elementos innecesarios
-- ✅ **Estabilización del código** - Corrección de errores y mejoras de rendimiento
 
 ### v1.2.0 - "Efectos Cómicos"
 - ✅ Cambio de nombre a "Damas Funer"

@@ -6,6 +6,7 @@ class DamasGame {
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
         this.capturedPieces = { black: 0, white: 0 };
+        this.turnCaptures = { black: 0, white: 0 }; // Capturas del turno actual
         this.playerId = null; // Database player ID
         this.myPlayerNumber = null; // My player number (1 or 2)
         this.gameId = null;
@@ -15,6 +16,7 @@ class DamasGame {
         this.motivationalMessageShown = false; // Flag to prevent showing motivational message multiple times per turn
         this.multipleCaptureInProgress = false; // Flag to track if multiple captures are in progress
         this.capturedPiecesInSequence = []; // Store pieces captured during current sequence
+        this.multipleCaptureMoves = []; // Para rastrear movimientos durante capturas múltiples
         this.debugMode = false; // Debug mode for testing
         this.debugEditMode = true; // Debug edit mode (true = edit board, false = play game)
         this.debugPieceType = 'pawn'; // Current piece type to place in debug mode
@@ -244,7 +246,8 @@ class DamasGame {
         }
         
         // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
-        if (this.currentPlayer !== this.myPlayerNumber) {
+        // EXCEPCIÓN: Durante capturas múltiples, permitir continuar
+        if (this.currentPlayer !== this.myPlayerNumber && !this.multipleCaptureInProgress) {
             // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
             return; 
         }
@@ -808,15 +811,14 @@ class DamasGame {
                 currentCol += dc;
             }
 
-            // Si encontramos enemigo, contar posiciones de aterrizaje
+            // Si encontramos enemigo, verificar si hay al menos una posición de aterrizaje válida
             if (foundEnemy) {
                 let landingRow = enemyRow + dr;
                 let landingCol = enemyCol + dc;
                 
-                while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
-                    count++;
-                    landingRow += dr;
-                    landingCol += dc;
+                // Solo contar si hay al menos una posición de aterrizaje válida
+                if (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
+                    count++; // Contar solo 1 captura por dirección, no múltiples posiciones
                 }
             }
         }
@@ -1162,12 +1164,30 @@ class DamasGame {
             console.log(`=== CAPTURE MADE - CHECKING FOR MORE CAPTURES ===`);
             console.log(`Piece at (${to.row}, ${to.col}) after capture`);
             
+            // Acumular capturas del turno actual
+            const playerColor = this.currentPlayer === 1 ? 'white' : 'black';
+            this.turnCaptures[playerColor] += move.captured.length;
+            console.log(`Turn captures updated:`, this.turnCaptures);
+            
+            // Iniciar nueva secuencia de capturas múltiples solo si no hay una en progreso
+            if (!this.multipleCaptureInProgress) {
+                this.multipleCaptureMoves = [];
+            }
+            
             // Verificar si hay más capturas disponibles desde la nueva posición
             const additionalCaptures = this.getPossibleCaptures(to.row, to.col);
             console.log(`Additional captures available:`, additionalCaptures.length);
             
             if (additionalCaptures.length > 0) {
                 console.log(`More captures available - keeping turn and piece selected`);
+                
+                // Agregar este movimiento a la secuencia de capturas múltiples
+                this.multipleCaptureMoves.push({
+                    from: from,
+                    to: to,
+                    captured: move.captured
+                });
+                
                 // Mantener el turno y la pieza seleccionada para continuar capturando
                 this.selectedPiece = { row: to.row, col: to.col };
                 this.possibleMoves = additionalCaptures;
@@ -1176,30 +1196,44 @@ class DamasGame {
                 
                 // Mostrar mensaje motivador
                 this.showMotivationalMessage();
+                
+                // NO enviar al servidor durante capturas múltiples - solo al final
+                console.log(`Skipping server communication during multiple captures`);
             } else {
-                console.log(`No more captures available - changing turn`);
-                // No hay más capturas, cambiar turno normalmente
-        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-        this.selectedPiece = null;
-        this.possibleMoves = [];
+                console.log(`No more captures available - ending turn`);
+                
+                // Agregar el último movimiento a la secuencia
+                this.multipleCaptureMoves.push({
+                    from: from,
+                    to: to,
+                    captured: move.captured
+                });
+                
+                // Finalizar turno - enviar todas las capturas acumuladas al servidor
+                this.selectedPiece = null;
+                this.possibleMoves = [];
                 this.multipleCaptureInProgress = false;
                 
                 // Limpiar el tablero visualmente
                 this.renderBoard();
                 
-                // Enviar al servidor si no estamos en modo debug
+                // Enviar todas las capturas del turno al servidor
                 if (!this.debugMode) {
-                    this.sendMoveToServer(from, to, move.captured);
+                    this.sendTurnCapturesToServer();
                 } else {
                     console.log(`🔧 Debug mode: skipping server communication`);
                 }
+                
+                // Limpiar la secuencia de movimientos y capturas del turno
+                this.multipleCaptureMoves = [];
+                this.turnCaptures = { black: 0, white: 0 };
             }
         } else {
             console.log(`No capture made - changing turn normally`);
             // No hubo captura, cambiar turno normalmente
-            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-            this.selectedPiece = null;
-            this.possibleMoves = [];
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.selectedPiece = null;
+        this.possibleMoves = [];
             this.multipleCaptureInProgress = false;
             
             // Limpiar el tablero visualmente
@@ -1235,12 +1269,89 @@ class DamasGame {
                 
                 // Enviar movimiento con las capturas actuales del cliente
                 await window.network.sendMove(from, to, capturedPieces, this.board, {
-                    captured_pieces: this.capturedPieces
+                    total_captures: { captured_pieces: this.capturedPieces }
                 });
                 console.log(`Move sent to server successfully`);
             } catch (error) {
                 console.error(`Error sending move to server:`, error);
                 this.showMessage('Error al enviar movimiento al servidor', 'error');
+            }
+        } else {
+            console.error(`Network manager not available`);
+            this.showMessage('Error de conexión', 'error');
+        }
+    }
+
+    async sendTurnCapturesToServer() {
+        console.log(`=== SENDING TURN CAPTURES TO SERVER ===`);
+        console.log(`Turn captures:`, this.turnCaptures);
+        console.log(`Multiple capture moves:`, this.multipleCaptureMoves);
+        
+        if (window.network && window.network.sendMove) {
+            try {
+                // Enviar solo el último movimiento con todas las capturas acumuladas del turno
+                const lastMove = this.multipleCaptureMoves[this.multipleCaptureMoves.length - 1];
+                const allCapturedPieces = this.multipleCaptureMoves.reduce((acc, move) => acc + move.captured.length, 0);
+                
+                console.log(`Sending final move with ${allCapturedPieces} total captures from turn`);
+                console.log(`Sending current client captures:`, this.capturedPieces);
+                
+                // Enviar el movimiento final con todas las capturas del turno
+                await window.network.sendMove(
+                    this.multipleCaptureMoves[0].from, 
+                    lastMove.to, 
+                    this.multipleCaptureMoves.flatMap(m => m.captured), 
+                    this.board, 
+                    {
+                        total_captures: { captured_pieces: this.capturedPieces }
+                    }
+                );
+                
+                console.log(`Turn captures sent to server successfully`);
+            } catch (error) {
+                console.error(`Error sending turn captures to server:`, error);
+                this.showMessage('Error al enviar capturas del turno al servidor', 'error');
+            }
+        } else {
+            console.error(`Network manager not available`);
+            this.showMessage('Error de conexión', 'error');
+        }
+    }
+
+    async sendMultipleCapturesToServer(moves) {
+        console.log(`=== SENDING MULTIPLE CAPTURES TO SERVER ===`);
+        console.log(`Sending ${moves.length} moves:`, moves);
+        
+        if (window.network && window.network.sendMove) {
+            try {
+                // Enviar cada movimiento individual de la secuencia
+                for (let i = 0; i < moves.length; i++) {
+                    const move = moves[i];
+                    console.log(`Sending move ${i + 1}/${moves.length}: from (${move.from.row}, ${move.from.col}) to (${move.to.row}, ${move.to.col})`);
+                    console.log(`Captured pieces in this move:`, move.captured);
+                    
+                    await window.network.sendMove(
+                        move.from, 
+                        move.to, 
+                        move.captured, 
+                        this.board, 
+                        {
+                            total_captures: { captured_pieces: this.capturedPieces }
+                        }
+                    );
+                    
+                    console.log(`Move ${i + 1} sent successfully`);
+                    
+                    // Pequeña pausa entre movimientos para evitar problemas de sincronización
+                    if (i < moves.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+                
+                console.log(`All ${moves.length} moves sent to server successfully`);
+            } catch (error) {
+                console.error(`Error sending multiple captures to server:`, error);
+                this.showMessage('Error al enviar capturas múltiples al servidor', 'error');
             }
         } else {
             console.error(`Network manager not available`);
@@ -1354,8 +1465,8 @@ class DamasGame {
         }
         
         // Check if it's the current player's turn
-        // En modo debug, siempre permitir jugar
-        const isMyTurn = this.debugMode ? true : (this.currentPlayer === this.myPlayerNumber);
+        // En modo debug o durante capturas múltiples, siempre permitir jugar
+        const isMyTurn = this.debugMode || this.multipleCaptureInProgress ? true : (this.currentPlayer === this.myPlayerNumber);
         
         console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerNumber=${this.myPlayerNumber}, isMyTurn=${isMyTurn}, debugMode=${this.debugMode}`);
         
@@ -1560,47 +1671,63 @@ class DamasGame {
             ">
                 <div id="end-game-winner"></div>
                 <div id="end-game-options" style="margin-top: 30px;">
-                    <button id="btn-same-colors" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #4CAF50, #45a049);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🔄 Nueva partida<br>(mismos colores)</button>
-                    <br>
-                    <button id="btn-swap-colors" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #2196F3, #1976D2);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🔄 Nueva partida<br>(cambiar colores)</button>
-                    <br>
-                    <button id="btn-main-menu" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #f44336, #d32f2f);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🏠 Salir al menú principal</button>
+                    ${this.debugMode ? `
+                        <button id="btn-debug-restart" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #FF9800, #F57C00);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🔧 Reiniciar Debug</button>
+                    ` : `
+                        <button id="btn-same-colors" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #4CAF50, #45a049);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🔄 Nueva partida<br>(mismos colores)</button>
+                        <br>
+                        <button id="btn-swap-colors" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #2196F3, #1976D2);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🔄 Nueva partida<br>(cambiar colores)</button>
+                        <br>
+                        <button id="btn-main-menu" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #f44336, #d32f2f);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🏠 Salir al menú principal</button>
+                    `}
                 </div>
                 <div id="end-game-status" style="margin-top: 20px; font-size: 14px; opacity: 0.8;"></div>
             </div>
@@ -1633,34 +1760,56 @@ class DamasGame {
 
     // Configurar los botones del modal de fin de partida
     setupEndGameButtons(winnerNumber, player1Name, player2Name) {
-        const btnSameColors = document.getElementById('btn-same-colors');
-        const btnSwapColors = document.getElementById('btn-swap-colors');
-        const btnMainMenu = document.getElementById('btn-main-menu');
         const statusDiv = document.getElementById('end-game-status');
 
-        // Limpiar event listeners anteriores
-        btnSameColors.replaceWith(btnSameColors.cloneNode(true));
-        btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
-        btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
+        if (this.debugMode) {
+            // Modo debug: solo botón de reiniciar debug
+            const btnDebugRestart = document.getElementById('btn-debug-restart');
+            if (btnDebugRestart) {
+                // Limpiar event listeners anteriores
+                btnDebugRestart.replaceWith(btnDebugRestart.cloneNode(true));
+                const newBtnDebugRestart = document.getElementById('btn-debug-restart');
+                
+                newBtnDebugRestart.addEventListener('click', () => {
+                    this.handleDebugRestart(statusDiv);
+                });
+            }
+        } else {
+            // Modo normal: botones de nueva partida y menú
+            const btnSameColors = document.getElementById('btn-same-colors');
+            const btnSwapColors = document.getElementById('btn-swap-colors');
+            const btnMainMenu = document.getElementById('btn-main-menu');
 
-        const newBtnSameColors = document.getElementById('btn-same-colors');
-        const newBtnSwapColors = document.getElementById('btn-swap-colors');
-        const newBtnMainMenu = document.getElementById('btn-main-menu');
+            // Limpiar event listeners anteriores
+            if (btnSameColors) btnSameColors.replaceWith(btnSameColors.cloneNode(true));
+            if (btnSwapColors) btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
+            if (btnMainMenu) btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
 
-        // Nueva partida con mismos colores
-        newBtnSameColors.addEventListener('click', () => {
-            this.handleNewGame('same', statusDiv);
-        });
+            const newBtnSameColors = document.getElementById('btn-same-colors');
+            const newBtnSwapColors = document.getElementById('btn-swap-colors');
+            const newBtnMainMenu = document.getElementById('btn-main-menu');
 
-        // Nueva partida cambiando colores
-        newBtnSwapColors.addEventListener('click', () => {
-            this.handleNewGame('swap', statusDiv);
-        });
+            // Nueva partida con mismos colores
+            if (newBtnSameColors) {
+                newBtnSameColors.addEventListener('click', () => {
+                    this.handleNewGame('same', statusDiv);
+                });
+            }
 
-        // Salir al menú principal
-        newBtnMainMenu.addEventListener('click', () => {
-            this.handleMainMenu();
-        });
+            // Nueva partida cambiando colores
+            if (newBtnSwapColors) {
+                newBtnSwapColors.addEventListener('click', () => {
+                    this.handleNewGame('swap', statusDiv);
+                });
+            }
+
+            // Salir al menú principal
+            if (newBtnMainMenu) {
+                newBtnMainMenu.addEventListener('click', () => {
+                    this.handleMainMenu();
+                });
+            }
+        }
 
         // Mostrar estado inicial
         statusDiv.textContent = 'Esperando decisión...';
@@ -1727,6 +1876,37 @@ class DamasGame {
         
         // Redirigir al menú principal
         window.location.href = 'index.html';
+    }
+
+    // Manejar reinicio de debug
+    handleDebugRestart(statusDiv) {
+        statusDiv.textContent = 'Reiniciando modo debug...';
+        statusDiv.style.color = '#FF9800';
+        
+        // Cerrar modal
+        document.getElementById('end-game-modal').style.display = 'none';
+        
+        // Reiniciar el juego en modo debug
+        this.resetGame();
+        this.initializeBoard();
+        this.gameState = 'playing';
+        this.currentPlayer = 1;
+        this.selectedPiece = null;
+        this.possibleMoves = [];
+        this.multipleCaptureInProgress = false;
+        this.capturedPieces = { black: 0, white: 0 };
+        this.gameEndNotified = false;
+        this.motivationalMessageShown = false;
+        
+        // Actualizar UI
+        this.updateGameStatus();
+        this.updateCapturedPieces();
+        this.renderBoard();
+        
+        // Mostrar mensaje de confirmación
+        this.showMessage('🔧 Modo debug reiniciado', 'motivational');
+        
+        console.log('🔧 Debug mode restarted');
     }
 
     hideModal(modalId) {
