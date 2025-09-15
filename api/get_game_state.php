@@ -10,6 +10,45 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
+/**
+ * Calculate captures dynamically by counting missing pieces from initial board
+ * @param array $currentBoard Current board state
+ * @return array Array with player1_captures and player2_captures
+ */
+function calculateDynamicCaptures($currentBoard) {
+    // Count pieces on current board
+    $currentPlayer1Pieces = 0; // White pieces
+    $currentPlayer2Pieces = 0; // Black pieces
+    
+    for ($row = 0; $row < 8; $row++) {
+        for ($col = 0; $col < 8; $col++) {
+            if ($currentBoard[$row][$col]) {
+                $piece = $currentBoard[$row][$col];
+                if ($piece['player'] == 1) {
+                    $currentPlayer1Pieces++;
+                } else if ($piece['player'] == 2) {
+                    $currentPlayer2Pieces++;
+                }
+            }
+        }
+    }
+    
+    // Initial pieces count (12 each)
+    $initialPlayer1Pieces = 12; // White pieces
+    $initialPlayer2Pieces = 12; // Black pieces
+    
+    // Calculate captures
+    // Player 1 captures = missing Player 2 pieces
+    $player1_captures = $initialPlayer2Pieces - $currentPlayer2Pieces;
+    // Player 2 captures = missing Player 1 pieces  
+    $player2_captures = $initialPlayer1Pieces - $currentPlayer1Pieces;
+    
+    return [
+        'player1_captures' => max(0, $player1_captures),
+        'player2_captures' => max(0, $player2_captures)
+    ];
+}
+
 // Solo permitir método GET
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -71,17 +110,25 @@ try {
         $boardState = createInitialBoard();
     }
     
+    // Calcular capturas dinámicamente basándose en piezas faltantes
+    $dynamicCaptures = calculateDynamicCaptures($boardState);
+    
     // Preparar respuesta
     $response = [
         'success' => true,
+        'board_state' => $boardState,
+        'current_player' => $game['current_player'],
+        'player1_captures' => $dynamicCaptures['player1_captures'],
+        'player2_captures' => $dynamicCaptures['player2_captures'],
+        'game_status' => $game['game_status'],
         'game_data' => [
             'game_id' => $game['id'],
             'game_code' => $game['game_code'],
             'current_player' => $game['current_player'],
             'board' => $boardState,
             'captured_pieces' => [
-                'black' => $game['captured_pieces_black'] ?? 0,
-                'white' => $game['captured_pieces_white'] ?? 0
+                'black' => $dynamicCaptures['player2_captures'], // Player 2 (black) captures
+                'white' => $dynamicCaptures['player1_captures']  // Player 1 (white) captures
             ],
             'game_status' => $game['game_status'],
             'winner' => $game['winner'],

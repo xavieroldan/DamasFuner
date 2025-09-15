@@ -294,46 +294,44 @@ class NetworkManager {
             window.game.updateCurrentPlayer(gameData.current_player);
         }
         
-        // Actualizar piezas capturadas - solo usar lo que viene del servidor
-        console.log(`=== SERVER UPDATE - CAPTURED PIECES CHECK ===`);
-        console.log(`gameData.captured_pieces exists:`, !!gameData.captured_pieces);
-        console.log(`gameData.captured_pieces value:`, gameData.captured_pieces);
-        console.log(`typeof gameData.captured_pieces:`, typeof gameData.captured_pieces);
+        // Actualizar piezas capturadas - usar nuevos campos dinámicos del servidor
+        console.log(`=== SERVER UPDATE - DYNAMIC CAPTURES CHECK ===`);
+        console.log(`gameData.player1_captures:`, gameData.player1_captures);
+        console.log(`gameData.player2_captures:`, gameData.player2_captures);
+        console.log(`gameData.captured_pieces:`, gameData.captured_pieces);
         
-        if (gameData.captured_pieces) {
-            console.log(`=== UPDATING CAPTURED PIECES FROM SERVER ===`);
+        // Usar nuevos campos dinámicos si están disponibles, sino usar formato anterior
+        if (typeof gameData.player1_captures === 'number' && typeof gameData.player2_captures === 'number') {
+            console.log(`=== UPDATING CAPTURES FROM DYNAMIC FIELDS ===`);
+            console.log(`Player 1 captures:`, gameData.player1_captures);
+            console.log(`Player 2 captures:`, gameData.player2_captures);
+            
+            // Player 1 = White pieces, Player 2 = Black pieces
+            window.game.capturedPieces = {
+                white: gameData.player1_captures,
+                black: gameData.player2_captures
+            };
+            
+            console.log(`Updated captured pieces from dynamic fields:`, window.game.capturedPieces);
+            window.game.updateCapturedPieces();
+            console.log(`=== END UPDATING CAPTURES FROM DYNAMIC FIELDS ===`);
+        } else if (gameData.captured_pieces) {
+            console.log(`=== UPDATING CAPTURES FROM LEGACY FORMAT ===`);
             console.log(`Server captured pieces:`, gameData.captured_pieces);
-            console.log(`Current window.game.capturedPieces before update:`, window.game.capturedPieces);
             
             // Ensure server data is valid before updating
             const serverCaptures = gameData.captured_pieces;
-            console.log(`serverCaptures type:`, typeof serverCaptures);
-            console.log(`serverCaptures === null:`, serverCaptures === null);
-            console.log(`serverCaptures === undefined:`, serverCaptures === undefined);
-            
             if (typeof serverCaptures === 'object' && serverCaptures !== null) {
-                console.log(`✅ Server data is valid object`);
-                console.log(`serverCaptures.black:`, serverCaptures.black, `type:`, typeof serverCaptures.black);
-                console.log(`serverCaptures.white:`, serverCaptures.white, `type:`, typeof serverCaptures.white);
-                
-                // Validate and sanitize server data
                 const blackCount = typeof serverCaptures.black === 'number' ? serverCaptures.black : 0;
                 const whiteCount = typeof serverCaptures.white === 'number' ? serverCaptures.white : 0;
                 
-                console.log(`Sanitized values - blackCount: ${blackCount} (type: ${typeof blackCount}), whiteCount: ${whiteCount} (type: ${typeof whiteCount})`);
-                
                 window.game.capturedPieces = { black: blackCount, white: whiteCount };
-                console.log(`Updated captured pieces from server:`, window.game.capturedPieces);
-                
+                console.log(`Updated captured pieces from legacy format:`, window.game.capturedPieces);
                 window.game.updateCapturedPieces();
-                console.log(`Final captured pieces after update:`, window.game.capturedPieces);
-            } else {
-                console.log(`❌ Invalid server captured pieces data, keeping current values`);
-                console.log(`Current values will remain:`, window.game.capturedPieces);
             }
-            console.log(`=== END UPDATING CAPTURED PIECES FROM SERVER ===`);
+            console.log(`=== END UPDATING CAPTURES FROM LEGACY FORMAT ===`);
         } else {
-            console.log(`❌ No captured_pieces in server data, keeping current values:`, window.game.capturedPieces);
+            console.log(`❌ No capture data available from server`);
         }
         
         // Actualizar estado del juego
@@ -521,6 +519,21 @@ class NetworkManager {
                 if (gameData.game_status) {
                     window.game.gameState = gameData.game_status;
                     console.log('Set game state to:', gameData.game_status);
+                }
+                
+                // Initialize captured pieces from server
+                if (typeof gameData.player1_captures === 'number' && typeof gameData.player2_captures === 'number') {
+                    window.game.capturedPieces = {
+                        white: gameData.player1_captures,
+                        black: gameData.player2_captures
+                    };
+                    console.log('Initialized captured pieces from dynamic fields:', window.game.capturedPieces);
+                } else if (gameData.captured_pieces) {
+                    window.game.capturedPieces = {
+                        black: gameData.captured_pieces.black || 0,
+                        white: gameData.captured_pieces.white || 0
+                    };
+                    console.log('Initialized captured pieces from legacy format:', window.game.capturedPieces);
                 }
                 
                 console.log('Final playerNames object:', window.game.playerNames);
