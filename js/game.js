@@ -8,12 +8,10 @@ class DamasGame {
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
         
-        // Initialize captured pieces with detailed logging
-        console.log(`Initializing capturedPieces to {black: 0, white: 0}`);
-        this.capturedPieces = { black: 0, white: 0 };
-        console.log(`capturedPieces initialized:`, this.capturedPieces);
-        console.log(`capturedPieces.black:`, this.capturedPieces.black, `type:`, typeof this.capturedPieces.black);
-        console.log(`capturedPieces.white:`, this.capturedPieces.white, `type:`, typeof this.capturedPieces.white);
+        // capturedPieces will be set by network.js from server data
+        // Do not initialize locally - wait for server data
+        this.capturedPieces = null;
+        console.log(`capturedPieces initialized to null - will be set by server`);
         
         this.playerId = null; // Database player ID
         this.myPlayerNumber = null; // My player number (1 or 2)
@@ -1332,55 +1330,41 @@ class DamasGame {
 
     updateCapturedPieces() {
         console.log(`=== UPDATING CAPTURED PIECES - START ===`);
-        console.log(`this.capturedPieces before check:`, this.capturedPieces);
-        console.log(`typeof this.capturedPieces:`, typeof this.capturedPieces);
-        console.log(`this.capturedPieces === null:`, this.capturedPieces === null);
-        console.log(`this.capturedPieces === undefined:`, this.capturedPieces === undefined);
+        console.log(`this.capturedPieces from server:`, this.capturedPieces);
         
         const blackCaptured = document.getElementById('black-captured');
         const whiteCaptured = document.getElementById('white-captured');
         
-        console.log(`DOM elements found - blackCaptured:`, blackCaptured, `whiteCaptured:`, whiteCaptured);
+        if (!blackCaptured || !whiteCaptured) {
+            console.error(`❌ DOM elements not found - blackCaptured:`, blackCaptured, `whiteCaptured:`, whiteCaptured);
+            return;
+        }
         
-        // Ensure capturedPieces object exists and has valid values
+        // Use ONLY server values - no local calculations
+        // Ensure capturedPieces exists (should be set by network.js from server)
         if (!this.capturedPieces) {
-            console.log(`❌ capturedPieces is falsy, initializing to {black: 0, white: 0}`);
+            console.log(`❌ capturedPieces not set by server, using defaults`);
             this.capturedPieces = { black: 0, white: 0 };
-        } else {
-            console.log(`✅ capturedPieces exists:`, this.capturedPieces);
         }
         
-        // Log individual values before processing
-        console.log(`this.capturedPieces.black:`, this.capturedPieces.black, `type:`, typeof this.capturedPieces.black);
-        console.log(`this.capturedPieces.white:`, this.capturedPieces.white, `type:`, typeof this.capturedPieces.white);
+        // Get values directly from server data
+        const blackCount = this.capturedPieces.black || 0;
+        const whiteCount = this.capturedPieces.white || 0;
         
-        // Ensure both values are numbers, default to 0 if null/undefined
-        const blackCount = typeof this.capturedPieces.black === 'number' ? this.capturedPieces.black : 0;
-        const whiteCount = typeof this.capturedPieces.white === 'number' ? this.capturedPieces.white : 0;
+        console.log(`Server values - black: ${blackCount}, white: ${whiteCount}`);
         
-        console.log(`Processed values - blackCount: ${blackCount} (type: ${typeof blackCount}), whiteCount: ${whiteCount} (type: ${typeof whiteCount})`);
-        
-        // Check if values are null/undefined after processing
-        if (blackCount === null || blackCount === undefined) {
-            console.error(`❌ ERROR: blackCount is still null/undefined after processing!`);
-        }
-        if (whiteCount === null || whiteCount === undefined) {
-            console.error(`❌ ERROR: whiteCount is still null/undefined after processing!`);
-        }
-        
+        // Update DOM with server values only
         const blackText = `Capturas: ${blackCount}`;
         const whiteText = `Capturas: ${whiteCount}`;
-        
-        console.log(`Text to display - black: "${blackText}", white: "${whiteText}"`);
         
         blackCaptured.textContent = blackText;
         whiteCaptured.textContent = whiteText;
         
-        // Agregar atributo data-count para los estilos CSS
+        // Set data attributes for CSS styling
         blackCaptured.setAttribute('data-count', blackCount);
         whiteCaptured.setAttribute('data-count', whiteCount);
         
-        console.log(`Final DOM content - black: "${blackCaptured.textContent}", white: "${whiteCaptured.textContent}"`);
+        console.log(`Updated DOM - black: "${blackText}", white: "${whiteText}"`);
         console.log(`=== UPDATING CAPTURED PIECES - END ===`);
     }
 
@@ -1815,7 +1799,7 @@ class DamasGame {
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.gameState = 'waiting';
-        this.capturedPieces = { black: 0, white: 0 };
+        this.capturedPieces = null; // Will be set by server
         this.playerId = null;
         this.gameId = null;
         this.gameEndNotified = false;
@@ -1848,13 +1832,9 @@ class DamasGame {
         this.gameEndNotified = false;
         this.motivationalMessageShown = false; // Reset flag for new game
         
-        // Ensure capturedPieces is properly initialized
-        if (!this.capturedPieces) {
-            console.log(`❌ capturedPieces is null/undefined in startGame, reinitializing`);
-            this.capturedPieces = { black: 0, white: 0 };
-        } else {
-            console.log(`✅ capturedPieces exists in startGame:`, this.capturedPieces);
-        }
+        // capturedPieces will be set by network.js from server data
+        // Do not initialize locally - wait for server data
+        console.log(`capturedPieces in startGame:`, this.capturedPieces);
         
         document.getElementById('new-game-btn').style.display = 'none';
         document.getElementById('join-game-btn').style.display = 'none';
