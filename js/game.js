@@ -1255,7 +1255,9 @@ class DamasGame {
                 
                 // 4. Enviar movimiento con las nuevas capturas
                 await window.network.sendMove(from, to, capturedPieces, this.board, {
-                    captured_pieces: newCaptures
+                    total_captures: {
+                        captured_pieces: newCaptures
+                    }
                 });
                 console.log(`Move sent to server successfully`);
             } catch (error) {
