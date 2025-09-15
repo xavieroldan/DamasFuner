@@ -1,12 +1,20 @@
 class DamasGame {
     constructor() {
+        console.log(`=== DAMASGAME CONSTRUCTOR - START ===`);
+        
         this.board = [];
         this.currentPlayer = 1; // 1 = white, 2 = black
         this.selectedPiece = null;
         this.possibleMoves = [];
         this.gameState = 'waiting'; // waiting, playing, finished
+        
+        // Initialize captured pieces with detailed logging
+        console.log(`Initializing capturedPieces to {black: 0, white: 0}`);
         this.capturedPieces = { black: 0, white: 0 };
-        this.turnCaptures = { black: 0, white: 0 }; // Capturas del turno actual
+        console.log(`capturedPieces initialized:`, this.capturedPieces);
+        console.log(`capturedPieces.black:`, this.capturedPieces.black, `type:`, typeof this.capturedPieces.black);
+        console.log(`capturedPieces.white:`, this.capturedPieces.white, `type:`, typeof this.capturedPieces.white);
+        
         this.playerId = null; // Database player ID
         this.myPlayerNumber = null; // My player number (1 or 2)
         this.gameId = null;
@@ -16,43 +24,15 @@ class DamasGame {
         this.motivationalMessageShown = false; // Flag to prevent showing motivational message multiple times per turn
         this.multipleCaptureInProgress = false; // Flag to track if multiple captures are in progress
         this.capturedPiecesInSequence = []; // Store pieces captured during current sequence
-        this.multipleCaptureMoves = []; // Para rastrear movimientos durante capturas múltiples
         this.debugMode = false; // Debug mode for testing
         this.debugEditMode = true; // Debug edit mode (true = edit board, false = play game)
         this.debugPieceType = 'pawn'; // Current piece type to place in debug mode
         this.debugPlayer = 1; // Current player for debug mode
         
+        console.log(`=== DAMASGAME CONSTRUCTOR - END ===`);
+        
         this.initializeBoard();
         this.setupEventListeners();
-    }
-
-
-    // Validation functions for forms
-    validateCreateForm() {
-        const playerName = document.getElementById('create-player-name-input').value.trim();
-        const createBtn = document.getElementById('confirm-create-btn');
-        
-        if (playerName.length >= 3 && playerName.length <= 10) {
-            createBtn.disabled = false;
-            createBtn.style.opacity = '1';
-        } else {
-            createBtn.disabled = true;
-            createBtn.style.opacity = '0.5';
-        }
-    }
-
-    validateJoinForm() {
-        const gameCode = document.getElementById('game-code-input').value.trim();
-        const playerName = document.getElementById('player-name-input').value.trim();
-        const joinBtn = document.getElementById('confirm-join-btn');
-        
-        if (gameCode.length === 3 && playerName.length >= 3 && playerName.length <= 10) {
-            joinBtn.disabled = false;
-            joinBtn.style.opacity = '1';
-        } else {
-            joinBtn.disabled = true;
-            joinBtn.style.opacity = '0.5';
-        }
     }
 
     initializeBoard() {
@@ -88,8 +68,8 @@ class DamasGame {
             this.showJoinModal();
         });
 
-        document.getElementById('leave-game-btn').addEventListener('click', async () => {
-            await this.leaveGame();
+        document.getElementById('leave-game-btn').addEventListener('click', () => {
+            this.leaveGame();
         });
 
         document.getElementById('create-game-btn').addEventListener('click', () => {
@@ -134,20 +114,6 @@ class DamasGame {
                 e.preventDefault();
                 this.createGame();
             }
-        });
-
-        // Real-time validation for create game form
-        document.getElementById('create-player-name-input').addEventListener('input', (e) => {
-            this.validateCreateForm();
-        });
-
-        // Real-time validation for join game form
-        document.getElementById('player-name-input').addEventListener('input', (e) => {
-            this.validateJoinForm();
-        });
-
-        document.getElementById('game-code-input').addEventListener('input', (e) => {
-            this.validateJoinForm();
         });
 
         // Los event listeners del chat se configuran en setupChatEventListeners()
@@ -246,8 +212,7 @@ class DamasGame {
         }
         
         // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
-        // EXCEPCIÓN: Durante capturas múltiples, permitir continuar
-        if (this.currentPlayer !== this.myPlayerNumber && !this.multipleCaptureInProgress) {
+        if (this.currentPlayer !== this.myPlayerNumber) {
             // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
             return; 
         }
@@ -811,14 +776,15 @@ class DamasGame {
                 currentCol += dc;
             }
 
-            // Si encontramos enemigo, verificar si hay al menos una posición de aterrizaje válida
+            // Si encontramos enemigo, contar posiciones de aterrizaje
             if (foundEnemy) {
                 let landingRow = enemyRow + dr;
                 let landingCol = enemyCol + dc;
                 
-                // Solo contar si hay al menos una posición de aterrizaje válida
-                if (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
-                    count++; // Contar solo 1 captura por dirección, no múltiples posiciones
+                while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
+                    count++;
+                    landingRow += dr;
+                    landingCol += dc;
                 }
             }
         }
@@ -1132,7 +1098,29 @@ class DamasGame {
                 // Si soy jugador 1 (blancas), sumo a mis capturas (blancas)
                 // Si soy jugador 2 (negras), sumo a mis capturas (negras)
                 const myPlayerColor = piece.player === 1 ? 'white' : 'black';
+                
+                console.log(`=== CAPTURE INCREMENT - START ===`);
+                console.log(`piece.player:`, piece.player);
+                console.log(`myPlayerColor:`, myPlayerColor);
+                console.log(`capturedPieces before increment:`, this.capturedPieces);
+                console.log(`capturedPieces[${myPlayerColor}] before:`, this.capturedPieces[myPlayerColor], `type:`, typeof this.capturedPieces[myPlayerColor]);
+                
+                // Ensure capturedPieces exists and the specific color is a number
+                if (!this.capturedPieces) {
+                    console.log(`❌ capturedPieces is null/undefined, initializing`);
+                    this.capturedPieces = { black: 0, white: 0 };
+                }
+                
+                if (typeof this.capturedPieces[myPlayerColor] !== 'number') {
+                    console.log(`❌ capturedPieces[${myPlayerColor}] is not a number (${typeof this.capturedPieces[myPlayerColor]}), setting to 0`);
+                    this.capturedPieces[myPlayerColor] = 0;
+                }
+                
                 this.capturedPieces[myPlayerColor] += 1;
+                
+                console.log(`capturedPieces[${myPlayerColor}] after increment:`, this.capturedPieces[myPlayerColor], `type:`, typeof this.capturedPieces[myPlayerColor]);
+                console.log(`capturedPieces after increment:`, this.capturedPieces);
+                console.log(`=== CAPTURE INCREMENT - END ===`);
             }
             
             console.log(`=== CAPTURE UPDATE ===`);
@@ -1141,7 +1129,11 @@ class DamasGame {
             console.log(`All captured pieces:`, this.capturedPieces);
             this.updateCapturedPieces();
             
-            // Mensaje de captura eliminado - no necesario
+            // Mostrar mensaje de captura exitosa
+            const message = totalCaptured === 1 ? 
+                `¡${totalCaptured} pieza capturada!` : 
+                `¡${totalCaptured} piezas capturadas!`;
+            this.showMessage(message, 'success');
             
             // No need for the 'else' block for simple captures, as all captures are now
             // formatted as 'multiple_capture' with a 'captured' array.
@@ -1164,30 +1156,12 @@ class DamasGame {
             console.log(`=== CAPTURE MADE - CHECKING FOR MORE CAPTURES ===`);
             console.log(`Piece at (${to.row}, ${to.col}) after capture`);
             
-            // Acumular capturas del turno actual
-            const playerColor = this.currentPlayer === 1 ? 'white' : 'black';
-            this.turnCaptures[playerColor] += move.captured.length;
-            console.log(`Turn captures updated:`, this.turnCaptures);
-            
-            // Iniciar nueva secuencia de capturas múltiples solo si no hay una en progreso
-            if (!this.multipleCaptureInProgress) {
-                this.multipleCaptureMoves = [];
-            }
-            
             // Verificar si hay más capturas disponibles desde la nueva posición
             const additionalCaptures = this.getPossibleCaptures(to.row, to.col);
             console.log(`Additional captures available:`, additionalCaptures.length);
             
             if (additionalCaptures.length > 0) {
                 console.log(`More captures available - keeping turn and piece selected`);
-                
-                // Agregar este movimiento a la secuencia de capturas múltiples
-                this.multipleCaptureMoves.push({
-                    from: from,
-                    to: to,
-                    captured: move.captured
-                });
-                
                 // Mantener el turno y la pieza seleccionada para continuar capturando
                 this.selectedPiece = { row: to.row, col: to.col };
                 this.possibleMoves = additionalCaptures;
@@ -1196,44 +1170,30 @@ class DamasGame {
                 
                 // Mostrar mensaje motivador
                 this.showMotivationalMessage();
-                
-                // NO enviar al servidor durante capturas múltiples - solo al final
-                console.log(`Skipping server communication during multiple captures`);
             } else {
-                console.log(`No more captures available - ending turn`);
-                
-                // Agregar el último movimiento a la secuencia
-                this.multipleCaptureMoves.push({
-                    from: from,
-                    to: to,
-                    captured: move.captured
-                });
-                
-                // Finalizar turno - enviar todas las capturas acumuladas al servidor
-                this.selectedPiece = null;
-                this.possibleMoves = [];
+                console.log(`No more captures available - changing turn`);
+                // No hay más capturas, cambiar turno normalmente
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.selectedPiece = null;
+        this.possibleMoves = [];
                 this.multipleCaptureInProgress = false;
                 
                 // Limpiar el tablero visualmente
                 this.renderBoard();
                 
-                // Enviar todas las capturas del turno al servidor
+                // Enviar al servidor si no estamos en modo debug
                 if (!this.debugMode) {
-                    this.sendTurnCapturesToServer();
+                    this.sendMoveToServer(from, to, move.captured);
                 } else {
                     console.log(`🔧 Debug mode: skipping server communication`);
                 }
-                
-                // Limpiar la secuencia de movimientos y capturas del turno
-                this.multipleCaptureMoves = [];
-                this.turnCaptures = { black: 0, white: 0 };
             }
         } else {
             console.log(`No capture made - changing turn normally`);
             // No hubo captura, cambiar turno normalmente
-        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-        this.selectedPiece = null;
-        this.possibleMoves = [];
+            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            this.selectedPiece = null;
+            this.possibleMoves = [];
             this.multipleCaptureInProgress = false;
             
             // Limpiar el tablero visualmente
@@ -1264,94 +1224,43 @@ class DamasGame {
         
         if (window.network && window.network.sendMove) {
             try {
-                // Enviar las capturas actuales del cliente (ya calculadas localmente)
-                console.log(`Sending current client captures:`, this.capturedPieces);
+                // 1. Leer capturas actuales del servidor
+                console.log(`Reading current captures from server...`);
+                const currentCaptures = await window.network.getCurrentCaptures();
+                console.log(`Current captures from server:`, currentCaptures);
                 
-                // Enviar movimiento con las capturas actuales del cliente
+                // 2. Calcular nuevas capturas
+                const capturesCount = capturedPieces.length;
+                const playerWhoCaptured = this.myPlayerNumber;
+                
+                // 3. Sumar 1 al jugador que capturó
+                const newCaptures = {
+                    black: currentCaptures.black || 0,
+                    white: currentCaptures.white || 0
+                };
+                
+                if (capturesCount > 0) {
+                    if (playerWhoCaptured === 1) {
+                        newCaptures.white += capturesCount; // Jugador 1 (blancas) capturó
+                    } else {
+                        newCaptures.black += capturesCount; // Jugador 2 (negras) capturó
+                    }
+                }
+                
+                // Asegurar que nunca sean null
+                newCaptures.black = newCaptures.black || 0;
+                newCaptures.white = newCaptures.white || 0;
+                
+                console.log(`New captures to send:`, newCaptures);
+                
+                // 4. Enviar movimiento con las nuevas capturas
                 await window.network.sendMove(from, to, capturedPieces, this.board, {
-                    total_captures: { captured_pieces: this.capturedPieces }
+                    captured_pieces: newCaptures
                 });
                 console.log(`Move sent to server successfully`);
             } catch (error) {
                 console.error(`Error sending move to server:`, error);
                 this.showMessage('Error al enviar movimiento al servidor', 'error');
-            }
-        } else {
-            console.error(`Network manager not available`);
-            this.showMessage('Error de conexión', 'error');
-        }
-    }
-
-    async sendTurnCapturesToServer() {
-        console.log(`=== SENDING TURN CAPTURES TO SERVER ===`);
-        console.log(`Turn captures:`, this.turnCaptures);
-        console.log(`Multiple capture moves:`, this.multipleCaptureMoves);
-        
-        if (window.network && window.network.sendMove) {
-            try {
-                // Enviar solo el último movimiento con todas las capturas acumuladas del turno
-                const lastMove = this.multipleCaptureMoves[this.multipleCaptureMoves.length - 1];
-                const allCapturedPieces = this.multipleCaptureMoves.reduce((acc, move) => acc + move.captured.length, 0);
-                
-                console.log(`Sending final move with ${allCapturedPieces} total captures from turn`);
-                console.log(`Sending current client captures:`, this.capturedPieces);
-                
-                // Enviar el movimiento final con todas las capturas del turno
-                await window.network.sendMove(
-                    this.multipleCaptureMoves[0].from, 
-                    lastMove.to, 
-                    this.multipleCaptureMoves.flatMap(m => m.captured), 
-                    this.board, 
-                    {
-                        total_captures: { captured_pieces: this.capturedPieces }
-                    }
-                );
-                
-                console.log(`Turn captures sent to server successfully`);
-            } catch (error) {
-                console.error(`Error sending turn captures to server:`, error);
-                this.showMessage('Error al enviar capturas del turno al servidor', 'error');
-            }
-        } else {
-            console.error(`Network manager not available`);
-            this.showMessage('Error de conexión', 'error');
-        }
-    }
-
-    async sendMultipleCapturesToServer(moves) {
-        console.log(`=== SENDING MULTIPLE CAPTURES TO SERVER ===`);
-        console.log(`Sending ${moves.length} moves:`, moves);
-        
-        if (window.network && window.network.sendMove) {
-            try {
-                // Enviar cada movimiento individual de la secuencia
-                for (let i = 0; i < moves.length; i++) {
-                    const move = moves[i];
-                    console.log(`Sending move ${i + 1}/${moves.length}: from (${move.from.row}, ${move.from.col}) to (${move.to.row}, ${move.to.col})`);
-                    console.log(`Captured pieces in this move:`, move.captured);
-                    
-                    await window.network.sendMove(
-                        move.from, 
-                        move.to, 
-                        move.captured, 
-                        this.board, 
-                        {
-                            total_captures: { captured_pieces: this.capturedPieces }
-                        }
-                    );
-                    
-                    console.log(`Move ${i + 1} sent successfully`);
-                    
-                    // Pequeña pausa entre movimientos para evitar problemas de sincronización
-                    if (i < moves.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                }
-                
-                console.log(`All ${moves.length} moves sent to server successfully`);
-            } catch (error) {
-                console.error(`Error sending multiple captures to server:`, error);
-                this.showMessage('Error al enviar capturas múltiples al servidor', 'error');
             }
         } else {
             console.error(`Network manager not available`);
@@ -1369,35 +1278,34 @@ class DamasGame {
     updateGameStatus() {
         const statusElement = document.getElementById('game-status');
         const playerElement = document.getElementById('current-player');
+        const whitePlayerNameElement = document.getElementById('white-player-name');
+        const blackPlayerNameElement = document.getElementById('black-player-name');
         
         console.log('updateGameStatus called - gameState:', this.gameState);
         console.log('updateGameStatus called - currentPlayer:', this.currentPlayer);
         console.log('updateGameStatus called - playerNames:', this.playerNames);
         
-        // Update player names in capture counters
-        const whiteCaptureNameElement = document.getElementById('white-capture-name');
-        const blackCaptureNameElement = document.getElementById('black-capture-name');
-        
-        if (whiteCaptureNameElement) {
+        // Update player names in the bottom section
+        if (whitePlayerNameElement) {
             const whitePlayerName = this.playerNames[1] || 'Jugador 1';
-            whiteCaptureNameElement.textContent = whitePlayerName;
+            whitePlayerNameElement.innerHTML = `${whitePlayerName}`;
         }
-        if (blackCaptureNameElement) {
+        if (blackPlayerNameElement) {
             const blackPlayerName = this.playerNames[2] || 'Jugador 2';
-            blackCaptureNameElement.textContent = blackPlayerName;
+            blackPlayerNameElement.innerHTML = `${blackPlayerName}`;
         }
         
-        // Agregar clase 'active' al jugador que está jugando en los contadores
+        // Agregar clase 'active' al jugador que está jugando
         if (this.currentPlayer === 1) {
-            whiteCaptureNameElement?.classList.add('active');
-            blackCaptureNameElement?.classList.remove('active');
+            whitePlayerNameElement?.classList.add('active');
+            blackPlayerNameElement?.classList.remove('active');
         } else if (this.currentPlayer === 2) {
-            blackCaptureNameElement?.classList.add('active');
-            whiteCaptureNameElement?.classList.remove('active');
+            blackPlayerNameElement?.classList.add('active');
+            whitePlayerNameElement?.classList.remove('active');
         } else {
             // Si no hay jugador activo, quitar la clase active
-            whiteCaptureNameElement?.classList.remove('active');
-            blackCaptureNameElement?.classList.remove('active');
+            whitePlayerNameElement?.classList.remove('active');
+            blackPlayerNameElement?.classList.remove('active');
         }
         
         if (this.gameState === 'playing') {
@@ -1465,8 +1373,8 @@ class DamasGame {
         }
         
         // Check if it's the current player's turn
-        // En modo debug o durante capturas múltiples, siempre permitir jugar
-        const isMyTurn = this.debugMode || this.multipleCaptureInProgress ? true : (this.currentPlayer === this.myPlayerNumber);
+        // En modo debug, siempre permitir jugar
+        const isMyTurn = this.debugMode ? true : (this.currentPlayer === this.myPlayerNumber);
         
         console.log(`Overlay update: currentPlayer=${this.currentPlayer}, myPlayerNumber=${this.myPlayerNumber}, isMyTurn=${isMyTurn}, debugMode=${this.debugMode}`);
         
@@ -1478,15 +1386,57 @@ class DamasGame {
     }
 
     updateCapturedPieces() {
+        console.log(`=== UPDATING CAPTURED PIECES - START ===`);
+        console.log(`this.capturedPieces before check:`, this.capturedPieces);
+        console.log(`typeof this.capturedPieces:`, typeof this.capturedPieces);
+        console.log(`this.capturedPieces === null:`, this.capturedPieces === null);
+        console.log(`this.capturedPieces === undefined:`, this.capturedPieces === undefined);
+        
         const blackCaptured = document.getElementById('black-captured');
         const whiteCaptured = document.getElementById('white-captured');
         
-        blackCaptured.textContent = `Capturas: ${this.capturedPieces.black}`;
-        whiteCaptured.textContent = `Capturas: ${this.capturedPieces.white}`;
+        console.log(`DOM elements found - blackCaptured:`, blackCaptured, `whiteCaptured:`, whiteCaptured);
+        
+        // Ensure capturedPieces object exists and has valid values
+        if (!this.capturedPieces) {
+            console.log(`❌ capturedPieces is falsy, initializing to {black: 0, white: 0}`);
+            this.capturedPieces = { black: 0, white: 0 };
+        } else {
+            console.log(`✅ capturedPieces exists:`, this.capturedPieces);
+        }
+        
+        // Log individual values before processing
+        console.log(`this.capturedPieces.black:`, this.capturedPieces.black, `type:`, typeof this.capturedPieces.black);
+        console.log(`this.capturedPieces.white:`, this.capturedPieces.white, `type:`, typeof this.capturedPieces.white);
+        
+        // Ensure both values are numbers, default to 0 if null/undefined
+        const blackCount = typeof this.capturedPieces.black === 'number' ? this.capturedPieces.black : 0;
+        const whiteCount = typeof this.capturedPieces.white === 'number' ? this.capturedPieces.white : 0;
+        
+        console.log(`Processed values - blackCount: ${blackCount} (type: ${typeof blackCount}), whiteCount: ${whiteCount} (type: ${typeof whiteCount})`);
+        
+        // Check if values are null/undefined after processing
+        if (blackCount === null || blackCount === undefined) {
+            console.error(`❌ ERROR: blackCount is still null/undefined after processing!`);
+        }
+        if (whiteCount === null || whiteCount === undefined) {
+            console.error(`❌ ERROR: whiteCount is still null/undefined after processing!`);
+        }
+        
+        const blackText = `Capturas: ${blackCount}`;
+        const whiteText = `Capturas: ${whiteCount}`;
+        
+        console.log(`Text to display - black: "${blackText}", white: "${whiteText}"`);
+        
+        blackCaptured.textContent = blackText;
+        whiteCaptured.textContent = whiteText;
         
         // Agregar atributo data-count para los estilos CSS
-        blackCaptured.setAttribute('data-count', this.capturedPieces.black);
-        whiteCaptured.setAttribute('data-count', this.capturedPieces.white);
+        blackCaptured.setAttribute('data-count', blackCount);
+        whiteCaptured.setAttribute('data-count', whiteCount);
+        
+        console.log(`Final DOM content - black: "${blackCaptured.textContent}", white: "${whiteCaptured.textContent}"`);
+        console.log(`=== UPDATING CAPTURED PIECES - END ===`);
     }
 
     // Function to verificar ganador solo cuando sea necesario
@@ -1577,18 +1527,14 @@ class DamasGame {
         const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
         const winnerName = `${winnerPlayerName} ${colorText}`;
         
-        // Mostrar mensaje de victoria en el panel
-        const isCurrentPlayerWinner = (this.myPlayerNumber === winnerNumber);
-            if (isCurrentPlayerWinner) {
-                this.showMessage(`🏆 ¡Has ganado la partida! ¡Felicidades! 🥇`, 'victory');
-            } else {
-                this.showMessage(`😔 Has perdido la partida ¡Mejor suerte la próxima vez! 🥈`, 'victory');
-            }
+        // Limpiar mensajes anteriores antes de mostrar el mensaje de victoria
+        this.clearMessages();
         
         // Mostrar pantalla de fin de partida con opciones
         this.showGameEndScreen(winnerName, winnerNumber);
         
-        // Game ended - no chat needed
+        // Add message to chat
+        this.addChatMessage('system', `🎉 ¡${winnerName} ha ganado la partida!`);
         
         // Deshabilitar interacciones del tablero
         this.selectedPiece = null;
@@ -1622,11 +1568,10 @@ class DamasGame {
         // Determinar si el jugador actual es el ganador
         const isWinner = (this.myPlayerNumber === winnerNumber);
         const statusText = isWinner ? '¡Has ganado!' : 'Has perdido';
-        const emoji = isWinner ? '🏆' : '😔';
-        const victoryEmoji = isWinner ? '🥇' : '🥈';
+        const emoji = isWinner ? '🎉' : '😔';
         
         winnerText.innerHTML = `
-            <h2>${emoji} ${statusText} ${victoryEmoji}</h2>
+            <h2>${emoji} ${statusText} ${emoji}</h2>
             <p>¡${winnerName} ha ganado la partida!</p>
             <p>¿Qué quieres hacer ahora?</p>
         `;
@@ -1671,63 +1616,47 @@ class DamasGame {
             ">
                 <div id="end-game-winner"></div>
                 <div id="end-game-options" style="margin-top: 30px;">
-                    ${this.debugMode ? `
-                        <button id="btn-debug-restart" class="end-game-btn" style="
-                            background: linear-gradient(45deg, #FF9800, #F57C00);
-                            color: white;
-                            border: none;
-                            padding: 15px 25px;
-                            margin: 10px;
-                            border-radius: 25px;
-                            font-size: 16px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        ">🔧 Reiniciar Debug</button>
-                    ` : `
-                        <button id="btn-same-colors" class="end-game-btn" style="
-                            background: linear-gradient(45deg, #4CAF50, #45a049);
-                            color: white;
-                            border: none;
-                            padding: 15px 25px;
-                            margin: 10px;
-                            border-radius: 25px;
-                            font-size: 16px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        ">🔄 Nueva partida<br>(mismos colores)</button>
-                        <br>
-                        <button id="btn-swap-colors" class="end-game-btn" style="
-                            background: linear-gradient(45deg, #2196F3, #1976D2);
-                            color: white;
-                            border: none;
-                            padding: 15px 25px;
-                            margin: 10px;
-                            border-radius: 25px;
-                            font-size: 16px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        ">🔄 Nueva partida<br>(cambiar colores)</button>
-                        <br>
-                        <button id="btn-main-menu" class="end-game-btn" style="
-                            background: linear-gradient(45deg, #f44336, #d32f2f);
-                            color: white;
-                            border: none;
-                            padding: 15px 25px;
-                            margin: 10px;
-                            border-radius: 25px;
-                            font-size: 16px;
-                            font-weight: bold;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        ">🏠 Salir al menú principal</button>
-                    `}
+                    <button id="btn-same-colors" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #4CAF50, #45a049);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🔄 Nueva partida<br>(mismos colores)</button>
+                    <br>
+                    <button id="btn-swap-colors" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #2196F3, #1976D2);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🔄 Nueva partida<br>(cambiar colores)</button>
+                    <br>
+                    <button id="btn-main-menu" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #f44336, #d32f2f);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🏠 Salir al menú principal</button>
                 </div>
                 <div id="end-game-status" style="margin-top: 20px; font-size: 14px; opacity: 0.8;"></div>
             </div>
@@ -1760,56 +1689,34 @@ class DamasGame {
 
     // Configurar los botones del modal de fin de partida
     setupEndGameButtons(winnerNumber, player1Name, player2Name) {
+        const btnSameColors = document.getElementById('btn-same-colors');
+        const btnSwapColors = document.getElementById('btn-swap-colors');
+        const btnMainMenu = document.getElementById('btn-main-menu');
         const statusDiv = document.getElementById('end-game-status');
 
-        if (this.debugMode) {
-            // Modo debug: solo botón de reiniciar debug
-            const btnDebugRestart = document.getElementById('btn-debug-restart');
-            if (btnDebugRestart) {
-                // Limpiar event listeners anteriores
-                btnDebugRestart.replaceWith(btnDebugRestart.cloneNode(true));
-                const newBtnDebugRestart = document.getElementById('btn-debug-restart');
-                
-                newBtnDebugRestart.addEventListener('click', () => {
-                    this.handleDebugRestart(statusDiv);
-                });
-            }
-        } else {
-            // Modo normal: botones de nueva partida y menú
-            const btnSameColors = document.getElementById('btn-same-colors');
-            const btnSwapColors = document.getElementById('btn-swap-colors');
-            const btnMainMenu = document.getElementById('btn-main-menu');
+        // Limpiar event listeners anteriores
+        btnSameColors.replaceWith(btnSameColors.cloneNode(true));
+        btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
+        btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
 
-            // Limpiar event listeners anteriores
-            if (btnSameColors) btnSameColors.replaceWith(btnSameColors.cloneNode(true));
-            if (btnSwapColors) btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
-            if (btnMainMenu) btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
+        const newBtnSameColors = document.getElementById('btn-same-colors');
+        const newBtnSwapColors = document.getElementById('btn-swap-colors');
+        const newBtnMainMenu = document.getElementById('btn-main-menu');
 
-            const newBtnSameColors = document.getElementById('btn-same-colors');
-            const newBtnSwapColors = document.getElementById('btn-swap-colors');
-            const newBtnMainMenu = document.getElementById('btn-main-menu');
+        // Nueva partida con mismos colores
+        newBtnSameColors.addEventListener('click', () => {
+            this.handleNewGame('same', statusDiv);
+        });
 
-            // Nueva partida con mismos colores
-            if (newBtnSameColors) {
-                newBtnSameColors.addEventListener('click', () => {
-                    this.handleNewGame('same', statusDiv);
-                });
-            }
+        // Nueva partida cambiando colores
+        newBtnSwapColors.addEventListener('click', () => {
+            this.handleNewGame('swap', statusDiv);
+        });
 
-            // Nueva partida cambiando colores
-            if (newBtnSwapColors) {
-                newBtnSwapColors.addEventListener('click', () => {
-                    this.handleNewGame('swap', statusDiv);
-                });
-            }
-
-            // Salir al menú principal
-            if (newBtnMainMenu) {
-                newBtnMainMenu.addEventListener('click', () => {
-                    this.handleMainMenu();
-                });
-            }
-        }
+        // Salir al menú principal
+        newBtnMainMenu.addEventListener('click', () => {
+            this.handleMainMenu();
+        });
 
         // Mostrar estado inicial
         statusDiv.textContent = 'Esperando decisión...';
@@ -1878,37 +1785,6 @@ class DamasGame {
         window.location.href = 'index.html';
     }
 
-    // Manejar reinicio de debug
-    handleDebugRestart(statusDiv) {
-        statusDiv.textContent = 'Reiniciando modo debug...';
-        statusDiv.style.color = '#FF9800';
-        
-        // Cerrar modal
-        document.getElementById('end-game-modal').style.display = 'none';
-        
-        // Reiniciar el juego en modo debug
-        this.resetGame();
-        this.initializeBoard();
-        this.gameState = 'playing';
-        this.currentPlayer = 1;
-        this.selectedPiece = null;
-        this.possibleMoves = [];
-        this.multipleCaptureInProgress = false;
-        this.capturedPieces = { black: 0, white: 0 };
-        this.gameEndNotified = false;
-        this.motivationalMessageShown = false;
-        
-        // Actualizar UI
-        this.updateGameStatus();
-        this.updateCapturedPieces();
-        this.renderBoard();
-        
-        // Mostrar mensaje de confirmación
-        this.showMessage('🔧 Modo debug reiniciado', 'motivational');
-        
-        console.log('🔧 Debug mode restarted');
-    }
-
     hideModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
     }
@@ -1916,26 +1792,18 @@ class DamasGame {
     showCreateModal() {
         this.hideModal('game-modal');
         document.getElementById('create-modal').style.display = 'block';
-        // Initialize button as disabled
-        const createBtn = document.getElementById('confirm-create-btn');
-        createBtn.disabled = true;
-        createBtn.style.opacity = '0.5';
     }
 
     showJoinModal() {
         this.hideModal('game-modal');
         document.getElementById('join-modal').style.display = 'block';
-        // Initialize button as disabled
-        const joinBtn = document.getElementById('confirm-join-btn');
-        joinBtn.disabled = true;
-        joinBtn.style.opacity = '0.5';
     }
 
     createGame() {
         const playerName = document.getElementById('create-player-name-input').value.trim();
         
-        // Validation is already handled by the disabled button
-        if (!playerName || playerName.length < 3 || playerName.length > 10) {
+        if (!playerName || playerName.length < 3) {
+            alert('El nombre debe tener al menos 3 caracteres');
             return;
         }
         
@@ -1949,8 +1817,13 @@ class DamasGame {
         const gameCode = document.getElementById('game-code-input').value.trim();
         const playerName = document.getElementById('player-name-input').value.trim();
         
-        // Validation is already handled by the disabled button
-        if (!gameCode || !playerName || playerName.length < 3 || playerName.length > 10) {
+        if (!gameCode || !playerName) {
+            alert('Por favor, ingresa el código de partida y tu nombre');
+            return;
+        }
+        
+        if (playerName.length < 3) {
+            alert('El nombre debe tener al menos 3 caracteres');
             return;
         }
         
@@ -1960,30 +1833,20 @@ class DamasGame {
         }
     }
 
-    async leaveGame() {
-        console.log('🔧 LEAVE GAME CALLED - VERSION 2.1 - NO RESETGAME CALL');
-        try {
+    leaveGame() {
         if (window.network) {
-                console.log('🔧 CALLING NETWORK.LEAVEGAME');
-                await window.network.leaveGame();
-                console.log('🔧 NETWORK.LEAVEGAME COMPLETED');
-            }
-            // Redirigir inmediatamente a la home después de abandonar
-            // No llamar resetGame() para evitar conflictos
-            console.log('🔧 REDIRECTING TO HOME - NO RESETGAME');
-            window.location.href = 'home.html';
-        } catch (error) {
-            console.error('Error in leaveGame:', error);
-            // Redirigir de todas formas
-            console.log('🔧 REDIRECTING TO HOME AFTER ERROR');
-            window.location.href = 'home.html';
+            window.network.leaveGame();
         }
+        this.resetGame();
+        // Redirigir a la home después de abandonar
+        window.location.href = 'home.html';
     }
 
     handleGameAbandonment(winnerName) {
         console.log('Game abandoned by opponent');
         
-        // Game abandoned - no chat needed
+        // Mostrar mensaje de abandono
+        this.addChatMessage('system', `¡El oponente ha abandonado la partida! ¡Has ganado!`);
         
         // Cambiar el botón abandonar por un botón de "Salir"
         const leaveBtn = document.getElementById('leave-game-btn');
@@ -1997,13 +1860,8 @@ class DamasGame {
         this.gameState = 'finished';
         this.updateGameStatus();
         
-        // Obtener el nombre del jugador que abandonó (el que no es el ganador)
-        const abandonedPlayerName = this.myPlayerNumber === 1 ? 
-            (this.playerNames[2] || 'Jugador 2') : 
-            (this.playerNames[1] || 'Jugador 1');
-        
         // Mostrar mensaje de victoria
-        this.showMessage(`🏆 ¡${abandonedPlayerName} ha abandonado! ¡Has ganado la partida! 🥇`, 'victory');
+        this.showMessage('¡El oponente ha abandonado! ¡Has ganado la partida!', 'success');
     }
 
     resetGame() {
@@ -2019,10 +1877,8 @@ class DamasGame {
         
         // Restaurar estilos del estado del juego
         const statusElement = document.getElementById('game-status');
-        if (statusElement) {
         statusElement.style.color = '';
         statusElement.style.fontWeight = '';
-        }
         
         this.renderBoard();
         this.updateGameStatus();
@@ -2034,6 +1890,10 @@ class DamasGame {
     }
 
     startGame(playerId, gameId, playerName) {
+        console.log(`=== START GAME - START ===`);
+        console.log(`playerId:`, playerId, `gameId:`, gameId, `playerName:`, playerName);
+        console.log(`capturedPieces before startGame:`, this.capturedPieces);
+        
         this.playerId = playerId;
         this.gameId = gameId;
         this.playerName = playerName; // Store current player name
@@ -2043,45 +1903,62 @@ class DamasGame {
         this.gameEndNotified = false;
         this.motivationalMessageShown = false; // Reset flag for new game
         
+        // Ensure capturedPieces is properly initialized
+        if (!this.capturedPieces) {
+            console.log(`❌ capturedPieces is null/undefined in startGame, reinitializing`);
+            this.capturedPieces = { black: 0, white: 0 };
+        } else {
+            console.log(`✅ capturedPieces exists in startGame:`, this.capturedPieces);
+        }
+        
         document.getElementById('new-game-btn').style.display = 'none';
         document.getElementById('join-game-btn').style.display = 'none';
         document.getElementById('leave-game-btn').style.display = 'inline-block';
         
         this.clearMessages(); // Limpiar mensajes al iniciar nueva partida
         this.updateGameStatus();
+        this.addChatMessage('system', '¡Partida iniciada! ¡Buena suerte!');
+        
+        console.log(`capturedPieces after startGame:`, this.capturedPieces);
+        console.log(`=== START GAME - END ===`);
     }
 
+    addChatMessage(sender, message) {
+        const chatMessages = document.getElementById('chat-messages');
+        
+        // Check if last message is the same to avoid duplicates
+        const lastMessage = chatMessages.lastElementChild;
+        if (lastMessage && lastMessage.textContent === message) {
+            return; // Don't add duplicate message
+        }
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = `chat-message ${sender}`;
+        
+        // Para mensajes de sistema, mostrar solo el mensaje sin prefijos
+        if (sender === 'system') {
+            messageElement.textContent = message;
+        } else {
+            // For player messages, add player name
+            const playerNumber = sender === 'player1' ? 1 : 2;
+            const playerName = this.playerNames[playerNumber] || `Jugador ${playerNumber}`;
+            console.log(`Chat message: sender=${sender}, playerNumber=${playerNumber}, playerName=${playerName}, playerNames=`, this.playerNames);
+            messageElement.textContent = `${playerName}: ${message}`;
+        }
+        
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-    // Function to mostrar mensajes informativos con jerarquía
+    // Function to mostrar mensajes informativos
     showMessage(message, type = 'info') {
         console.log(`=== SHOWING MESSAGE ===`);
         console.log(`Message: ${message}`);
         console.log(`Type: ${type}`);
         
-        // Definir jerarquía de mensajes (mayor número = mayor prioridad)
-        const messageHierarchy = {
-            'victory': 4,
-            'waiting': 3,
-            'error': 2,
-            'motivational': 1,
-            'info': 1,
-            'success': 1
-        };
-        
-        const currentPriority = messageHierarchy[type] || 1;
-        const currentMessageType = this.currentMessageType || 'none';
-        const currentMessagePriority = messageHierarchy[currentMessageType] || 0;
-        
-        // Solo mostrar el mensaje si tiene mayor o igual prioridad que el actual
-        if (currentPriority < currentMessagePriority) {
-            console.log(`Message blocked by higher priority message: ${currentMessageType} (${currentMessagePriority}) > ${type} (${currentPriority})`);
-            return;
-        }
-        
-        // Limpiar timeout anterior si existe
-        if (this.messageTimeout) {
-            clearTimeout(this.messageTimeout);
-            this.messageTimeout = null;
+        // Si es un mensaje de error, ocultar el mensaje motivacional
+        if (type === 'error') {
+            this.clearMotivationalMessage();
         }
         
         // Usar el elemento HTML existente
@@ -2098,21 +1975,15 @@ class DamasGame {
         messageElement.style.opacity = '1';
         messageElement.style.visibility = 'visible';
         
-        // Guardar el tipo de mensaje actual
-        this.currentMessageType = type;
-        
         console.log(`Message element display: ${messageElement.style.display}`);
         console.log(`Message element text: ${messageElement.textContent}`);
         console.log(`Message element classes: ${messageElement.className}`);
-        console.log(`Current message type: ${this.currentMessageType}`);
         console.log(`=== END SHOWING MESSAGE ===`);
 
-        // Hide message after different times based on type
-        const timeoutDuration = type === 'motivational' ? 10000 : 5000; // 10s for motivational, 5s for others
-        this.messageTimeout = setTimeout(() => {
+        // Hide message after 5 seconds (más tiempo para verlo)
+        setTimeout(() => {
             messageElement.style.display = 'none';
-            this.currentMessageType = null;
-        }, timeoutDuration);
+        }, 5000);
     }
 
     // Function to mostrar mensaje específico de movimiento no válido
@@ -2220,30 +2091,46 @@ class DamasGame {
     clearMessages() {
         const messageElement = document.getElementById('game-message');
         if (messageElement) {
-            messageElement.style.display = 'none';
-            messageElement.textContent = '';
-            messageElement.className = 'game-message';
+            // No limpiar mensajes de espera o error que deberían persistir
+            const isWaiting = messageElement.className.includes('waiting');
+            const isError = messageElement.className.includes('error');
+            
+            if (!isWaiting && !isError) {
+                messageElement.style.display = 'none';
+                messageElement.textContent = '';
+                messageElement.className = 'game-message';
+            }
         }
         
-        // Limpiar timeout y tipo de mensaje actual
-        if (this.messageTimeout) {
-            clearTimeout(this.messageTimeout);
-            this.messageTimeout = null;
-        }
-        this.currentMessageType = null;
+        // No limpiar mensaje motivacional automáticamente - debe ser persistente
     }
 
     // Function to clear only the motivational message
     clearMotivationalMessage() {
-        const messageElement = document.getElementById('game-message');
-        if (messageElement && messageElement.classList.contains('motivational')) {
-            messageElement.style.display = 'none';
+        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        if (gameInfoElement) {
+            const motivationalElement = gameInfoElement.querySelector('.motivational-message');
+            if (motivationalElement) {
+                motivationalElement.remove();
+            }
         }
         this.motivationalMessageShown = false; // Reset flag
     }
 
     // Function to show motivational message when it's your turn
     showMotivationalMessage() {
+        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        if (!gameInfoElement) {
+            console.error('Game info element not found!');
+            return;
+        }
+
+        // Eliminar mensaje de espera si existe
+        const waitingElement = gameInfoElement.querySelector('.waiting-message');
+        if (waitingElement) {
+            waitingElement.remove();
+        }
+
         // Obtener nombre del jugador
         const playerName = this.playerNames[this.myPlayerNumber] || 'Jugador';
         
@@ -2270,27 +2157,75 @@ class DamasGame {
         const randomIndex = Math.floor(Math.random() * motivationalPhrases.length);
         const selectedPhrase = motivationalPhrases[randomIndex];
         
-        // Usar showMessage con tipo motivational y timeout más largo
-        this.showMessage(selectedPhrase, 'motivational');
+        // Crear o actualizar el mensaje motivacional en el game-info
+        let motivationalElement = gameInfoElement.querySelector('.motivational-message');
+        if (!motivationalElement) {
+            motivationalElement = document.createElement('div');
+            motivationalElement.className = 'motivational-message';
+            gameInfoElement.appendChild(motivationalElement);
+        }
+        
+        motivationalElement.textContent = selectedPhrase;
+        
+        // Aplicar estilos para el mensaje motivador - más legible
+        motivationalElement.style.cssText = `
+            color: #2d5a27 !important;
+            font-weight: bold !important;
+            font-size: 1.1em !important;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            border: 2px solid #51cf66 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            animation: motivationalBounce 1.5s ease-in-out !important;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8) !important;
+            margin: 8px 0 !important;
+            text-align: center !important;
+        `;
     }
 
     // Function to show waiting message when it's not your turn
     showWaitingMessage() {
-        const messageElement = document.getElementById('game-message');
-        if (!messageElement) {
-            console.error('Game message element not found!');
+        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        if (!gameInfoElement) {
+            console.error('Game info element not found!');
             return;
+        }
+
+        // Eliminar mensaje motivacional si existe
+        const motivationalElement = gameInfoElement.querySelector('.motivational-message');
+        if (motivationalElement) {
+            motivationalElement.remove();
         }
 
         // Obtener el nombre del oponente
         const opponentNumber = this.currentPlayer;
         const opponentName = this.playerNames[opponentNumber] || `Jugador ${opponentNumber}`;
         
-        messageElement.textContent = `⏳ Esperando a que ${opponentName} mueva...`;
-        messageElement.className = 'game-message waiting';
-        messageElement.style.display = 'block';
-        messageElement.style.opacity = '1';
-        messageElement.style.visibility = 'visible';
+        // Crear o actualizar el mensaje de espera en el game-info
+        let waitingElement = gameInfoElement.querySelector('.waiting-message');
+        if (!waitingElement) {
+            waitingElement = document.createElement('div');
+            waitingElement.className = 'waiting-message';
+            gameInfoElement.appendChild(waitingElement);
+        }
+        
+        waitingElement.textContent = `⏳ Esperando a que ${opponentName} mueva...`;
+        
+        // Aplicar estilos para el mensaje de espera - misma posición que motivacional
+        waitingElement.style.cssText = `
+            color: #2d3436 !important;
+            font-weight: bold !important;
+            font-size: 1.1em !important;
+            background: linear-gradient(135deg, #ffd43b, #fab005) !important;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            border: 2px solid #ffd43b !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            animation: waitingPulse 2s infinite !important;
+            margin: 8px 0 !important;
+            text-align: center !important;
+        `;
     }
 
     // Function to añadir efecto cómico de captura
@@ -2307,7 +2242,8 @@ class DamasGame {
             }
         }
         
-        // Mensaje de captura épica eliminado - no necesario
+        // Show comic message
+        this.showMessage('¡BOOM! 💥 ¡Captura épica!', 'success');
     }
 
     // Function to añadir efecto cómico de promoción

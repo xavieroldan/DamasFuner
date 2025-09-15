@@ -287,17 +287,45 @@ class NetworkManager {
         }
         
         // Actualizar piezas capturadas - solo usar lo que viene del servidor
+        console.log(`=== SERVER UPDATE - CAPTURED PIECES CHECK ===`);
+        console.log(`gameData.captured_pieces exists:`, !!gameData.captured_pieces);
+        console.log(`gameData.captured_pieces value:`, gameData.captured_pieces);
+        console.log(`typeof gameData.captured_pieces:`, typeof gameData.captured_pieces);
+        
         if (gameData.captured_pieces) {
-            console.log(`=== UPDATING CAPTURED PIECES ===`);
+            console.log(`=== UPDATING CAPTURED PIECES FROM SERVER ===`);
             console.log(`Server captured pieces:`, gameData.captured_pieces);
+            console.log(`Current window.game.capturedPieces before update:`, window.game.capturedPieces);
             
-            // Usar directamente lo que viene del servidor
-            window.game.capturedPieces = gameData.captured_pieces;
-            console.log(`Updated captured pieces from server:`, window.game.capturedPieces);
+            // Ensure server data is valid before updating
+            const serverCaptures = gameData.captured_pieces;
+            console.log(`serverCaptures type:`, typeof serverCaptures);
+            console.log(`serverCaptures === null:`, serverCaptures === null);
+            console.log(`serverCaptures === undefined:`, serverCaptures === undefined);
             
-            window.game.updateCapturedPieces();
-            console.log(`Final captured pieces:`, window.game.capturedPieces);
-            console.log(`=== END UPDATING CAPTURED PIECES ===`);
+            if (typeof serverCaptures === 'object' && serverCaptures !== null) {
+                console.log(`✅ Server data is valid object`);
+                console.log(`serverCaptures.black:`, serverCaptures.black, `type:`, typeof serverCaptures.black);
+                console.log(`serverCaptures.white:`, serverCaptures.white, `type:`, typeof serverCaptures.white);
+                
+                // Validate and sanitize server data
+                const blackCount = typeof serverCaptures.black === 'number' ? serverCaptures.black : 0;
+                const whiteCount = typeof serverCaptures.white === 'number' ? serverCaptures.white : 0;
+                
+                console.log(`Sanitized values - blackCount: ${blackCount} (type: ${typeof blackCount}), whiteCount: ${whiteCount} (type: ${typeof whiteCount})`);
+                
+                window.game.capturedPieces = { black: blackCount, white: whiteCount };
+                console.log(`Updated captured pieces from server:`, window.game.capturedPieces);
+                
+                window.game.updateCapturedPieces();
+                console.log(`Final captured pieces after update:`, window.game.capturedPieces);
+            } else {
+                console.log(`❌ Invalid server captured pieces data, keeping current values`);
+                console.log(`Current values will remain:`, window.game.capturedPieces);
+            }
+            console.log(`=== END UPDATING CAPTURED PIECES FROM SERVER ===`);
+        } else {
+            console.log(`❌ No captured_pieces in server data, keeping current values:`, window.game.capturedPieces);
         }
         
         // Actualizar estado del juego
