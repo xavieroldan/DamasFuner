@@ -1094,46 +1094,18 @@ class DamasGame {
                     player: capturedPlayer
                 });
                 
-                // Asignar la captura al jugador que la realiza (no al que la recibe)
-                // Si soy jugador 1 (blancas), sumo a mis capturas (blancas)
-                // Si soy jugador 2 (negras), sumo a mis capturas (negras)
-                const myPlayerColor = piece.player === 1 ? 'white' : 'black';
-                
-                console.log(`=== CAPTURE INCREMENT - START ===`);
+                // SERVIDOR CALCULA CAPTURAS - CLIENTE SOLO MUESTRA MENSAJE
+                // Las capturas se actualizarán desde la respuesta del servidor
+                console.log(`=== CAPTURE DETECTED ===`);
                 console.log(`piece.player:`, piece.player);
-                console.log(`myPlayerColor:`, myPlayerColor);
-                console.log(`capturedPieces before increment:`, this.capturedPieces);
-                console.log(`capturedPieces[${myPlayerColor}] before:`, this.capturedPieces[myPlayerColor], `type:`, typeof this.capturedPieces[myPlayerColor]);
+                console.log(`Total captured in this move: ${totalCaptured}`);
                 
-                // Ensure capturedPieces exists and the specific color is a number
-                if (!this.capturedPieces) {
-                    console.log(`❌ capturedPieces is null/undefined, initializing`);
-                    this.capturedPieces = { black: 0, white: 0 };
-                }
-                
-                if (typeof this.capturedPieces[myPlayerColor] !== 'number') {
-                    console.log(`❌ capturedPieces[${myPlayerColor}] is not a number (${typeof this.capturedPieces[myPlayerColor]}), setting to 0`);
-                    this.capturedPieces[myPlayerColor] = 0;
-                }
-                
-                this.capturedPieces[myPlayerColor] += 1;
-                
-                console.log(`capturedPieces[${myPlayerColor}] after increment:`, this.capturedPieces[myPlayerColor], `type:`, typeof this.capturedPieces[myPlayerColor]);
-                console.log(`capturedPieces after increment:`, this.capturedPieces);
-                console.log(`=== CAPTURE INCREMENT - END ===`);
+                // Mostrar mensaje de captura exitosa
+                const message = totalCaptured === 1 ? 
+                    `¡${totalCaptured} pieza capturada!` : 
+                    `¡${totalCaptured} piezas capturadas!`;
+                this.showMessage(message, 'success');
             }
-            
-            console.log(`=== CAPTURE UPDATE ===`);
-            console.log(`Total piezas capturadas: ${totalCaptured}`);
-            console.log(`New captured count:`, this.capturedPieces);
-            console.log(`All captured pieces:`, this.capturedPieces);
-            this.updateCapturedPieces();
-            
-            // Mostrar mensaje de captura exitosa
-            const message = totalCaptured === 1 ? 
-                `¡${totalCaptured} pieza capturada!` : 
-                `¡${totalCaptured} piezas capturadas!`;
-            this.showMessage(message, 'success');
             
             // No need for the 'else' block for simple captures, as all captures are now
             // formatted as 'multiple_capture' with a 'captured' array.
@@ -1224,41 +1196,12 @@ class DamasGame {
         
         if (window.network && window.network.sendMove) {
             try {
-                // 1. Leer capturas actuales del servidor
-                console.log(`Reading current captures from server...`);
-                const currentCaptures = await window.network.getCurrentCaptures();
-                console.log(`Current captures from server:`, currentCaptures);
+                // SERVIDOR CALCULA CAPTURAS - CLIENTE SOLO ENVÍA TABLERO
+                // El servidor es la única fuente de verdad para el conteo de capturas
+                console.log(`Server will calculate captures from board state`);
                 
-                // 2. Calcular nuevas capturas
-                const capturesCount = capturedPieces.length;
-                const playerWhoCaptured = this.myPlayerNumber;
-                
-                // 3. Sumar 1 al jugador que capturó
-                const newCaptures = {
-                    black: currentCaptures.black || 0,
-                    white: currentCaptures.white || 0
-                };
-                
-                if (capturesCount > 0) {
-                    if (playerWhoCaptured === 1) {
-                        newCaptures.white += capturesCount; // Jugador 1 (blancas) capturó
-                    } else {
-                        newCaptures.black += capturesCount; // Jugador 2 (negras) capturó
-                    }
-                }
-                
-                // Asegurar que nunca sean null
-                newCaptures.black = newCaptures.black || 0;
-                newCaptures.white = newCaptures.white || 0;
-                
-                console.log(`New captures to send:`, newCaptures);
-                
-                // 4. Enviar movimiento con las nuevas capturas
-                await window.network.sendMove(from, to, capturedPieces, this.board, {
-                    total_captures: {
-                        captured_pieces: newCaptures
-                    }
-                });
+                // Enviar movimiento con el tablero completo - el servidor calculará las capturas
+                await window.network.sendMove(from, to, capturedPieces, this.board);
                 console.log(`Move sent to server successfully`);
             } catch (error) {
                 console.error(`Error sending move to server:`, error);

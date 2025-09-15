@@ -113,7 +113,7 @@ class NetworkManager {
         }
     }
 
-    async sendMove(from, to, capturedPieces = [], boardState = null, totalCaptures = null) {
+    async sendMove(from, to, capturedPieces = [], boardState = null) {
         console.log(`=== SENDMOVE DEBUG ===`);
         console.log(`this.gameId:`, this.gameId);
         console.log(`this.playerId:`, this.playerId);
@@ -121,7 +121,6 @@ class NetworkManager {
         console.log(`to:`, to);
         console.log(`capturedPieces:`, capturedPieces);
         console.log(`boardState:`, boardState);
-        console.log(`totalCaptures:`, totalCaptures);
         console.log(`window.network === this:`, window.network === this);
         console.log(`window.network.gameId:`, window.network ? window.network.gameId : 'window.network is null');
         console.log(`window.network.playerId:`, window.network ? window.network.playerId : 'window.network is null');
@@ -146,12 +145,6 @@ class NetworkManager {
             if (boardState) {
                 requestData.board_state = boardState;
                 console.log(`Including complete board state in request`);
-            }
-            
-            // Si se proporcionan las capturas totales, incluirlas en la petición
-            if (totalCaptures) {
-                requestData.total_captures = totalCaptures;
-                console.log(`Including total captures in request:`, totalCaptures);
             }
             
             console.log(`Request data:`, requestData);
@@ -179,17 +172,32 @@ class NetworkManager {
                 window.game.renderBoard();
             } else {
                 console.log(`Move accepted by server`);
+                console.log(`Server response - captured_pieces:`, data.captured_pieces);
+                console.log(`Server response - capture_count:`, data.capture_count);
+                
                 // El servidor ha procesado el movimiento, actualizar el tablero desde el servidor
-                if (data.game_data && data.game_data.board) {
+                if (data.board_state) {
                     // No actualizar el tablero si hay capturas múltiples en progreso
                     if (!window.game.multipleCaptureInProgress) {
-                        window.game.updateBoardFromServer(data.game_data.board);
+                        window.game.updateBoardFromServer(data.board_state);
                     } else {
                         console.log('Skipping board update after move - multiple captures in progress');
                     }
-                    if (data.game_data.current_player) {
-                        window.game.updateCurrentPlayer(data.game_data.current_player);
-                    }
+                }
+                
+                // Actualizar jugador actual
+                if (data.current_player) {
+                    window.game.updateCurrentPlayer(data.current_player);
+                }
+                
+                // Actualizar capturas usando datos del servidor
+                if (data.game_data && data.game_data.captured_pieces) {
+                    console.log(`Updating captured pieces from server response:`, data.game_data.captured_pieces);
+                    window.game.capturedPieces = {
+                        black: data.game_data.captured_pieces.black || 0,
+                        white: data.game_data.captured_pieces.white || 0
+                    };
+                    window.game.updateCapturedPieces();
                 }
             }
         } catch (error) {

@@ -6,6 +6,39 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 require_once '../config/database.php';
 
+/**
+ * Calculate captured pieces by comparing old and new board states
+ * @param array $oldBoard Previous board state
+ * @param array $newBoard New board state
+ * @param int $playerNumber Player who made the move (1 or 2)
+ * @return array Array of captured pieces with row, col, and piece info
+ */
+function calculateCaptures($oldBoard, $newBoard, $playerNumber) {
+    $capturedPieces = [];
+    $enemyPlayer = $playerNumber === 1 ? 2 : 1;
+    
+    // Compare each position to find missing pieces
+    for ($row = 0; $row < 8; $row++) {
+        for ($col = 0; $col < 8; $col++) {
+            $oldPiece = $oldBoard[$row][$col];
+            $newPiece = $newBoard[$row][$col];
+            
+            // If there was an enemy piece before and it's gone now, it was captured
+            if ($oldPiece && $oldPiece['player'] == $enemyPlayer && !$newPiece) {
+                $capturedPieces[] = [
+                    'row' => $row,
+                    'col' => $col,
+                    'piece' => $oldPiece['isQueen'] ? 'queen' : 'pawn',
+                    'player' => $enemyPlayer
+                ];
+                error_log("Captured piece at ($row, $col): " . ($oldPiece['isQueen'] ? 'queen' : 'pawn'));
+            }
+        }
+    }
+    
+    return $capturedPieces;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
@@ -70,46 +103,48 @@ try {
     $piece = $board[$fromRow][$fromCol];
     $newBoard = $board;
     
-    // EL CLIENTE MANEJA TODA LA LÓGICA - EL SERVIDOR SOLO CONFÍA EN EL ESTADO FINAL
-    // El cliente envía el tablero completo ya procesado con todas las capturas y promociones
+    // SERVIDOR CALCULA CAPTURAS - ÚNICA FUENTE DE VERDAD
+    $capturedPieces = [];
+    $captureCount = 0;
     
     // Si el cliente envía el tablero completo, usarlo directamente
     if (isset($input['board_state'])) {
         $newBoard = $input['board_state'];
         error_log("Using complete board state from client");
+        
+        // Calcular capturas comparando el tablero anterior con el nuevo
+        $capturedPieces = calculateCaptures($board, $newBoard, $playerNumber);
+        $captureCount = count($capturedPieces);
+        error_log("Server calculated captures: " . $captureCount . " pieces");
     } else {
         // Fallback: procesar movimiento básico (para compatibilidad)
         $newBoard[$toRow][$toCol] = $newBoard[$fromRow][$fromCol];
         $newBoard[$fromRow][$fromCol] = null;
         error_log("Using fallback movement processing");
+        
+        // Calcular capturas para movimiento básico
+        $capturedPieces = calculateCaptures($board, $newBoard, $playerNumber);
+        $captureCount = count($capturedPieces);
     }
     
-    // EL CLIENTE MANEJA EL CONTEO DE CAPTURAS - EL SERVIDOR SOLO CONFÍA EN LOS TOTALES
-    error_log("DEBUG: Input keys: " . implode(', ', array_keys($input)));
-    error_log("DEBUG: Input captured_pieces: " . (isset($input['captured_pieces']) ? json_encode($input['captured_pieces']) : 'NOT SET'));
-    error_log("DEBUG: Input total_captures: " . (isset($input['total_captures']) ? json_encode($input['total_captures']) : 'NOT SET'));
+    // SERVIDOR CALCULA TOTALES DE CAPTURAS - ÚNICA FUENTE DE VERDAD
+    // Obtener capturas actuales de la base de datos
+    $currentGame = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
+    $totalCapturedBlack = (int)($currentGame['captured_pieces_black'] ?? 0);
+    $totalCapturedWhite = (int)($currentGame['captured_pieces_white'] ?? 0);
     
-    // Usar las capturas enviadas por el cliente (formato actual)
-    if (isset($input['total_captures']) && isset($input['total_captures']['captured_pieces'])) {
-        $totalCapturedBlack = $input['total_captures']['captured_pieces']['black'] ?? 0;
-        $totalCapturedWhite = $input['total_captures']['captured_pieces']['white'] ?? 0;
-        error_log("Using client-calculated captures (total_captures) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
-    } else if (isset($input['captured_pieces'])) {
-        // Compatibilidad con formato anterior
-        $totalCapturedBlack = $input['captured_pieces']['black'] ?? 0;
-        $totalCapturedWhite = $input['captured_pieces']['white'] ?? 0;
-        error_log("Using client-calculated captures (captured_pieces) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
-    } else {
-        // Error: el cliente debe enviar las capturas
-        error_log("ERROR: Client did not send captures");
-        echo json_encode(['success' => false, 'message' => 'Cliente no envió información de capturas']);
-        exit;
+    // Actualizar totales con las capturas calculadas por el servidor
+    if ($captureCount > 0) {
+        if ($playerNumber === 1) {
+            // Jugador 1 (blancas) capturó piezas del jugador 2 (negras)
+            $totalCapturedWhite += $captureCount;
+        } else {
+            // Jugador 2 (negras) capturó piezas del jugador 1 (blancas)
+            $totalCapturedBlack += $captureCount;
+        }
     }
     
-    // Ensure values are integers and not null
-    $totalCapturedBlack = (int)($totalCapturedBlack ?? 0);
-    $totalCapturedWhite = (int)($totalCapturedWhite ?? 0);
-    error_log("Final sanitized captures - Black: $totalCapturedBlack, White: $totalCapturedWhite");
+    error_log("Server calculated total captures - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     
     // Determinar el siguiente jugador (cambiar de 1 a 2 o viceversa)
     // En modo debug, mantener el turno actual
@@ -126,6 +161,10 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Movimiento realizado exitosamente',
+        'board_state' => $newBoard,
+        'captured_pieces' => $capturedPieces,
+        'capture_count' => $captureCount,
+        'current_player' => $nextPlayer,
         'game_data' => [
             'board' => $newBoard,
             'current_player' => $nextPlayer,
