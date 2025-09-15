@@ -80,8 +80,8 @@ try {
             'current_player' => $game['current_player'],
             'board' => $boardState,
             'captured_pieces' => [
-                'black' => $game['captured_pieces_black'],
-                'white' => $game['captured_pieces_white']
+                'black' => $game['captured_pieces_black'] ?? 0,
+                'white' => $game['captured_pieces_white'] ?? 0
             ],
             'game_status' => $game['game_status'],
             'winner' => $game['winner'],

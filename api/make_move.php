@@ -91,13 +91,13 @@ try {
     
     // Usar las capturas enviadas por el cliente (formato actual)
     if (isset($input['total_captures']) && isset($input['total_captures']['captured_pieces'])) {
-        $totalCapturedBlack = $input['total_captures']['captured_pieces']['black'];
-        $totalCapturedWhite = $input['total_captures']['captured_pieces']['white'];
+        $totalCapturedBlack = $input['total_captures']['captured_pieces']['black'] ?? 0;
+        $totalCapturedWhite = $input['total_captures']['captured_pieces']['white'] ?? 0;
         error_log("Using client-calculated captures (total_captures) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     } else if (isset($input['captured_pieces'])) {
         // Compatibilidad con formato anterior
-        $totalCapturedBlack = $input['captured_pieces']['black'];
-        $totalCapturedWhite = $input['captured_pieces']['white'];
+        $totalCapturedBlack = $input['captured_pieces']['black'] ?? 0;
+        $totalCapturedWhite = $input['captured_pieces']['white'] ?? 0;
         error_log("Using client-calculated captures (captured_pieces) - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     } else {
         // Error: el cliente debe enviar las capturas
@@ -105,6 +105,11 @@ try {
         echo json_encode(['success' => false, 'message' => 'Cliente no envió información de capturas']);
         exit;
     }
+    
+    // Ensure values are integers and not null
+    $totalCapturedBlack = (int)($totalCapturedBlack ?? 0);
+    $totalCapturedWhite = (int)($totalCapturedWhite ?? 0);
+    error_log("Final sanitized captures - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     
     // Determinar el siguiente jugador (cambiar de 1 a 2 o viceversa)
     // En modo debug, mantener el turno actual
