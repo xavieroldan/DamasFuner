@@ -2243,7 +2243,11 @@ class DamasGame {
 
     // Function to clear only the motivational message
     clearMotivationalMessage() {
-        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        // Try to find the players-info element first, then fallback to container
+        let gameInfoElement = document.querySelector('.players-info');
+        if (!gameInfoElement) {
+            gameInfoElement = document.querySelector('.container');
+        }
         if (gameInfoElement) {
             const motivationalElement = gameInfoElement.querySelector('.motivational-message');
             if (motivationalElement) {
@@ -2326,7 +2330,11 @@ class DamasGame {
 
     // Function to show waiting message when it's not your turn
     showWaitingMessage() {
-        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        // Try to find the players-info element first, then fallback to container
+        let gameInfoElement = document.querySelector('.players-info');
+        if (!gameInfoElement) {
+            gameInfoElement = document.querySelector('.container');
+        }
         if (!gameInfoElement) {
             console.error('Game info element not found!');
             return;
