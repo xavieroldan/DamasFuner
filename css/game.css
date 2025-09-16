@@ -763,3 +763,11 @@ main {
         transform: translateX(-50%) scale(1);
     }
 }
+
+/* Estilos para el texto del countdown */
+.countdown-text {
+    font-size: 18px;
+    color: #333;
+    font-weight: normal;
+    text-align: center;
+}
