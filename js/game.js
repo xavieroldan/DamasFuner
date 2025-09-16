@@ -1837,6 +1837,27 @@ class DamasGame {
                 newPlayer2Name = this.playerNames[1] || 'Jugador 1';
             }
 
+            // Notificar al servidor sobre la elección de nueva partida
+            try {
+                await fetch('api/notify_new_game_choice.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        game_id: this.gameId,
+                        player_id: this.playerId,
+                        color_mode: colorMode,
+                        player1_name: newPlayer1Name,
+                        player2_name: newPlayer2Name
+                    })
+                });
+                console.log('Notified server about new game choice:', colorMode);
+            } catch (notifyError) {
+                console.warn('Failed to notify server about new game choice:', notifyError);
+                // Continue with reset anyway
+            }
+
             // Estrategia alternativa: intentar reset_game.php, luego simple_reset.php, luego recargar directamente
             let resetSuccess = false;
             
@@ -1916,10 +1937,10 @@ class DamasGame {
                 }
             }
             
-            // Cerrar modal
-            document.getElementById('end-game-modal').style.display = 'none';
+            // No cerrar el modal aquí - se cerrará automáticamente cuando el servidor procese la elección
+            // El modal se cerrará cuando handleGameUpdate detecte el cambio de estado a 'new_game_pending'
             
-            // Redirigir con los nuevos nombres de jugadores
+            // Redirigir con los nuevos nombres de jugadores después de un breve delay
             setTimeout(() => {
                 const currentUrl = new URL(window.location.href);
                 // Update the name parameter to match the current player's new name
@@ -1932,7 +1953,7 @@ class DamasGame {
                     currentUrl.searchParams.set('name', newPlayer2Name);
                 }
                 window.location.href = currentUrl.toString();
-            }, 1500);
+            }, 2000); // Aumentar el delay para dar tiempo al servidor
             
         } catch (error) {
             console.error('Error creating new game:', error);
