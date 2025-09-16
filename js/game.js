@@ -1613,24 +1613,9 @@ class DamasGame {
             ">
                 <div id="end-game-winner"></div>
                 <div id="end-game-options" style="margin-top: 30px;">
-                    <div id="countdown-message" style="
-                        text-align: center;
-                        font-size: 18px;
-                        color: #333;
-                        margin: 20px 0;
-                        padding: 20px;
-                        background: rgba(255, 255, 255, 0.1);
-                        border-radius: 10px;
-                        border: 2px solid #ddd;
-                    ">
+                    <div id="countdown-message" class="countdown-container">
                         <div id="countdown-text">Volviendo al menú principal en...</div>
-                        <div id="countdown-number" style="
-                            font-size: 48px;
-                            font-weight: bold;
-                            color: #FF6B6B;
-                            margin: 10px 0;
-                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                        ">10</div>
+                        <div id="countdown-number" class="countdown-number">10</div>
                         <div id="countdown-subtext" class="countdown-text">
                             La partida ha terminado
                         </div>

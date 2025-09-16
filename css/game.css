@@ -764,6 +764,27 @@ main {
     }
 }
 
+/* Estilos para el contenedor del countdown */
+.countdown-container {
+    text-align: center;
+    font-size: 18px;
+    color: #ffffff !important;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 2px solid #ddd;
+}
+
+/* Estilos para el número del countdown */
+.countdown-number {
+    font-size: 48px;
+    font-weight: bold;
+    color: #FF6B6B;
+    margin: 10px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
 /* Estilos para el texto del countdown */
 #countdown-subtext.countdown-text {
     font-size: 18px !important;
