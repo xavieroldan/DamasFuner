@@ -1859,6 +1859,17 @@ class DamasGame {
                     statusDiv.textContent = '¡Nueva partida creada! Redirigiendo...';
                     statusDiv.style.color = '#4CAF50';
                     resetSuccess = true;
+                    
+                    // Update the board with the reset state from server
+                    if (data.game_data && data.game_data.board) {
+                        console.log('Updating board with reset state from server:', data.game_data.board);
+                        this.updateBoardFromServer(data.game_data.board);
+                        this.currentPlayer = data.game_data.current_player || 1;
+                        this.gameState = data.game_data.game_status || 'playing';
+                        this.capturedPieces = { black: 0, white: 0 };
+                        this.updateCapturedPieces();
+                        this.updateGameStatus();
+                    }
                 } else {
                     throw new Error(data.message || 'Error al crear nueva partida');
                 }
@@ -1884,6 +1895,17 @@ class DamasGame {
                         statusDiv.textContent = '¡Nueva partida creada! (modo simple)';
                         statusDiv.style.color = '#4CAF50';
                         resetSuccess = true;
+                        
+                        // Update the board with the reset state from server
+                        if (simpleData.game_data && simpleData.game_data.board) {
+                            console.log('Updating board with simple reset state from server:', simpleData.game_data.board);
+                            this.updateBoardFromServer(simpleData.game_data.board);
+                            this.currentPlayer = simpleData.game_data.current_player || 1;
+                            this.gameState = simpleData.game_data.game_status || 'playing';
+                            this.capturedPieces = { black: 0, white: 0 };
+                            this.updateCapturedPieces();
+                            this.updateGameStatus();
+                        }
                     } else {
                         throw new Error(simpleData.message || 'Error en modo simple');
                     }
