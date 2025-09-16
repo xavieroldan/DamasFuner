@@ -187,7 +187,15 @@ class NetworkManager {
                 
                 // Actualizar jugador actual
                 if (data.current_player) {
+                    console.log('=== UPDATING CURRENT PLAYER FROM SERVER ===');
+                    console.log('Server current_player:', data.current_player);
+                    console.log('Current client currentPlayer before update:', window.game.currentPlayer);
+                    console.log('My player number:', window.game.myPlayerNumber);
+                    console.log('Is it my turn after server update?', data.current_player === window.game.myPlayerNumber);
                     window.game.updateCurrentPlayer(data.current_player);
+                    console.log('Current client currentPlayer after update:', window.game.currentPlayer);
+                } else {
+                    console.log('No current_player in server response');
                 }
                 
                 // Actualizar capturas usando datos del servidor
@@ -289,9 +297,15 @@ class NetworkManager {
             }
         }
         
-        // Actualizar jugador actual
+        // Actualizar jugador actual si viene en la respuesta
         if (gameData.current_player) {
+            console.log('=== UPDATING CURRENT PLAYER FROM POLLING ===');
+            console.log('Polling current_player:', gameData.current_player);
+            console.log('Current client currentPlayer before update:', window.game.currentPlayer);
+            console.log('My player number:', window.game.myPlayerNumber);
+            console.log('Is it my turn after polling update?', gameData.current_player === window.game.myPlayerNumber);
             window.game.updateCurrentPlayer(gameData.current_player);
+            console.log('Current client currentPlayer after update:', window.game.currentPlayer);
         }
         
         // Actualizar piezas capturadas - usar nuevos campos dinámicos del servidor
@@ -377,15 +391,8 @@ class NetworkManager {
             const colorText = winnerNumber === 1 ? '(Blancas)' : '(Negras)';
             const winnerName = `${winnerPlayerName} ${colorText}`;
             
-            // Verificar si fue por abandono
-            const isAbandonment = gameData.game_status === 'finished' && gameData.winner;
-            if (isAbandonment) {
-                window.game.handleGameAbandonment(winnerName);
-            } else {
-                // Game won - no chat message needed
-            }
-            
-            window.game.gameState = 'finished';
+            // Game finished normally - call endGame to show proper end screen
+            window.game.endGame(gameData.winner);
             this.stopPolling();
         }
     }
@@ -544,6 +551,14 @@ class NetworkManager {
                 // Update UI with player names
                 window.game.updateGameStatus();
                 console.log('Updated game status with player names');
+                
+                // Now call updateCurrentPlayer after myPlayerNumber is set
+                if (gameData.current_player) {
+                    console.log('=== CALLING updateCurrentPlayer ===');
+                    console.log('myPlayerNumber:', window.game.myPlayerNumber);
+                    console.log('currentPlayer:', gameData.current_player);
+                    window.game.updateCurrentPlayer(gameData.current_player);
+                }
             } else {
                 console.error('Failed to load game state:', data);
             }

@@ -625,23 +625,27 @@ main {
     animation: messageSlideIn 0.3s ease-out !important;
     max-width: 100% !important;
     text-align: center !important;
-    display: none;
-    opacity: 0;
-    visibility: hidden;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
     margin: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
     border: 2px solid transparent !important;
+    min-height: 50px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Mensaje motivacional: fondo verde, letra blanca */
 .game-message.motivational {
-    background: linear-gradient(135deg, #4CAF50, #45a049) !important;
-    color: white !important;
-    border: 2px solid #2E7D32 !important;
+    background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+    color: #2d5a27 !important;
+    border: 2px solid #51cf66 !important;
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
+    animation: motivationalBounce 1.5s ease-in-out !important;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8) !important;
 }
 
 /* Mensaje de error: fondo rojo, letra blanca */
@@ -656,12 +660,13 @@ main {
 
 /* Mensaje de espera: fondo naranja, letra blanca */
 .game-message.waiting {
-    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
-    color: white !important;
-    border: 2px solid #ef6c00 !important;
+    background: linear-gradient(135deg, #ffd43b, #fab005) !important;
+    color: #2d3436 !important;
+    border: 2px solid #ffd43b !important;
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
+    animation: waitingPulse 2s infinite !important;
 }
 
 /* Mensaje de éxito: fondo azul, letra blanca */
