@@ -37,7 +37,7 @@ class DamasGame {
         // Create 8x8 board
         this.board = Array(8).fill().map(() => Array(8).fill(null));
         
-        // Colocar piezas negras (jugador 1)
+        // Place black pieces (player 1)
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 8; col++) {
                 if ((row + col) % 2 === 1) {
@@ -46,7 +46,7 @@ class DamasGame {
             }
         }
         
-        // Colocar piezas blancas (jugador 2)
+        // Place white pieces (player 2)
         for (let row = 5; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 if ((row + col) % 2 === 1) {
@@ -129,7 +129,7 @@ class DamasGame {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 
-                // Aplicar rotación si es necesario
+                // Apply rotation if necessary
                 if (shouldRotate) {
                     cell.dataset.row = 7 - row;
                     cell.dataset.col = 7 - col;
@@ -209,9 +209,9 @@ class DamasGame {
             return;
         }
         
-        // CRÍTICO: Si no es mi turno, no permitir ninguna interacción
+        // CRITICAL: If it's not my turn, don't allow any interaction
         if (this.currentPlayer !== this.myPlayerNumber) {
-            // No mostrar mensaje aquí, el overlay ya indica que no es tu turno
+            // Don't show message here, the overlay already indicates it's not your turn
             return; 
         }
         
@@ -219,9 +219,9 @@ class DamasGame {
         
         // Si hay una pieza seleccionada, intentar mover
         if (this.selectedPiece) {
-            // Si haces clic en otra pieza del mismo color, verificar si hay capturas múltiples en progreso
+            // If clicking on another piece of the same color, check if there are multiple captures in progress
             if (piece && piece.player === this.myPlayerNumber) {
-                // Verificar si hay capturas múltiples en progreso
+                // Check if there are multiple captures in progress
                 if (this.multipleCaptureInProgress) {
                     console.log('=== CAPTURAS MÚLTIPLES EN PROGRESO ===');
                     console.log('Hay capturas múltiples en progreso, no permitir cambio de pieza');
@@ -234,7 +234,7 @@ class DamasGame {
                 this.selectedPiece = null;
                 this.possibleMoves = [];
                 this.renderBoard();
-                // Reiniciar el proceso de selección desde cero
+                // Restart selection process from scratch
                 console.log('=== INICIANDO NUEVA SELECCIÓN ===');
                 console.log(`Nueva pieza en (${row}, ${col}):`, piece);
                 
@@ -305,7 +305,7 @@ class DamasGame {
                     // Reset flag when making a move
                     this.motivationalMessageShown = false;
                     
-                    // Solo limpiar possibleMoves si no hay capturas múltiples en progreso
+                    // Only clear possibleMoves if there are no multiple captures in progress
                     if (!this.multipleCaptureInProgress) {
                     this.possibleMoves = [];
                     }
@@ -314,13 +314,13 @@ class DamasGame {
                 } else {
                     // Show invalid move message
                     this.showInvalidMoveMessage(row, col);
-                    // No seleccionar nueva pieza después de mostrar mensaje de movimiento inválido
+                    // Don't select new piece after showing invalid move message
                     return;
                 }
             }
         }
         
-        // Si no hay pieza seleccionada o se está cambiando de pieza
+        // If no piece is selected or changing piece
         if (piece && piece.player === this.myPlayerNumber) {
             // Solo permitir seleccionar si es mi turno
             if (this.currentPlayer !== this.myPlayerNumber) {
@@ -336,7 +336,7 @@ class DamasGame {
                 return;
             }
             
-            // Verificar si hay capturas obligatorias antes de seleccionar (solo si no hay capturas múltiples en progreso)
+            // Check for mandatory captures before selecting (only if no multiple captures in progress)
             if (!this.multipleCaptureInProgress) {
             const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
             if (mandatoryCaptures && mandatoryCaptures.length > 0) {
@@ -369,7 +369,7 @@ class DamasGame {
             this.showMessage('🚫 No puedes mover las piezas del oponente', 'error');
         } else {
             // Click on empty cell without selected piece
-            // Solo mostrar mensajes si es mi turno y no hay capturas múltiples en progreso
+            // Only show messages if it's my turn and no multiple captures in progress
             if (this.currentPlayer === this.myPlayerNumber && !this.multipleCaptureInProgress) {
                 const mandatoryCaptures = this.applyCaptureRules(this.myPlayerNumber);
                 if (mandatoryCaptures && mandatoryCaptures.length > 0) {
@@ -385,7 +385,7 @@ class DamasGame {
                     this.showMessage('Selecciona una pieza primero', 'info');
                 }
             }
-            // Si no es mi turno o hay capturas múltiples en progreso, no mostrar ningún mensaje
+            // If it's not my turn or there are multiple captures in progress, don't show any message
         }
     }
 
@@ -454,7 +454,7 @@ class DamasGame {
         console.log(`Current player: ${this.currentPlayer}`);
         console.log(`My player number: ${this.myPlayerNumber}`);
 
-        // Usar la misma lógica que getPossibleMovesDebug: siempre verificar capturas primero
+        // Use the same logic as getPossibleMovesDebug: always check captures first
                 const captures = this.getPossibleCaptures(row, col);
                 
                 if (captures.length > 0) {
@@ -472,7 +472,7 @@ class DamasGame {
     }
 
     isValidMove(from, to) {
-        // Verificar si el movimiento está en los movimientos posibles
+        // Check if the move is in the possible moves
         const isValid = this.possibleMoves.some(move => move.row === to.row && move.col === to.col);
         
         console.log(`=== VALIDATE MOVE DEBUG ===`);
@@ -554,7 +554,7 @@ class DamasGame {
         return pieces;
     }
 
-    // Function to obtener movimientos normales de una pieza específica
+    // Function to get normal moves for a specific piece
     getNormalMoves(row, col) {
         const piece = this.board[row][col];
         if (!piece) return [];
@@ -562,7 +562,7 @@ class DamasGame {
         const moves = [];
         
         if (piece.isQueen) {
-            // Para damas: buscar todas las casillas vacías en diagonal
+            // For queens: search all empty squares diagonally
             const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
             
             console.log(`=== GET NORMAL MOVES FOR QUEEN AT (${row}, ${col}) ===`);
@@ -573,15 +573,15 @@ class DamasGame {
                 
                 console.log(`Checking direction: (${dRow}, ${dCol})`);
                 
-                // Buscar casillas vacías en esta dirección diagonal
+                // Search for empty squares in this diagonal direction
                 while (this.isValidPosition(currentRow, currentCol)) {
                     console.log(`Checking position: (${currentRow}, ${currentCol})`);
                     if (!this.board[currentRow][currentCol]) {
-                        // Casilla vacía, es un movimiento válido
+                        // Empty cell, it's a valid move
                         console.log(`Empty cell found at (${currentRow}, ${currentCol}) - adding to moves`);
                         moves.push({ row: currentRow, col: currentCol, type: 'normal' });
                     } else {
-                        // Hay una pieza, no podemos continuar en esta dirección
+                        // There's a piece, we can't continue in this direction
                         console.log(`Piece found at (${currentRow}, ${currentCol}) - stopping in this direction`);
                         break;
                     }
@@ -610,7 +610,7 @@ class DamasGame {
         return moves;
     }
 
-    // Function to obtener capturas posibles de una pieza específica (CON PRIORIZACIÓN DE CAPTURAS MÚLTIPLES)
+    // Function to get possible captures for a specific piece (WITH MULTIPLE CAPTURE PRIORITIZATION)
     getPossibleCaptures(row, col) {
         const piece = this.board[row][col];
         if (!piece) return [];
@@ -619,7 +619,7 @@ class DamasGame {
         console.log(`Getting captures for piece at (${row}, ${col}):`, piece);
 
         if (piece.isQueen) {
-            // Para damas: analizar cada captura inicial y ver cuántas capturas adicionales permite
+            // For queens: analyze each initial capture and see how many additional captures it allows
             const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
             const captureOptions = [];
             
@@ -630,7 +630,7 @@ class DamasGame {
                 let enemyRow = -1;
                 let enemyCol = -1;
 
-                // Buscar la primera pieza enemiga en esta dirección
+                // Search for the first enemy piece in this direction
                 while (this.isValidPosition(currentRow, currentCol)) {
                     if (this.board[currentRow][currentCol]) {
                         if (this.board[currentRow][currentCol].player !== piece.player) {
@@ -652,7 +652,7 @@ class DamasGame {
                     let landingCol = enemyCol + dc;
                     
                     while (this.isValidPosition(landingRow, landingCol) && !this.board[landingRow][landingCol]) {
-                        // Simular la captura y ver cuántas capturas adicionales permite
+                        // Simulate the capture and see how many additional captures it allows
                         const additionalCaptures = this.countAdditionalCaptures(landingRow, landingCol, piece);
                         
                         captureOptions.push({
@@ -675,7 +675,7 @@ class DamasGame {
                 }
             }
             
-            // Ordenar por número total de capturas (mayor primero)
+            // Sort by total number of captures (highest first)
             captureOptions.sort((a, b) => b.totalCaptures - a.totalCaptures);
             
             // Si hay opciones con diferentes números de capturas, solo devolver las de mayor número
@@ -727,7 +727,7 @@ class DamasGame {
                 }
             }
             
-            // Ordenar por número total de capturas (mayor primero)
+            // Sort by total number of captures (highest first)
             captureOptions.sort((a, b) => b.totalCaptures - a.totalCaptures);
             
             // Si hay opciones con diferentes números de capturas, solo devolver las de mayor número
@@ -1143,7 +1143,11 @@ class DamasGame {
             } else {
                 console.log(`No more captures available - changing turn`);
                 // No hay más capturas, cambiar turno normalmente
-        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                if (!this.debugMode) {
+                    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                } else {
+                    console.log(`🔧 Debug mode: turn change disabled - use debug controls`);
+                }
         this.selectedPiece = null;
         this.possibleMoves = [];
                 this.multipleCaptureInProgress = false;
@@ -1156,12 +1160,20 @@ class DamasGame {
                     this.sendMoveToServer(from, to, move.captured);
                 } else {
                     console.log(`🔧 Debug mode: skipping server communication`);
+                    // En modo debug, actualizar capturas localmente
+                    this.updateCapturedPieces();
+                    // Verificar ganador en modo debug
+                    this.checkWinnerIfNeeded();
                 }
             }
         } else {
             console.log(`No capture made - changing turn normally`);
             // No hubo captura, cambiar turno normalmente
-            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            if (!this.debugMode) {
+                this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            } else {
+                console.log(`🔧 Debug mode: turn change disabled - use debug controls`);
+            }
             this.selectedPiece = null;
             this.possibleMoves = [];
             this.multipleCaptureInProgress = false;
@@ -1174,6 +1186,10 @@ class DamasGame {
                 this.sendMoveToServer(from, to, []);
             } else {
                 console.log(`🔧 Debug mode: skipping server communication`);
+                // En modo debug, actualizar capturas localmente
+                this.updateCapturedPieces();
+                // Verificar ganador en modo debug
+                this.checkWinnerIfNeeded();
             }
         }
         
@@ -1331,6 +1347,7 @@ class DamasGame {
     updateCapturedPieces() {
         console.log(`=== UPDATING CAPTURED PIECES - START ===`);
         console.log(`this.capturedPieces from server:`, this.capturedPieces);
+        console.log(`Debug mode:`, this.debugMode);
         
         const blackCaptured = document.getElementById('black-captured');
         const whiteCaptured = document.getElementById('white-captured');
@@ -1340,20 +1357,30 @@ class DamasGame {
             return;
         }
         
-        // Use ONLY server values - no local calculations
-        // Ensure capturedPieces exists (should be set by network.js from server)
-        if (!this.capturedPieces) {
-            console.log(`❌ capturedPieces not set by server, using defaults`);
-            this.capturedPieces = { black: 0, white: 0 };
+        let blackCount, whiteCount;
+        
+        if (this.debugMode) {
+            // En modo debug, calcular capturas localmente
+            console.log(`🔧 Debug mode: calculating captures locally`);
+            const captures = this.calculateLocalCaptures();
+            blackCount = captures.black;
+            whiteCount = captures.white;
+            console.log(`Debug calculated - black: ${blackCount}, white: ${whiteCount}`);
+        } else {
+            // En modo juego normal, usar solo datos del servidor
+            // Ensure capturedPieces exists (should be set by network.js from server)
+            if (!this.capturedPieces) {
+                console.log(`❌ capturedPieces not set by server, using defaults`);
+                this.capturedPieces = { black: 0, white: 0 };
+            }
+            
+            // Get values directly from server data
+            blackCount = this.capturedPieces.black || 0;
+            whiteCount = this.capturedPieces.white || 0;
+            console.log(`Server values - black: ${blackCount}, white: ${whiteCount}`);
         }
         
-        // Get values directly from server data
-        const blackCount = this.capturedPieces.black || 0;
-        const whiteCount = this.capturedPieces.white || 0;
-        
-        console.log(`Server values - black: ${blackCount}, white: ${whiteCount}`);
-        
-        // Update DOM with server values only
+        // Update DOM with calculated values
         const blackText = `Capturas: ${blackCount}`;
         const whiteText = `Capturas: ${whiteCount}`;
         
@@ -1366,6 +1393,44 @@ class DamasGame {
         
         console.log(`Updated DOM - black: "${blackText}", white: "${whiteText}"`);
         console.log(`=== UPDATING CAPTURED PIECES - END ===`);
+    }
+
+    // Calculate captures locally for debug mode
+    calculateLocalCaptures() {
+        let currentPlayer1Pieces = 0; // White pieces
+        let currentPlayer2Pieces = 0; // Black pieces
+        
+        // Count pieces on current board
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (this.board[row][col]) {
+                    const piece = this.board[row][col];
+                    if (piece.player === 1) {
+                        currentPlayer1Pieces++;
+                    } else if (piece.player === 2) {
+                        currentPlayer2Pieces++;
+                    }
+                }
+            }
+        }
+        
+        // Initial pieces count (12 each)
+        const initialPlayer1Pieces = 12; // White pieces
+        const initialPlayer2Pieces = 12; // Black pieces
+        
+        // Calculate captures
+        // Player 1 captures = missing Player 2 pieces
+        const player1_captures = Math.max(0, initialPlayer2Pieces - currentPlayer2Pieces);
+        // Player 2 captures = missing Player 1 pieces  
+        const player2_captures = Math.max(0, initialPlayer1Pieces - currentPlayer1Pieces);
+        
+        console.log(`Debug local calculation - Player 1 pieces: ${currentPlayer1Pieces}, Player 2 pieces: ${currentPlayer2Pieces}`);
+        console.log(`Debug local calculation - Player 1 captures: ${player1_captures}, Player 2 captures: ${player2_captures}`);
+        
+        return {
+            black: player2_captures, // Player 2 (black) captures
+            white: player1_captures  // Player 1 (white) captures
+        };
     }
 
     // Function to verificar ganador solo cuando sea necesario
@@ -1508,8 +1573,12 @@ class DamasGame {
         // Mostrar el modal
         endGameModal.style.display = 'block';
         
-        // Configurar los botones
-        this.setupEndGameButtons(winnerNumber, player1Name, player2Name);
+        // Configurar los botones según el modo
+        if (this.debugMode) {
+            this.setupDebugEndGameButtons(winnerNumber, player1Name, player2Name);
+        } else {
+            this.setupEndGameButtons(winnerNumber, player1Name, player2Name);
+        }
     }
 
     // Crear el modal de fin de partida
@@ -1573,6 +1642,20 @@ class DamasGame {
                         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                     ">🔄 Nueva partida<br>(cambiar colores)</button>
                     <br>
+                    <button id="btn-reset-board" class="end-game-btn" style="
+                        background: linear-gradient(45deg, #FF9800, #F57C00);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        margin: 10px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">🔄 Reiniciar tablero<br>(modo debug)</button>
+                    <br>
                     <button id="btn-main-menu" class="end-game-btn" style="
                         background: linear-gradient(45deg, #f44336, #d32f2f);
                         color: white;
@@ -1616,12 +1699,53 @@ class DamasGame {
         return modal;
     }
 
+    // Configurar los botones del modal de fin de partida para modo debug
+    setupDebugEndGameButtons(winnerNumber, player1Name, player2Name) {
+        const btnSameColors = document.getElementById('btn-same-colors');
+        const btnSwapColors = document.getElementById('btn-swap-colors');
+        const btnResetBoard = document.getElementById('btn-reset-board');
+        const btnMainMenu = document.getElementById('btn-main-menu');
+        const statusDiv = document.getElementById('end-game-status');
+
+        // Ocultar botones que requieren comunicación con servidor
+        btnSameColors.style.display = 'none';
+        btnSwapColors.style.display = 'none';
+        
+        // Mostrar botones de debug
+        btnResetBoard.style.display = 'inline-block';
+        btnMainMenu.style.display = 'inline-block';
+
+        // Limpiar event listeners anteriores
+        btnResetBoard.replaceWith(btnResetBoard.cloneNode(true));
+        btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
+        
+        const newBtnResetBoard = document.getElementById('btn-reset-board');
+        const newBtnMainMenu = document.getElementById('btn-main-menu');
+
+        // Reiniciar tablero en modo debug
+        newBtnResetBoard.addEventListener('click', () => {
+            this.handleDebugResetBoard();
+        });
+
+        // Salir al menú principal
+        newBtnMainMenu.addEventListener('click', () => {
+            this.handleDebugMainMenu();
+        });
+
+        // Mostrar estado inicial
+        statusDiv.textContent = 'Modo debug - Opciones limitadas';
+    }
+
     // Configurar los botones del modal de fin de partida
     setupEndGameButtons(winnerNumber, player1Name, player2Name) {
         const btnSameColors = document.getElementById('btn-same-colors');
         const btnSwapColors = document.getElementById('btn-swap-colors');
         const btnMainMenu = document.getElementById('btn-main-menu');
         const statusDiv = document.getElementById('end-game-status');
+
+        // Mostrar todos los botones en modo juego normal
+        btnSameColors.style.display = 'inline-block';
+        btnSwapColors.style.display = 'inline-block';
 
         // Limpiar event listeners anteriores
         btnSameColors.replaceWith(btnSameColors.cloneNode(true));
@@ -1651,10 +1775,50 @@ class DamasGame {
         statusDiv.textContent = 'Esperando decisión...';
     }
 
+    // Manejar reinicio de tablero en modo debug
+    handleDebugResetBoard() {
+        console.log('🔧 Debug mode: resetting board');
+        
+        // Cerrar modal
+        const endGameModal = document.getElementById('end-game-modal');
+        if (endGameModal) {
+            endGameModal.style.display = 'none';
+        }
+        
+        // Reiniciar el juego
+        this.resetGame();
+        this.gameState = 'playing';
+        this.currentPlayer = 1;
+        
+        // Actualizar UI
+        this.renderBoard();
+        this.updateGameStatus();
+        this.updateCapturedPieces();
+        
+        // Limpiar mensajes
+        this.clearMessages();
+        
+        console.log('🔧 Debug mode: board reset complete');
+    }
+
+    // Manejar salida al menú principal en modo debug
+    handleDebugMainMenu() {
+        console.log('🔧 Debug mode: returning to main menu');
+        
+        // Cerrar modal
+        const endGameModal = document.getElementById('end-game-modal');
+        if (endGameModal) {
+            endGameModal.style.display = 'none';
+        }
+        
+        // Redirigir a home.html
+        window.location.href = 'home.html';
+    }
+
     // Manejar nueva partida
     async handleNewGame(colorMode, statusDiv) {
         try {
-            statusDiv.textContent = 'Creando nueva partida...';
+            statusDiv.textContent = 'Preparando nueva partida...';
             statusDiv.style.color = '#FFD700';
 
             // Determinar los colores para la nueva partida
@@ -1669,39 +1833,80 @@ class DamasGame {
                 newPlayer2Name = this.playerNames[1] || 'Jugador 1';
             }
 
-            // Crear nueva partida con el mismo código
-            const response = await fetch('api/reset_game.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    game_id: this.gameId,
-                    player1_name: newPlayer1Name,
-                    player2_name: newPlayer2Name
-                })
-            });
-
-            const data = await response.json();
+            // Estrategia alternativa: intentar reset_game.php, luego simple_reset.php, luego recargar directamente
+            let resetSuccess = false;
             
-            if (data.success) {
-                statusDiv.textContent = '¡Nueva partida creada! Redirigiendo...';
-                statusDiv.style.color = '#4CAF50';
+            try {
+                const response = await fetch('api/reset_game.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        game_id: this.gameId,
+                        player1_name: newPlayer1Name,
+                        player2_name: newPlayer2Name
+                    })
+                });
+
+                const data = await response.json();
                 
-                // Cerrar modal
-                document.getElementById('end-game-modal').style.display = 'none';
+                if (data.success) {
+                    statusDiv.textContent = '¡Nueva partida creada! Redirigiendo...';
+                    statusDiv.style.color = '#4CAF50';
+                    resetSuccess = true;
+                } else {
+                    throw new Error(data.message || 'Error al crear nueva partida');
+                }
+            } catch (resetError) {
+                console.warn('Reset game API failed, trying simple reset:', resetError);
                 
-                // Recargar la página con los nuevos datos
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                throw new Error(data.message || 'Error al crear nueva partida');
+                try {
+                    const simpleResponse = await fetch('api/simple_reset.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            game_id: this.gameId,
+                            player1_name: newPlayer1Name,
+                            player2_name: newPlayer2Name
+                        })
+                    });
+
+                    const simpleData = await simpleResponse.json();
+                    
+                    if (simpleData.success) {
+                        statusDiv.textContent = '¡Nueva partida creada! (modo simple)';
+                        statusDiv.style.color = '#4CAF50';
+                        resetSuccess = true;
+                    } else {
+                        throw new Error(simpleData.message || 'Error en modo simple');
+                    }
+                } catch (simpleError) {
+                    console.warn('Simple reset also failed, using page reload:', simpleError);
+                    statusDiv.textContent = 'Usando método alternativo...';
+                    statusDiv.style.color = '#FF9800';
+                }
             }
+            
+            // Cerrar modal
+            document.getElementById('end-game-modal').style.display = 'none';
+            
+            // Recargar la página (esto efectivamente reinicia el juego)
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+            
         } catch (error) {
             console.error('Error creating new game:', error);
-            statusDiv.textContent = 'Error al crear nueva partida. Inténtalo de nuevo.';
+            statusDiv.textContent = 'Error al crear nueva partida. Recargando página...';
             statusDiv.style.color = '#f44336';
+            
+            // Fallback: recargar la página de todas formas
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         }
     }
 
@@ -2442,9 +2647,9 @@ DamasGame.prototype.handleDebugPlayMode = function(row, col) {
     
     // Si hay una pieza seleccionada, intentar mover
     if (this.selectedPiece) {
-        // Si haces clic en otra pieza del mismo color, verificar si hay capturas múltiples en progreso
+        // If clicking on another piece of the same color, check if there are multiple captures in progress
         if (piece && piece.player === this.currentPlayer) {
-            // Verificar si hay capturas múltiples en progreso
+            // Check if there are multiple captures in progress
             if (this.multipleCaptureInProgress) {
                 console.log('=== CAPTURAS MÚLTIPLES EN PROGRESO ===');
                 console.log('Hay capturas múltiples en progreso, no permitir cambio de pieza');
@@ -2774,4 +2979,9 @@ DamasGame.prototype.changeTurn = function() {
     this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
     document.getElementById('debug-turn-display').textContent = `Turno: ${this.currentPlayer}`;
     console.log(`🔧 Turn changed to: ${this.currentPlayer}`);
+    
+    // Actualizar overlay y capturas en modo debug
+    this.updateBoardOverlay();
+    this.updateCapturedPieces();
+    this.updateGameStatus();
 };

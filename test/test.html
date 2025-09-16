@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Testing - Damas Funer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 40px;
+        }
+        
+        .test-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+        
+        .test-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .test-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .test-description {
+            color: #6c757d;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .test-features {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        
+        .test-features h4 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .test-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .test-features li {
+            padding: 5px 0;
+            color: #6c757d;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .test-features li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+        }
+        
+        .btn-info {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+        
+        .navigation {
+            background: #e9ecef;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .navigation .btn {
+            margin: 0 10px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .info-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .info-section p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ready {
+            background: #28a745;
+        }
+        
+        .status-warning {
+            background: #ffc107;
+        }
+        
+        .status-error {
+            background: #dc3545;
+        }
+        
+        @media (max-width: 768px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .test-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Centro de Testing</h1>
+            <p>Batería de pruebas automatizadas para Damas Funer</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="test-grid">
+                <!-- Test Suite Completo -->
+                <div class="test-card">
+                    <span class="test-icon">🔬</span>
+                    <div class="test-title">Test Suite Completo</div>
+                    <div class="test-description">
+                        Batería exhaustiva de tests que simula todas las funcionalidades del juego. 
+                        Ideal para verificación completa antes de despliegues importantes.
+                    </div>
+                    <div class="test-features">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Tests de lógica de juego</li>
+                            <li>Tests de red y API</li>
+                            <li>Tests de interfaz de usuario</li>
+                            <li>Simulación completa de funcionalidades</li>
+                            <li>Interfaz visual detallada</li>
+                        </ul>
+                    </div>
+                    <a href="test_suite.html" class="btn btn-primary">🚀 Ejecutar Test Suite</a>
+                </div>
+                
+                <!-- Tests Rápidos -->
+                <div class="test-card">
+                    <span class="test-icon">⚡</span>
+                    <div class="test-title">Tests Rápidos</div>
+                    <div class="test-description">
+                        Verificación rápida de funcionalidades críticas. 
+                        Perfecto para verificación antes de commits o cambios menores.
+                    </div>
+                    <div class="test-features">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Ejecución rápida</li>
+                            <li>Tests de funcionalidades críticas</li>
+                            <li>Interfaz simplificada</li>
+                            <li>Resultados inmediatos</li>
+                            <li>Ideal para desarrollo diario</li>
+                        </ul>
+                    </div>
+                    <a href="quick_tests.html" class="btn btn-info">⚡ Ejecutar Tests Rápidos</a>
+                </div>
+                
+                <!-- Debug Test -->
+                <div class="test-card">
+                    <span class="test-icon">🐛</span>
+                    <div class="test-title">Debug Test</div>
+                    <div class="test-description">
+                        Test de diagnóstico para identificar problemas específicos del sistema. 
+                        Incluye verificación de rutas de API y conexiones.
+                    </div>
+                    <div class="test-features">
+                        <h4>Características:</h4>
+                        <ul>
+                            <li>Verificación de rutas de API</li>
+                            <li>Pruebas de conexión</li>
+                            <li>Tests de lógica de juego</li>
+                            <li>Verificación de headers CORS</li>
+                            <li>Diagnóstico detallado</li>
+                        </ul>
+                    </div>
+                    <a href="debug_test.html" class="btn btn-secondary">🐛 Ejecutar Debug Test</a>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>📊 Estado del Sistema</h3>
+                <p><span class="status-indicator status-ready"></span><strong>Test Suite Completo:</strong> Listo para ejecutar - Simula todas las funcionalidades del juego</p>
+                <p><span class="status-indicator status-ready"></span><strong>Tests Rápidos:</strong> Listo para ejecutar - Verificación rápida de funcionalidades críticas</p>
+                <p><span class="status-indicator status-ready"></span><strong>Debug Test:</strong> Listo para ejecutar - Diagnóstico detallado del sistema</p>
+                
+                <h3>🎯 Recomendaciones de Uso</h3>
+                <p><strong>Para desarrollo diario:</strong> Usa Tests Rápidos para verificación rápida</p>
+                <p><strong>Para cambios importantes:</strong> Usa Test Suite Completo para verificación exhaustiva</p>
+                <p><strong>Para despliegues:</strong> Usa Test Suite Completo para verificación exhaustiva</p>
+                <p><strong>Para diagnosticar problemas:</strong> Usa Debug Test para análisis detallado</p>
+                
+                <h3>📝 Notas Importantes</h3>
+                <p>• Los tests no modifican el estado real del juego</p>
+                <p>• Los tests de red requieren que el servidor esté funcionando</p>
+                <p>• Los tests se ejecutan en el navegador, no en el servidor</p>
+                <p>• Los tests están diseñados para el modo juego normal (no debug)</p>
+            </div>
+            
+            <div class="navigation">
+                <a href="../home.html" class="btn btn-danger">🏠 Volver al Inicio</a>
+                <a href="../about.html" class="btn">ℹ️ Acerca del Proyecto</a>
+                <a href="TESTING.md" class="btn" target="_blank">📖 Guía de Testing</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

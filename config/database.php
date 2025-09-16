@@ -78,7 +78,9 @@ function executeQuery($sql, $params = []) {
         return $stmt;
     } catch (PDOException $e) {
         error_log("Query error: " . $e->getMessage());
-        throw new Exception("Database query error");
+        error_log("SQL: " . $sql);
+        error_log("Params: " . json_encode($params));
+        throw new Exception("Database query error: " . $e->getMessage());
     }
 }
 

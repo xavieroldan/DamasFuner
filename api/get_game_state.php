@@ -16,14 +16,28 @@ require_once '../config/database.php';
  * @return array Array with player1_captures and player2_captures
  */
 function calculateDynamicCaptures($currentBoard) {
+    // Use the same logic as make_move.php for consistency
+    $result = calculateCapturesFromBoard($currentBoard);
+    return [
+        'player1_captures' => $result['player1_captures'],
+        'player2_captures' => $result['player2_captures']
+    ];
+}
+
+/**
+ * Calculate total captures from current board state by counting missing pieces
+ * @param array $boardState Current board state
+ * @return array Array with player1_captures and player2_captures
+ */
+function calculateCapturesFromBoard($boardState) {
     // Count pieces on current board
     $currentPlayer1Pieces = 0; // White pieces
     $currentPlayer2Pieces = 0; // Black pieces
     
     for ($row = 0; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
-            if ($currentBoard[$row][$col]) {
-                $piece = $currentBoard[$row][$col];
+            if ($boardState[$row][$col]) {
+                $piece = $boardState[$row][$col];
                 if ($piece['player'] == 1) {
                     $currentPlayer1Pieces++;
                 } else if ($piece['player'] == 2) {
@@ -39,17 +53,19 @@ function calculateDynamicCaptures($currentBoard) {
     
     // Calculate captures
     // Player 1 captures = missing Player 2 pieces
-    $player1_captures = $initialPlayer2Pieces - $currentPlayer2Pieces;
+    $player1_captures = max(0, $initialPlayer2Pieces - $currentPlayer2Pieces);
     // Player 2 captures = missing Player 1 pieces  
-    $player2_captures = $initialPlayer1Pieces - $currentPlayer1Pieces;
+    $player2_captures = max(0, $initialPlayer1Pieces - $currentPlayer1Pieces);
     
     return [
-        'player1_captures' => max(0, $player1_captures),
-        'player2_captures' => max(0, $player2_captures)
+        'player1_captures' => $player1_captures,
+        'player2_captures' => $player2_captures,
+        'current_player1_pieces' => $currentPlayer1Pieces,
+        'current_player2_pieces' => $currentPlayer2Pieces
     ];
 }
 
-// Solo permitir método GET
+// Only allow GET method
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -57,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    // Obtener parámetros
+    // Get parameters
     $gameId = isset($_GET['game_id']) ? (int)$_GET['game_id'] : 0;
     $playerId = isset($_GET['player_id']) ? (int)$_GET['player_id'] : 0;
     
@@ -65,7 +81,7 @@ try {
         throw new Exception('ID de partida y jugador requeridos');
     }
     
-    // Obtener información de la partida
+    // Get game information
     $game = fetchOne("
         SELECT g.*, p1.name as player1_name, p2.name as player2_name
         FROM games g
@@ -84,7 +100,7 @@ try {
         throw new Exception('Jugador no autorizado para esta partida');
     }
     
-    // Obtener mensajes de chat recientes (últimos 20)
+    // Get recent chat messages (last 20)
     $chatMessages = fetchAll("
         SELECT cm.*, p.player_number
         FROM chat_messages cm
@@ -94,7 +110,7 @@ try {
         LIMIT 20
     ", [$gameId]);
     
-    // Obtener movimientos recientes (últimos 10)
+    // Get recent moves (last 10)
     $recentMoves = fetchAll("
         SELECT m.*, p.name as player_name
         FROM moves m
@@ -110,7 +126,7 @@ try {
         $boardState = createInitialBoard();
     }
     
-    // Calcular capturas dinámicamente basándose en piezas faltantes
+    // Calculate captures dynamically based on missing pieces
     $dynamicCaptures = calculateDynamicCaptures($boardState);
     
     // Preparar respuesta
@@ -184,7 +200,7 @@ function createInitialBoard() {
         }
     }
     
-    // Colocar piezas blancas (jugador 1) en las últimas 3 filas
+    // Place white pieces (player 1) in the last 3 rows
     for ($row = 5; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             if (($row + $col) % 2 === 1) {

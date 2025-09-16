@@ -274,8 +274,16 @@
                     <p>Dos jugadores pueden jugar simultáneamente desde diferentes dispositivos</p>
                 </div>
                 <div class="feature-card">
-                    <h4>🐛 Modo debug integrado</h4>
-                    <p>Acceso directo desde game.html?debug=true para pruebas sin restricciones</p>
+                    <h4>🧪 Sistema de Testing Completo</h4>
+                    <p>Batería de tests automatizados integrada con descarga de resultados</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🐛 Modo Debug Avanzado</h4>
+                    <p>Herramientas de desarrollo independientes del servidor con control manual</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Sistema de Capturas Robusto</h4>
+                    <p>Cálculo centralizado en el servidor como fuente única de verdad</p>
                 </div>
                 <div class="feature-card">
                     <h4>📱 Diseño responsive</h4>
@@ -294,6 +302,10 @@
                     <p>Seguimiento visual de piezas capturadas con nombres de jugadores</p>
                 </div>
                 <div class="feature-card">
+                    <h4>🎯 Validación Avanzada</h4>
+                    <p>Detección automática de victorias y bloqueos con sistema de fallback</p>
+                </div>
+                <div class="feature-card">
                     <h4>💬 Sistema de mensajes inteligente</h4>
                     <p>Panel con jerarquía de mensajes y personalización</p>
                 </div>
@@ -306,6 +318,39 @@
                     <p>Botones optimizados para abandonar y navegar entre páginas</p>
                 </div>
             </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="emoji">🧪</span> Sistema de Testing</h2>
+            <p>El juego incluye un sistema completo de testing automatizado accesible desde la página principal:</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>🧪 Test Suite Completo</h4>
+                    <p>Simula todas las funcionalidades del juego con validación exhaustiva</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Tests Rápidos</h4>
+                    <p>Verificación rápida de funcionalidades críticas para desarrollo diario</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🐛 Debug Test</h4>
+                    <p>Diagnóstico detallado del sistema con análisis de conectividad</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Descarga de Resultados</h4>
+                    <p>Exporta resultados de tests en formato texto para análisis</p>
+                </div>
+            </div>
+            
+            <h3>Modo Debug Avanzado</h3>
+            <p>El juego incluye un modo debug especial para desarrollo y testing:</p>
+            <ul>
+                <li><strong>Acceso:</strong> Agregar <code>?debug=true</code> a la URL del juego</li>
+                <li><strong>Lógica local:</strong> Independiente del servidor para pruebas aisladas</li>
+                <li><strong>Control manual:</strong> Gestión manual de turnos y capturas</li>
+                <li><strong>Herramientas integradas:</strong> Funciones de desarrollo incorporadas</li>
+            </ul>
         </div>
 
         <div class="section">
@@ -332,6 +377,11 @@ git clone [URL_DEL_REPOSITORIO]
             <div class="code-block">
 mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
             </div>
+            <p><strong>Scripts de base de datos disponibles:</strong></p>
+            <ul>
+                <li><code>schema.sql</code> - Esquema completo con documentación detallada</li>
+                <li><code>clean_tables.sql</code> - Script de desarrollo para limpiar datos (¡CUIDADO: elimina todos los datos!)</li>
+            </ul>
 
             <h3>3. Configurar la conexión a la base de datos</h3>
             <p>Editar el archivo <code>config/database.php</code> y actualizar las credenciales:</p>
@@ -393,18 +443,19 @@ http://tu-servidor.com/damas-funer/
             <h2><span class="emoji">📝</span> Changelog</h2>
             
             <div class="changelog-item" style="border-left-color: #28a745; background: linear-gradient(135deg, #d4edda, #c3e6cb);">
-                <h4 style="color: #28a745;">🚀 v2.0.0 - "Versión Estable de Producción"</h4>
+                <h4 style="color: #28a745;">🚀 v2.0.0 - "Versión Final - Sistema Robusto"</h4>
                 <ul>
-                    <li>✅ <strong>Interfaz de jugadores rediseñada</strong> - Contadores de capturas combinados con nombres reales</li>
-                    <li>✅ <strong>Eliminación de información duplicada</strong> - Diseño más limpio y centrado</li>
-                    <li>✅ <strong>Bolitas de color para identificación</strong> - Visualización clara de jugadores con sus colores</li>
-                    <li>✅ <strong>Botón abandonar corregido</strong> - Sin congelamiento, redirección garantizada</li>
-                    <li>✅ <strong>Navegación móvil mejorada</strong> - Botón "Volver al Juego" optimizado para todas las resoluciones</li>
-                    <li>✅ <strong>Modo debug integrado</strong> - Acceso directo desde game.html?debug=true</li>
-                    <li>✅ <strong>Eliminación de efectos de sombra</strong> - Diseño más limpio sin distracciones</li>
-                    <li>✅ <strong>Tipografía mejorada</strong> - Nombres de jugadores más legibles y prominentes</li>
-                    <li>✅ <strong>Código optimizado</strong> - Eliminación de referencias a elementos inexistentes</li>
-                    <li>✅ <strong>Versión estable</strong> - Lista para producción con todas las funcionalidades probadas</li>
+                    <li>✅ <strong>Sistema de Testing Completo</strong> - Batería de tests automatizados integrada</li>
+                    <li>✅ <strong>Modo Debug Avanzado</strong> - Herramientas de desarrollo independientes del servidor</li>
+                    <li>✅ <strong>Sistema de Capturas Robusto</strong> - Cálculo centralizado en el servidor como fuente única de verdad</li>
+                    <li>✅ <strong>Validación Mejorada</strong> - Detección automática de victorias y bloqueos</li>
+                    <li>✅ <strong>Sistema de Fallback</strong> - Múltiples niveles de recuperación para reinicio de partidas</li>
+                    <li>✅ <strong>Página de Mantenimiento</strong> - Sistema de mantenimiento integrado</li>
+                    <li>✅ <strong>Centro de Testing</strong> - Hub centralizado para ejecutar todos los tests</li>
+                    <li>✅ <strong>Descarga de Resultados</strong> - Exportación de resultados de tests en formato texto</li>
+                    <li>✅ <strong>Documentación Actualizada</strong> - README y about.html completamente actualizados</li>
+                    <li>✅ <strong>Eliminación de Tests de Integración e Interfaz</strong> - Simplificación del sistema de testing</li>
+                    <li>✅ <strong>Versión Final Estable</strong> - Lista para producción con todas las funcionalidades probadas</li>
                 </ul>
             </div>
 

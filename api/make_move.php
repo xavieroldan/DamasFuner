@@ -39,6 +39,47 @@ function calculateCaptures($oldBoard, $newBoard, $playerNumber) {
     return $capturedPieces;
 }
 
+/**
+ * Calculate total captures from current board state by counting missing pieces
+ * @param array $boardState Current board state
+ * @return array Array with player1_captures and player2_captures
+ */
+function calculateCapturesFromBoard($boardState) {
+    // Count pieces on current board
+    $currentPlayer1Pieces = 0; // White pieces
+    $currentPlayer2Pieces = 0; // Black pieces
+    
+    for ($row = 0; $row < 8; $row++) {
+        for ($col = 0; $col < 8; $col++) {
+            if ($boardState[$row][$col]) {
+                $piece = $boardState[$row][$col];
+                if ($piece['player'] == 1) {
+                    $currentPlayer1Pieces++;
+                } else if ($piece['player'] == 2) {
+                    $currentPlayer2Pieces++;
+                }
+            }
+        }
+    }
+    
+    // Initial pieces count (12 each)
+    $initialPlayer1Pieces = 12; // White pieces
+    $initialPlayer2Pieces = 12; // Black pieces
+    
+    // Calculate captures
+    // Player 1 captures = missing Player 2 pieces
+    $player1_captures = max(0, $initialPlayer2Pieces - $currentPlayer2Pieces);
+    // Player 2 captures = missing Player 1 pieces  
+    $player2_captures = max(0, $initialPlayer1Pieces - $currentPlayer1Pieces);
+    
+    return [
+        'player1_captures' => $player1_captures,
+        'player2_captures' => $player2_captures,
+        'current_player1_pieces' => $currentPlayer1Pieces,
+        'current_player2_pieces' => $currentPlayer2Pieces
+    ];
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
@@ -71,7 +112,7 @@ try {
     $board = json_decode($game['board_state'], true);
     $currentPlayer = $game['current_player'];
     
-    // Obtener el número del jugador (1 o 2) basado en su ID
+    // Get player number (1 or 2) based on their ID
     $player = fetchOne("SELECT player_number FROM players WHERE id = ? AND game_id = ?", [$playerId, $gameId]);
     if (!$player) {
         echo json_encode(['valid' => false, 'message' => 'Jugador no encontrado']);
@@ -93,7 +134,7 @@ try {
     $toCol = $to['col'];
     
     // NO VALIDAR NADA - El cliente maneja todas las reglas del juego
-    // Solo verificar que las coordenadas están en el tablero (skip in debug mode)
+    // Only verify coordinates are on the board (skip in debug mode)
     if (!$debugMode && ($fromRow < 0 || $fromRow >= 8 || $fromCol < 0 || $fromCol >= 8 ||
         $toRow < 0 || $toRow >= 8 || $toCol < 0 || $toCol >= 8)) {
         echo json_encode(['valid' => false, 'message' => 'Coordenadas fuera del tablero']);
@@ -107,7 +148,7 @@ try {
     $capturedPieces = [];
     $captureCount = 0;
     
-    // Si el cliente envía el tablero completo, usarlo directamente
+    // If client sends complete board, use it directly
     if (isset($input['board_state'])) {
         $newBoard = $input['board_state'];
         error_log("Using complete board state from client");
@@ -115,36 +156,42 @@ try {
         // Calcular capturas comparando el tablero anterior con el nuevo
         $capturedPieces = calculateCaptures($board, $newBoard, $playerNumber);
         $captureCount = count($capturedPieces);
+        error_log("Capturas calculadas: " . json_encode($capturedPieces));
         error_log("Server calculated captures: " . $captureCount . " pieces");
     } else {
-        // Fallback: procesar movimiento básico (para compatibilidad)
+        // Fallback: process basic movement (for compatibility)
         $newBoard[$toRow][$toCol] = $newBoard[$fromRow][$fromCol];
         $newBoard[$fromRow][$fromCol] = null;
         error_log("Using fallback movement processing");
         
-        // Calcular capturas para movimiento básico
+        // Calculate captures for basic movement
         $capturedPieces = calculateCaptures($board, $newBoard, $playerNumber);
         $captureCount = count($capturedPieces);
+        error_log("Capturas calculadas (fallback): " . json_encode($capturedPieces));
     }
+    
+    // VALIDACIÓN: Verificar que las capturas calculadas sean correctas
+    $boardValidation = calculateCapturesFromBoard($newBoard);
+    error_log("Validación de capturas - Player 1: " . $boardValidation['player1_captures'] . 
+              ", Player 2: " . $boardValidation['player2_captures']);
+    error_log("Piezas actuales - Player 1: " . $boardValidation['current_player1_pieces'] . 
+              ", Player 2: " . $boardValidation['current_player2_pieces']);
     
     // SERVIDOR CALCULA TOTALES DE CAPTURAS - ÚNICA FUENTE DE VERDAD
-    // Obtener capturas actuales de la base de datos
-    $currentGame = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
-    $totalCapturedBlack = (int)($currentGame['captured_pieces_black'] ?? 0);
-    $totalCapturedWhite = (int)($currentGame['captured_pieces_white'] ?? 0);
-    
-    // Actualizar totales con las capturas calculadas por el servidor
-    if ($captureCount > 0) {
-        if ($playerNumber === 1) {
-            // Jugador 1 (blancas) capturó piezas del jugador 2 (negras)
-            $totalCapturedWhite += $captureCount;
-        } else {
-            // Jugador 2 (negras) capturó piezas del jugador 1 (blancas)
-            $totalCapturedBlack += $captureCount;
-        }
+    if ($debugMode) {
+        // En modo debug, usar los totales actuales de la DB sin modificar
+        $currentGame = fetchOne("SELECT captured_pieces_black, captured_pieces_white FROM games WHERE id = ?", [$gameId]);
+        $totalCapturedBlack = (int)($currentGame['captured_pieces_black'] ?? 0);
+        $totalCapturedWhite = (int)($currentGame['captured_pieces_white'] ?? 0);
+        error_log("Debug mode: using existing DB totals - Black: $totalCapturedBlack, White: $totalCapturedWhite");
+    } else {
+        // In normal game mode, use board validation as source of truth
+        $totalCapturedBlack = $boardValidation['player2_captures']; // Player 2 (black) captures
+        $totalCapturedWhite = $boardValidation['player1_captures']; // Player 1 (white) captures
+        error_log("Game mode: using board validation - Black: $totalCapturedBlack, White: $totalCapturedWhite");
     }
     
-    error_log("Server calculated total captures - Black: $totalCapturedBlack, White: $totalCapturedWhite");
+    error_log("Final validation - Board state captures match calculated totals");
     
     // Determinar el siguiente jugador (cambiar de 1 a 2 o viceversa)
     // En modo debug, mantener el turno actual

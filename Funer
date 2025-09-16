@@ -1,0 +1,3 @@
+[33mfffcb36[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m refactor: simplify database schema by removing unnecessary MySQL comments
+[33m9eb5df6[m feat: update visual counters to use only server data
+[33me4831cf[m feat: implement dynamic capture calculation in get_game_state.php

@@ -24,6 +24,10 @@ Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin 
 - 🔒 **Sistema seguro**: Validación de movimientos y protección contra spam
 - 📊 **Estadísticas**: Seguimiento de partidas y movimientos
 - 🌐 **Multiplataforma**: Funciona en cualquier navegador moderno
+- 🐛 **Modo Debug**: Herramientas de desarrollo y testing integradas
+- 🧪 **Sistema de Testing**: Batería completa de tests automatizados
+- 🔄 **Sistema de Capturas Robusto**: Cálculo centralizado en el servidor
+- 🎯 **Validación Avanzada**: Detección automática de victorias y bloqueos
 
 ## Requisitos del Servidor
 
@@ -49,6 +53,10 @@ git clone [https://github.com/xavieroldan/DamasFuner.git]
 ```bash
 mysql -u tu_usuario -p 6774344_damas_online < database/schema.sql
 ```
+
+**Nota sobre los scripts de base de datos:**
+- `schema.sql`: Esquema completo con documentación detallada
+- `clean_tables.sql`: Script de desarrollo para limpiar datos (¡CUIDADO: elimina todos los datos!)
 
 ### 3. Configurar la conexión a la base de datos
 
@@ -91,14 +99,21 @@ http://tu-servidor.com/damas-online/
 ## Estructura del Proyecto
 
 ```
-damas-online/
-├── game.html               # Página del juego
+DamasFuner/
+├── index.html             # Página principal
+├── home.html              # Página de inicio del juego
+├── game.html              # Página del juego
+├── about.html             # Página de información
+├── mant.html              # Página de mantenimiento
 ├── css/
-│   └── style.css          # Estilos del juego
+│   ├── style.css          # Estilos principales
+│   ├── game.css           # Estilos específicos del juego
+│   └── game-only.css      # Estilos adicionales del juego
 ├── js/
 │   ├── game.js            # Lógica del juego
 │   ├── network.js         # Comunicación con el servidor
-│   └── app.js             # Funcionalidades adicionales
+│   ├── app.js             # Funcionalidades adicionales
+│   └── home.js            # Lógica de la página de inicio
 ├── api/
 │   ├── create_game.php    # Crear nueva partida
 │   ├── join_game.php      # Unirse a partida
@@ -106,11 +121,22 @@ damas-online/
 │   ├── make_move.php      # Realizar movimiento
 │   ├── send_chat.php      # Enviar mensaje de chat
 │   ├── leave_game.php     # Abandonar partida
+│   ├── reset_game.php     # Reiniciar partida
+│   ├── simple_reset.php   # Reinicio simple (fallback)
 │   └── health_check.php   # Verificar estado del servidor
 ├── config/
-│   └── database.php       # Configuración de la base de datos
+│   ├── config.php         # Configuración principal
+│   ├── database.php       # Configuración de la base de datos
+│   └── server_config.php  # Configuración del servidor
 ├── database/
-│   └── schema.sql         # Esquema de la base de datos
+│   ├── schema.sql         # Complete database schema with documentation
+│   └── clean_tables.sql   # Development script to clear all data
+├── test/                  # Sistema de testing
+│   ├── test.html          # Hub central de testing
+│   ├── test_suite.html    # Test suite completo
+│   ├── quick_tests.html   # Tests rápidos
+│   ├── debug_test.html    # Tests de debug
+│   └── TESTING.md         # Documentación de testing
 └── logs/                  # Archivos de log (se crea automáticamente)
 ```
 
@@ -149,6 +175,34 @@ damas-online/
 - **Ctrl+L**: Abandonar partida
 - **ESC**: Cerrar modales
 - **Enter**: Enviar mensaje de chat
+
+## Sistema de Testing
+
+### Centro de Testing
+El juego incluye un sistema completo de testing automatizado accesible desde la página principal:
+
+- **🧪 Test Suite Completo**: Simula todas las funcionalidades del juego
+- **⚡ Tests Rápidos**: Verificación rápida de funcionalidades críticas  
+- **🐛 Debug Test**: Diagnóstico detallado del sistema
+- **📊 Descarga de Resultados**: Exporta resultados de tests en formato texto
+
+### Modo Debug
+El juego incluye un modo debug especial para desarrollo y testing:
+
+- **Acceso**: Agregar `?debug=true` a la URL del juego
+- **Características**:
+  - Lógica local independiente del servidor
+  - Control manual de turnos
+  - Cálculo local de capturas
+  - Herramientas de desarrollo integradas
+  - Menú de fin de juego simplificado
+
+### Ejecutar Tests
+1. Ve a la página principal (`home.html`)
+2. Haz clic en "Centro de Testing"
+3. Selecciona el tipo de test que deseas ejecutar
+4. Los tests se ejecutan automáticamente en el navegador
+5. Descarga los resultados si necesitas un reporte
 
 ## API Endpoints
 
@@ -292,6 +346,18 @@ Si tienes problemas o preguntas:
 3. Crea un nuevo Issue con detalles del problema
 
 ## Changelog
+
+### v2.0.0 - "Versión Final - Sistema Robusto"
+- ✅ **Sistema de Testing Completo**: Batería de tests automatizados integrada
+- ✅ **Modo Debug Avanzado**: Herramientas de desarrollo independientes del servidor
+- ✅ **Sistema de Capturas Robusto**: Cálculo centralizado en el servidor como fuente única de verdad
+- ✅ **Validación Mejorada**: Detección automática de victorias y bloqueos
+- ✅ **Sistema de Fallback**: Múltiples niveles de recuperación para reinicio de partidas
+- ✅ **Página de Mantenimiento**: Sistema de mantenimiento integrado
+- ✅ **Centro de Testing**: Hub centralizado para ejecutar todos los tests
+- ✅ **Descarga de Resultados**: Exportación de resultados de tests en formato texto
+- ✅ **Documentación Actualizada**: README y about.html completamente actualizados
+- ✅ **Eliminación de Tests de Integración e Interfaz**: Simplificación del sistema de testing
 
 ### v1.2.0 - "Efectos Cómicos"
 - ✅ Cambio de nombre a "Damas Funer"

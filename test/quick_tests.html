@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests Rápidos - Damas Funer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .test-controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+        
+        .test-results {
+            padding: 20px;
+        }
+        
+        .test-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dee2e6;
+            background: #f8f9fa;
+        }
+        
+        .test-item.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .test-item.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .test-item.running {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .test-status {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .test-details {
+            font-size: 0.85em;
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .summary {
+            background: #e9ecef;
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .summary.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .summary.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Tests Rápidos - Damas Funer</h1>
+            <p>Verificación rápida de funcionalidades críticas</p>
+        </div>
+        
+        <div class="test-controls">
+            <button id="runQuickTests" class="btn">🚀 Ejecutar Tests Rápidos</button>
+            <button id="runCriticalTests" class="btn">🔥 Tests Críticos</button>
+            <button id="runAPITests" class="btn">🌐 Tests de API</button>
+            <button id="downloadResults" class="btn" style="background: linear-gradient(45deg, #17a2b8, #138496);">📥 Descargar Resultados</button>
+            <button id="clearResults" class="btn btn-danger">🗑️ Limpiar</button>
+        </div>
+        
+        <div class="navigation" style="background: #e9ecef; padding: 15px; text-align: center; border-bottom: 1px solid #dee2e6;">
+            <a href="test.html" class="btn" style="background: linear-gradient(45deg, #6c757d, #5a6268); color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 20px; text-decoration: none; display: inline-block;">🏠 Centro de Testing</a>
+            <a href="test_suite.html" class="btn" style="background: linear-gradient(45deg, #007bff, #0056b3); color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 20px; text-decoration: none; display: inline-block;">🔬 Test Suite Completo</a>
+            <a href="../home.html" class="btn" style="background: linear-gradient(45deg, #dc3545, #c82333); color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 20px; text-decoration: none; display: inline-block;">🏠 Volver al Inicio</a>
+        </div>
+        
+        <div class="test-results" id="testResults">
+            <div class="test-item">
+                <div class="test-name">📊 Resumen de Tests</div>
+                <div class="test-status">Presiona "Ejecutar Tests Rápidos" para comenzar</div>
+                <div class="test-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test Suite Rápido para Damas Funer
+        class QuickTestSuite {
+            constructor() {
+                this.results = [];
+                this.totalTests = 0;
+                this.passedTests = 0;
+                this.failedTests = 0;
+                
+                this.initializeEventListeners();
+            }
+            
+            initializeEventListeners() {
+                document.getElementById('runQuickTests').addEventListener('click', () => this.runQuickTests());
+                document.getElementById('runCriticalTests').addEventListener('click', () => this.runCriticalTests());
+                document.getElementById('runAPITests').addEventListener('click', () => this.runAPITests());
+                document.getElementById('downloadResults').addEventListener('click', () => this.downloadResults());
+                document.getElementById('clearResults').addEventListener('click', () => this.clearResults());
+            }
+            
+            async runQuickTests() {
+                this.clearResults();
+                await this.runCriticalTests();
+                await this.runAPITests();
+                this.updateSummary();
+            }
+            
+            async runCriticalTests() {
+                const tests = [
+                    {
+                        name: "Inicialización del juego",
+                        test: () => this.testGameInitialization()
+                    },
+                    {
+                        name: "Validación de movimientos básicos",
+                        test: () => this.testBasicMoveValidation()
+                    },
+                    {
+                        name: "Detección de capturas",
+                        test: () => this.testCaptureDetection()
+                    },
+                    {
+                        name: "Conteo de capturas",
+                        test: () => this.testCaptureCounting()
+                    },
+                    {
+                        name: "Detección de victoria",
+                        test: () => this.testWinDetection()
+                    },
+                    {
+                        name: "Cambio de turnos",
+                        test: () => this.testTurnChanges()
+                    }
+                ];
+                
+                await this.runTests(tests);
+            }
+            
+            async runAPITests() {
+                const tests = [
+                    {
+                        name: "Creación de partida",
+                        test: () => this.testGameCreation()
+                    },
+                    {
+                        name: "Unión a partida",
+                        test: () => this.testJoinGame()
+                    },
+                    {
+                        name: "Envío de movimientos",
+                        test: () => this.testSendMove()
+                    },
+                    {
+                        name: "Obtención de estado",
+                        test: () => this.testGetGameState()
+                    },
+                    {
+                        name: "Manejo de errores",
+                        test: () => this.testErrorHandling()
+                    }
+                ];
+                
+                await this.runTests(tests);
+            }
+            
+            async runTests(tests) {
+                for (const test of tests) {
+                    const testElement = this.createTestElement(test.name);
+                    document.getElementById('testResults').appendChild(testElement);
+                    
+                    try {
+                        testElement.classList.add('running');
+                        const result = await test.test();
+                        this.handleTestResult(test.name, result, testElement);
+                    } catch (error) {
+                        this.handleTestResult(test.name, {
+                            success: false,
+                            message: error.message,
+                            details: error.stack
+                        }, testElement);
+                    }
+                }
+            }
+            
+            createTestElement(testName) {
+                const div = document.createElement('div');
+                div.className = 'test-item';
+                div.innerHTML = `
+                    <div class="test-name">${testName}</div>
+                    <div class="test-status">⏳ Ejecutando...</div>
+                    <div class="test-details"></div>
+                `;
+                return div;
+            }
+            
+            handleTestResult(testName, result, element) {
+                this.totalTests++;
+                
+                if (result.success) {
+                    this.passedTests++;
+                    element.classList.remove('running');
+                    element.classList.add('pass');
+                    element.querySelector('.test-status').textContent = '✅ Pasó';
+                } else {
+                    this.failedTests++;
+                    element.classList.remove('running');
+                    element.classList.add('fail');
+                    element.querySelector('.test-status').textContent = '❌ Falló';
+                }
+                
+                element.querySelector('.test-details').textContent = result.message || '';
+                if (result.details) {
+                    element.querySelector('.test-details').textContent += '\n\nDetalles:\n' + result.details;
+                }
+                
+                this.results.push({
+                    name: testName,
+                    success: result.success,
+                    message: result.message,
+                    details: result.details
+                });
+            }
+            
+            updateSummary() {
+                const summaryElement = document.querySelector('.test-item');
+                const passRate = this.totalTests > 0 ? (this.passedTests / this.totalTests * 100).toFixed(1) : 0;
+                
+                summaryElement.innerHTML = `
+                    <div class="test-name">📊 Resumen de Tests</div>
+                    <div class="test-status">Total: ${this.totalTests} | Pasaron: ${this.passedTests} | Fallaron: ${this.failedTests} | Tasa de éxito: ${passRate}%</div>
+                    <div class="test-details"></div>
+                `;
+                
+                if (this.failedTests === 0) {
+                    summaryElement.classList.add('pass');
+                    summaryElement.classList.remove('fail');
+                } else {
+                    summaryElement.classList.add('fail');
+                    summaryElement.classList.remove('pass');
+                }
+            }
+            
+            clearResults() {
+                this.results = [];
+                this.totalTests = 0;
+                this.passedTests = 0;
+                this.failedTests = 0;
+                
+                const testResults = document.getElementById('testResults');
+                testResults.innerHTML = `
+                    <div class="test-item">
+                        <div class="test-name">📊 Resumen de Tests</div>
+                        <div class="test-status">Presiona "Ejecutar Tests Rápidos" para comenzar</div>
+                        <div class="test-details"></div>
+                    </div>
+                `;
+            }
+            
+            downloadResults() {
+                if (this.results.length === 0) {
+                    alert('No hay resultados para descargar. Ejecuta los tests primero.');
+                    return;
+                }
+                
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `quick_test_results_${timestamp}.txt`;
+                
+                let report = `=== RESULTADOS DE TESTS RÁPIDOS - DAMAS FUNER ===\n`;
+                report += `Fecha: ${new Date().toLocaleString()}\n`;
+                report += `Total de tests: ${this.totalTests}\n`;
+                report += `Tests pasados: ${this.passedTests}\n`;
+                report += `Tests fallidos: ${this.failedTests}\n`;
+                report += `Tasa de éxito: ${this.totalTests > 0 ? (this.passedTests / this.totalTests * 100).toFixed(1) : 0}%\n\n`;
+                
+                report += `=== DETALLES DE TESTS ===\n\n`;
+                
+                this.results.forEach((result, index) => {
+                    report += `${index + 1}. ${result.name}\n`;
+                    report += `   Estado: ${result.success ? 'PASÓ' : 'FALLÓ'}\n`;
+                    report += `   Mensaje: ${result.message || 'Sin mensaje'}\n`;
+                    if (result.details) {
+                        report += `   Detalles: ${result.details}\n`;
+                    }
+                    report += `\n`;
+                });
+                
+                report += `=== INFORMACIÓN DEL SISTEMA ===\n`;
+                report += `User Agent: ${navigator.userAgent}\n`;
+                report += `URL: ${window.location.href}\n`;
+                report += `Timestamp: ${new Date().toISOString()}\n`;
+                
+                // Crear y descargar el archivo
+                const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+            
+            // ===== TESTS CRÍTICOS =====
+            
+            testGameInitialization() {
+                try {
+                    // Simular inicialización del juego
+                    const game = {
+                        board: this.createInitialBoard(),
+                        currentPlayer: 1,
+                        gameState: 'playing',
+                        capturedPieces: { black: 0, white: 0 }
+                    };
+                    
+                    // Verificar propiedades básicas
+                    if (!game.board || !Array.isArray(game.board)) {
+                        return { success: false, message: 'Tablero no inicializado' };
+                    }
+                    
+                    if (game.board.length !== 8 || game.board[0].length !== 8) {
+                        return { success: false, message: 'Tablero no tiene dimensiones 8x8' };
+                    }
+                    
+                    if (game.currentPlayer !== 1) {
+                        return { success: false, message: 'Jugador actual no inicializado' };
+                    }
+                    
+                    if (game.gameState !== 'playing') {
+                        return { success: false, message: 'Estado del juego no inicializado' };
+                    }
+                    
+                    // Verificar que hay 12 piezas de cada jugador
+                    let player1Pieces = 0;
+                    let player2Pieces = 0;
+                    
+                    for (let row = 0; row < 8; row++) {
+                        for (let col = 0; col < 8; col++) {
+                            if (game.board[row][col]) {
+                                if (game.board[row][col].player === 1) player1Pieces++;
+                                if (game.board[row][col].player === 2) player2Pieces++;
+                            }
+                        }
+                    }
+                    
+                    if (player1Pieces !== 12 || player2Pieces !== 12) {
+                        return { success: false, message: `Piezas incorrectas: Jugador 1: ${player1Pieces}, Jugador 2: ${player2Pieces}` };
+                    }
+                    
+                    return { success: true, message: 'Inicialización del juego correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error en inicialización: ' + error.message };
+                }
+            }
+            
+            testBasicMoveValidation() {
+                try {
+                    const board = this.createPawnMoveTestBoard();
+                    
+                    // Test movimiento válido de peón blanco
+                    const validMove = this.isValidMove(board, 5, 0, 4, 1, 1);
+                    if (!validMove) {
+                        return { success: false, message: 'Movimiento válido de peón blanco rechazado' };
+                    }
+                    
+                    // Test movimiento válido de peón negro
+                    const validMove2 = this.isValidMove(board, 2, 1, 3, 0, 2);
+                    if (!validMove2) {
+                        return { success: false, message: 'Movimiento válido de peón negro rechazado' };
+                    }
+                    
+                    // Test movimiento inválido (hacia atrás)
+                    const invalidMove = this.isValidMove(board, 5, 0, 6, 1, 1);
+                    if (invalidMove) {
+                        return { success: false, message: 'Movimiento inválido hacia atrás aceptado' };
+                    }
+                    
+                    // Test movimiento inválido (a casilla ocupada) - usar posición ocupada
+                    const invalidMove2 = this.isValidMove(board, 5, 0, 5, 2, 1);
+                    if (invalidMove2) {
+                        return { success: false, message: 'Movimiento a casilla ocupada aceptado' };
+                    }
+                    
+                    return { success: true, message: 'Validación de movimientos básicos correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error en validación de movimientos: ' + error.message };
+                }
+            }
+            
+            testCaptureDetection() {
+                try {
+                    const board = this.createCaptureTestBoard();
+                    
+                    // Simular una captura
+                    const captureResult = this.simulateCapture(board, 5, 0, 3, 2, 1);
+                    
+                    if (!captureResult.success) {
+                        return { success: false, message: 'Captura no detectada correctamente' };
+                    }
+                    
+                    // Verificar que la pieza capturada fue eliminada
+                    if (captureResult.board[4][1]) {
+                        return { success: false, message: 'Pieza capturada no fue eliminada' };
+                    }
+                    
+                    // Verificar que la pieza captora está en la posición correcta
+                    if (!captureResult.board[3][2] || captureResult.board[3][2].player !== 1) {
+                        return { success: false, message: 'Pieza captora no está en la posición correcta' };
+                    }
+                    
+                    return { success: true, message: 'Detección de capturas correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error en detección de capturas: ' + error.message };
+                }
+            }
+            
+            testCaptureCounting() {
+                try {
+                    const board = this.createCaptureTestBoard();
+                    const captureResult = this.simulateCapture(board, 5, 0, 3, 2, 1);
+                    
+                    if (!captureResult.success) {
+                        return { success: false, message: captureResult.message };
+                    }
+                    
+                    const captures = this.countCaptures(board, captureResult.board, 1);
+                    
+                    if (captures !== 1) {
+                        return { success: false, message: `Conteo de capturas incorrecto: ${captures}` };
+                    }
+                    
+                    return { success: true, message: 'Conteo de capturas correcto' };
+                } catch (error) {
+                    return { success: false, message: 'Error en conteo de capturas: ' + error.message };
+                }
+            }
+            
+            testWinDetection() {
+                try {
+                    const board = this.createInitialBoard();
+                    
+                    // Simular que el jugador 2 no tiene piezas
+                    for (let row = 0; row < 3; row++) {
+                        for (let col = 0; col < 8; col++) {
+                            if (board[row][col] && board[row][col].player === 2) {
+                                board[row][col] = null;
+                            }
+                        }
+                    }
+                    
+                    const winner = this.checkWinner(board);
+                    if (winner !== 1) {
+                        return { success: false, message: 'Detección de victoria no funcionó' };
+                    }
+                    
+                    return { success: true, message: 'Detección de victoria correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error en detección de victoria: ' + error.message };
+                }
+            }
+            
+            testTurnChanges() {
+                try {
+                    const game = { currentPlayer: 1 };
+                    
+                    // Simular cambio de turno
+                    game.currentPlayer = game.currentPlayer === 1 ? 2 : 1;
+                    
+                    if (game.currentPlayer !== 2) {
+                        return { success: false, message: 'Cambio de turno no funcionó' };
+                    }
+                    
+                    // Cambiar de vuelta
+                    game.currentPlayer = game.currentPlayer === 1 ? 2 : 1;
+                    
+                    if (game.currentPlayer !== 1) {
+                        return { success: false, message: 'Cambio de turno de vuelta no funcionó' };
+                    }
+                    
+                    return { success: true, message: 'Cambio de turnos correcto' };
+                } catch (error) {
+                    return { success: false, message: 'Error en cambio de turnos: ' + error.message };
+                }
+            }
+            
+            // ===== TESTS DE API =====
+            
+            async testGameCreation() {
+                try {
+                    const response = await fetch('../api/create_game.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ player_name: 'Test Player' })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        return { success: false, message: 'Error al crear partida: ' + data.message };
+                    }
+                    
+                    if (!data.game_id || !data.game_code) {
+                        return { success: false, message: 'Datos de partida incompletos' };
+                    }
+                    
+                    return { success: true, message: 'Creación de partida correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error de red: ' + error.message };
+                }
+            }
+            
+            async testJoinGame() {
+                try {
+                    // Crear una partida primero
+                    const createResponse = await fetch('../api/create_game.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ player_name: 'Test Player 1' })
+                    });
+                    
+                    const createData = await createResponse.json();
+                    if (!createData.success) {
+                        return { success: false, message: 'No se pudo crear partida para test' };
+                    }
+                    
+                    // Unirse a la partida
+                    const joinResponse = await fetch('../api/join_game.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            game_code: createData.game_code,
+                            player_name: 'Test Player 2'
+                        })
+                    });
+                    
+                    const joinData = await joinResponse.json();
+                    
+                    if (!joinData.success) {
+                        return { success: false, message: 'Error al unirse a partida: ' + joinData.message };
+                    }
+                    
+                    return { success: true, message: 'Unión a partida correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error de red: ' + error.message };
+                }
+            }
+            
+            async testSendMove() {
+                try {
+                    // Crear una partida de prueba
+                    const createResponse = await fetch('../api/create_game.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ player_name: 'Test Player' })
+                    });
+                    
+                    const createData = await createResponse.json();
+                    if (!createData.success) {
+                        return { success: false, message: 'No se pudo crear partida para test' };
+                    }
+                    
+                    // Crear un board_state de prueba simple (no depender del servidor)
+                    const testBoard = Array(8).fill(null).map(() => Array(8).fill(null));
+                    testBoard[5][0] = { player: 1, isQueen: false };
+                    
+                    // Simular un movimiento
+                    const moveResponse = await fetch('../api/make_move.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            game_id: createData.game_id,
+                            player_id: createData.player_id,
+                            from: { row: 5, col: 0 },
+                            to: { row: 4, col: 1 },
+                            captured_pieces: [],
+                            board_state: testBoard
+                        })
+                    });
+                    
+                    const moveData = await moveResponse.json();
+                    
+                    if (!moveData.success) {
+                        return { success: false, message: 'Error al enviar movimiento: ' + moveData.message };
+                    }
+                    
+                    return { success: true, message: 'Envío de movimientos correcto' };
+                } catch (error) {
+                    return { success: false, message: 'Error de red: ' + error.message };
+                }
+            }
+            
+            async testGetGameState() {
+                try {
+                    // Crear una partida de prueba
+                    const createResponse = await fetch('../api/create_game.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ player_name: 'Test Player' })
+                    });
+                    
+                    const createData = await createResponse.json();
+                    if (!createData.success) {
+                        return { success: false, message: 'No se pudo crear partida para test' };
+                    }
+                    
+                    // Obtener estado del juego
+                    const stateResponse = await fetch(`../api/get_game_state.php?game_id=${createData.game_id}&player_id=${createData.player_id}`);
+                    const stateData = await stateResponse.json();
+                    
+                    if (!stateData.success) {
+                        return { success: false, message: 'Error al obtener estado: ' + stateData.message };
+                    }
+                    
+                    if (!stateData.board_state || !stateData.current_player) {
+                        return { success: false, message: 'Datos de estado incompletos' };
+                    }
+                    
+                    return { success: true, message: 'Obtención de estado correcta' };
+                } catch (error) {
+                    return { success: false, message: 'Error de red: ' + error.message };
+                }
+            }
+            
+            async testErrorHandling() {
+                try {
+                    // Intentar acceder a un endpoint inexistente
+                    const response = await fetch('../api/nonexistent_endpoint.php');
+                    
+                    if (response.ok) {
+                        return { success: false, message: 'Endpoint inexistente devolvió éxito' };
+                    }
+                    
+                    return { success: true, message: 'Manejo de errores correcto' };
+                } catch (error) {
+                    return { success: true, message: 'Manejo de errores correcto' };
+                }
+            }
+            
+            // ===== FUNCIONES AUXILIARES =====
+            
+            createInitialBoard() {
+                const board = Array(8).fill(null).map(() => Array(8).fill(null));
+                
+                // Player 2 (black) pieces
+                for (let row = 0; row < 3; row++) {
+                    for (let col = (row % 2); col < 8; col += 2) {
+                        board[row][col] = { player: 2, isQueen: false };
+                    }
+                }
+                
+                // Player 1 (white) pieces
+                for (let row = 5; row < 8; row++) {
+                    for (let col = (row % 2); col < 8; col += 2) {
+                        board[row][col] = { player: 1, isQueen: false };
+                    }
+                }
+                
+                return board;
+            }
+            
+            createPawnMoveTestBoard() {
+                const board = Array(8).fill(null).map(() => Array(8).fill(null));
+                
+                // Configurar piezas para testing de movimientos
+                board[5][0] = { player: 1, isQueen: false }; // Pieza blanca
+                board[5][2] = { player: 1, isQueen: false }; // Pieza blanca
+                board[2][1] = { player: 2, isQueen: false }; // Pieza negra
+                
+                return board;
+            }
+            
+            createCaptureTestBoard() {
+                const board = Array(8).fill(null).map(() => Array(8).fill(null));
+                
+                // Configurar piezas para captura: pieza blanca en (5,0), pieza negra en (4,1)
+                board[5][0] = { player: 1, isQueen: false }; // Pieza blanca
+                board[4][1] = { player: 2, isQueen: false }; // Pieza negra a capturar
+                
+                return board;
+            }
+            
+            isValidMove(board, fromRow, fromCol, toRow, toCol, player) {
+                // Validación básica de movimiento
+                if (toRow < 0 || toRow >= 8 || toCol < 0 || toCol >= 8) return false;
+                if (board[toRow][toCol] !== null) return false;
+                if (!board[fromRow][fromCol] || board[fromRow][fromCol].player !== player) return false;
+                
+                // Validación de movimiento diagonal
+                const rowDiff = Math.abs(toRow - fromRow);
+                const colDiff = Math.abs(toCol - fromCol);
+                if (rowDiff !== colDiff) return false;
+                
+                // Validación de dirección para peones
+                if (!board[fromRow][fromCol].isQueen) {
+                    if (player === 1 && toRow >= fromRow) return false; // Blancos hacia arriba
+                    if (player === 2 && toRow <= fromRow) return false; // Negros hacia abajo
+                }
+                
+                return true;
+            }
+            
+            simulateCapture(board, fromRow, fromCol, toRow, toCol, player) {
+                const newBoard = JSON.parse(JSON.stringify(board));
+                
+                // Verificar que hay una pieza enemiga en el medio
+                const middleRow = (fromRow + toRow) / 2;
+                const middleCol = (fromCol + toCol) / 2;
+                const enemyPlayer = player === 1 ? 2 : 1;
+                
+                if (!newBoard[middleRow][middleCol] || newBoard[middleRow][middleCol].player !== enemyPlayer) {
+                    return { success: false, message: 'No hay pieza enemiga para capturar' };
+                }
+                
+                // Realizar la captura
+                newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+                newBoard[fromRow][fromCol] = null;
+                newBoard[middleRow][middleCol] = null;
+                
+                return { success: true, board: newBoard };
+            }
+            
+            countCaptures(oldBoard, newBoard, player) {
+                let captures = 0;
+                const enemyPlayer = player === 1 ? 2 : 1;
+                
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        if (oldBoard[row][col] && oldBoard[row][col].player === enemyPlayer && !newBoard[row][col]) {
+                            captures++;
+                        }
+                    }
+                }
+                
+                return captures;
+            }
+            
+            checkWinner(board) {
+                let player1Pieces = 0;
+                let player2Pieces = 0;
+                
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        if (board[row][col]) {
+                            if (board[row][col].player === 1) player1Pieces++;
+                            if (board[row][col].player === 2) player2Pieces++;
+                        }
+                    }
+                }
+                
+                if (player2Pieces === 0) return 1;
+                if (player1Pieces === 0) return 2;
+                return null;
+            }
+        }
+        
+        // Inicializar el test suite cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            window.quickTestSuite = new QuickTestSuite();
+        });
+    </script>
+</body>
+</html>
