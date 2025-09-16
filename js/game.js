@@ -1632,10 +1632,8 @@ class DamasGame {
                             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                         ">10</div>
                         <div id="countdown-subtext" style="
-                            font-size: 16px; 
-                            color: #333; 
-                            font-weight: 500;
-                            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                            font-size: 18px; 
+                            color: #333;
                             margin-top: 10px;
                         ">
                             La partida ha terminado
