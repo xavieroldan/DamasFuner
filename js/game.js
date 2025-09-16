@@ -2255,7 +2255,11 @@ class DamasGame {
 
     // Function to show motivational message when it's your turn
     showMotivationalMessage() {
-        const gameInfoElement = document.querySelector('body > div.container > div.game-info');
+        // Try to find the players-info element first, then fallback to container
+        let gameInfoElement = document.querySelector('.players-info');
+        if (!gameInfoElement) {
+            gameInfoElement = document.querySelector('.container');
+        }
         if (!gameInfoElement) {
             console.error('Game info element not found!');
             return;
