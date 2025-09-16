@@ -1567,7 +1567,6 @@ class DamasGame {
         winnerText.innerHTML = `
             <h2>${emoji} ${statusText} ${emoji}</h2>
             <p>¡${winnerName} ha ganado la partida!</p>
-            <p>¿Qué quieres hacer ahora?</p>
         `;
 
         // Mostrar el modal
@@ -1632,7 +1631,13 @@ class DamasGame {
                             margin: 10px 0;
                             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                         ">10</div>
-                        <div id="countdown-subtext" style="font-size: 14px; color: #666;">
+                        <div id="countdown-subtext" style="
+                            font-size: 16px; 
+                            color: #333; 
+                            font-weight: 500;
+                            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                            margin-top: 10px;
+                        ">
                             La partida ha terminado
                         </div>
                     </div>
@@ -1782,7 +1787,7 @@ class DamasGame {
                 clearInterval(countdownInterval);
                 
                 // Redirigir al menú principal
-                window.location.href = 'index.html';
+                window.location.href = 'home.html';
             }
         }, 1000);
         
