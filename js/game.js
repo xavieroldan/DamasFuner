@@ -1097,12 +1097,12 @@ class DamasGame {
                 console.log(`=== CAPTURE DETECTED ===`);
                 console.log(`piece.player:`, piece.player);
                 console.log(`Total captured in this move: ${totalCaptured}`);
-                
-                // Mostrar mensaje de captura exitosa
-                const message = totalCaptured === 1 ? 
-                    `¡${totalCaptured} pieza capturada!` : 
-                    `¡${totalCaptured} piezas capturadas!`;
-                this.showMessage(message, 'success');
+            
+            // Mostrar mensaje de captura exitosa
+            const message = totalCaptured === 1 ? 
+                `¡${totalCaptured} pieza capturada!` : 
+                `¡${totalCaptured} piezas capturadas!`;
+            this.showMessage(message, 'success');
             }
             
             // No need for the 'else' block for simple captures, as all captures are now
@@ -1144,7 +1144,7 @@ class DamasGame {
                 console.log(`No more captures available - changing turn`);
                 // No hay más capturas, cambiar turno normalmente
                 if (!this.debugMode) {
-                    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
                 } else {
                     console.log(`🔧 Debug mode: turn change disabled - use debug controls`);
                 }
@@ -1623,7 +1623,7 @@ class DamasGame {
                         border-radius: 10px;
                         border: 2px solid #ddd;
                     ">
-                        <div id="countdown-text">Volviendo al menú principal en...</div>
+                        <div id="countdown-text" class="countdown-text">Volviendo al menú principal en...</div>
                         <div id="countdown-number" style="
                             font-size: 48px;
                             font-weight: bold;
@@ -1934,8 +1934,8 @@ class DamasGame {
         // Restaurar estilos del estado del juego
         const statusElement = document.getElementById('game-status');
         if (statusElement) {
-            statusElement.style.color = '';
-            statusElement.style.fontWeight = '';
+        statusElement.style.color = '';
+        statusElement.style.fontWeight = '';
         }
         
         this.renderBoard();
