@@ -2056,6 +2056,12 @@ class DamasGame {
     addChatMessage(sender, message) {
         const chatMessages = document.getElementById('chat-messages');
         
+        // Check if chat container exists (chat system may be disabled)
+        if (!chatMessages) {
+            console.log(`Chat message (${sender}): ${message}`);
+            return;
+        }
+        
         // Check if last message is the same to avoid duplicates
         const lastMessage = chatMessages.lastElementChild;
         if (lastMessage && lastMessage.textContent === message) {
