@@ -1614,63 +1614,62 @@ class DamasGame {
             ">
                 <div id="end-game-winner"></div>
                 <div id="end-game-options" style="margin-top: 30px;">
-                    <button id="btn-same-colors" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #4CAF50, #45a049);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🔄 Nueva partida<br>(mismos colores)</button>
-                    <br>
-                    <button id="btn-swap-colors" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #2196F3, #1976D2);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🔄 Nueva partida<br>(cambiar colores)</button>
-                    <br>
-                    <button id="btn-reset-board" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #FF9800, #F57C00);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🔄 Reiniciar tablero<br>(modo debug)</button>
-                    <br>
-                    <button id="btn-main-menu" class="end-game-btn" style="
-                        background: linear-gradient(45deg, #f44336, #d32f2f);
-                        color: white;
-                        border: none;
-                        padding: 15px 25px;
-                        margin: 10px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">🏠 Salir al menú principal</button>
+                    <div id="countdown-message" style="
+                        text-align: center;
+                        font-size: 18px;
+                        color: #333;
+                        margin: 20px 0;
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 10px;
+                        border: 2px solid #ddd;
+                    ">
+                        <div id="countdown-text">Volviendo al menú principal en...</div>
+                        <div id="countdown-number" style="
+                            font-size: 48px;
+                            font-weight: bold;
+                            color: #FF6B6B;
+                            margin: 10px 0;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                        ">10</div>
+                        <div id="countdown-subtext" style="font-size: 14px; color: #666;">
+                            La partida ha terminado
+                        </div>
+                    </div>
+                    
+                    <!-- Solo mostrar botones en modo debug -->
+                    <div id="debug-buttons" style="display: none;">
+                        <button id="btn-reset-board" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #FF9800, #F57C00);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🔄 Reiniciar tablero<br>(modo debug)</button>
+                        <br>
+                        <button id="btn-main-menu" class="end-game-btn" style="
+                            background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+                            color: white;
+                            border: none;
+                            padding: 15px 25px;
+                            margin: 10px;
+                            border-radius: 25px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        ">🏠 Menú Principal</button>
+                    </div>
+                    
+                    <div id="end-game-status" style="margin-top: 20px; font-size: 14px; color: #666;"></div>
                 </div>
-                <div id="end-game-status" style="margin-top: 20px; font-size: 14px; opacity: 0.8;"></div>
             </div>
         `;
 
@@ -1701,17 +1700,17 @@ class DamasGame {
 
     // Configurar los botones del modal de fin de partida para modo debug
     setupDebugEndGameButtons(winnerNumber, player1Name, player2Name) {
-        const btnSameColors = document.getElementById('btn-same-colors');
-        const btnSwapColors = document.getElementById('btn-swap-colors');
+        const countdownMessage = document.getElementById('countdown-message');
+        const debugButtons = document.getElementById('debug-buttons');
         const btnResetBoard = document.getElementById('btn-reset-board');
         const btnMainMenu = document.getElementById('btn-main-menu');
         const statusDiv = document.getElementById('end-game-status');
 
-        // Ocultar botones que requieren comunicación con servidor
-        btnSameColors.style.display = 'none';
-        btnSwapColors.style.display = 'none';
+        // Ocultar countdown en modo debug
+        countdownMessage.style.display = 'none';
         
         // Mostrar botones de debug
+        debugButtons.style.display = 'block';
         btnResetBoard.style.display = 'inline-block';
         btnMainMenu.style.display = 'inline-block';
 
@@ -1738,45 +1737,68 @@ class DamasGame {
 
     // Configurar los botones del modal de fin de partida
     setupEndGameButtons(winnerNumber, player1Name, player2Name) {
-        const btnSameColors = document.getElementById('btn-same-colors');
-        const btnSwapColors = document.getElementById('btn-swap-colors');
-        const btnResetBoard = document.getElementById('btn-reset-board');
-        const btnMainMenu = document.getElementById('btn-main-menu');
+        const countdownMessage = document.getElementById('countdown-message');
+        const debugButtons = document.getElementById('debug-buttons');
         const statusDiv = document.getElementById('end-game-status');
 
-        // Mostrar todos los botones en modo juego normal
-        btnSameColors.style.display = 'inline-block';
-        btnSwapColors.style.display = 'inline-block';
+        // Mostrar countdown en modo normal
+        countdownMessage.style.display = 'block';
         
-        // Ocultar botón de debug en modo normal
-        btnResetBoard.style.display = 'none';
+        // Ocultar botones de debug en modo normal
+        debugButtons.style.display = 'none';
 
-        // Limpiar event listeners anteriores
-        btnSameColors.replaceWith(btnSameColors.cloneNode(true));
-        btnSwapColors.replaceWith(btnSwapColors.cloneNode(true));
-        btnMainMenu.replaceWith(btnMainMenu.cloneNode(true));
-
-        const newBtnSameColors = document.getElementById('btn-same-colors');
-        const newBtnSwapColors = document.getElementById('btn-swap-colors');
-        const newBtnMainMenu = document.getElementById('btn-main-menu');
-
-        // Nueva partida con mismos colores
-        newBtnSameColors.addEventListener('click', () => {
-            this.handleNewGame('same', statusDiv);
-        });
-
-        // Nueva partida cambiando colores
-        newBtnSwapColors.addEventListener('click', () => {
-            this.handleNewGame('swap', statusDiv);
-        });
-
-        // Salir al menú principal
-        newBtnMainMenu.addEventListener('click', () => {
-            this.handleMainMenu();
-        });
+        // Iniciar countdown de 10 segundos
+        this.startCountdown();
 
         // Mostrar estado inicial
-        statusDiv.textContent = 'Esperando decisión...';
+        statusDiv.textContent = 'La partida ha terminado';
+    }
+
+    // Iniciar countdown de 10 segundos
+    startCountdown() {
+        let countdown = 10;
+        const countdownNumber = document.getElementById('countdown-number');
+        const countdownText = document.getElementById('countdown-text');
+        
+        // Actualizar el número inicial
+        if (countdownNumber) {
+            countdownNumber.textContent = countdown;
+        }
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            
+            if (countdownNumber) {
+                countdownNumber.textContent = countdown;
+                
+                // Cambiar color cuando queden pocos segundos
+                if (countdown <= 3) {
+                    countdownNumber.style.color = '#FF4444';
+                    countdownNumber.style.animation = 'pulse 0.5s infinite';
+                }
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                
+                // Redirigir al menú principal
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+        
+        // Agregar animación CSS para el pulso
+        if (!document.getElementById('countdown-animation-style')) {
+            const style = document.createElement('style');
+            style.id = 'countdown-animation-style';
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
     // Manejar reinicio de tablero en modo debug
@@ -1819,162 +1841,6 @@ class DamasGame {
         window.location.href = 'home.html';
     }
 
-    // Manejar nueva partida
-    async handleNewGame(colorMode, statusDiv) {
-        try {
-            statusDiv.textContent = 'Preparando nueva partida...';
-            statusDiv.style.color = '#FFD700';
-
-            // Determinar los colores para la nueva partida
-            let newPlayer1Name, newPlayer2Name;
-            if (colorMode === 'same') {
-                // Mismos colores
-                newPlayer1Name = this.playerNames[1] || 'Jugador 1';
-                newPlayer2Name = this.playerNames[2] || 'Jugador 2';
-            } else {
-                // Cambiar colores
-                newPlayer1Name = this.playerNames[2] || 'Jugador 2';
-                newPlayer2Name = this.playerNames[1] || 'Jugador 1';
-            }
-
-            // Notificar al servidor sobre la elección de nueva partida
-            try {
-                await fetch('api/notify_new_game_choice.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        game_id: this.gameId,
-                        player_id: this.playerId,
-                        color_mode: colorMode,
-                        player1_name: newPlayer1Name,
-                        player2_name: newPlayer2Name
-                    })
-                });
-                console.log('Notified server about new game choice:', colorMode);
-            } catch (notifyError) {
-                console.warn('Failed to notify server about new game choice:', notifyError);
-                // Continue with reset anyway
-            }
-
-            // Estrategia alternativa: intentar reset_game.php, luego simple_reset.php, luego recargar directamente
-            let resetSuccess = false;
-            
-            try {
-                const response = await fetch('api/reset_game.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        game_id: this.gameId,
-                        player1_name: newPlayer1Name,
-                        player2_name: newPlayer2Name
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    statusDiv.textContent = '¡Nueva partida creada! Redirigiendo...';
-                    statusDiv.style.color = '#4CAF50';
-                    resetSuccess = true;
-                    
-                    // Update the board with the reset state from server
-                    if (data.game_data && data.game_data.board) {
-                        console.log('Updating board with reset state from server:', data.game_data.board);
-                        this.updateBoardFromServer(data.game_data.board);
-                        this.currentPlayer = data.game_data.current_player || 1;
-                        this.gameState = data.game_data.game_status || 'playing';
-                        this.capturedPieces = { black: 0, white: 0 };
-                        this.updateCapturedPieces();
-                        this.updateGameStatus();
-                    }
-                } else {
-                    throw new Error(data.message || 'Error al crear nueva partida');
-                }
-            } catch (resetError) {
-                console.warn('Reset game API failed, trying simple reset:', resetError);
-                
-                try {
-                    const simpleResponse = await fetch('api/simple_reset.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            game_id: this.gameId,
-                            player1_name: newPlayer1Name,
-                            player2_name: newPlayer2Name
-                        })
-                    });
-
-                    const simpleData = await simpleResponse.json();
-                    
-                    if (simpleData.success) {
-                        statusDiv.textContent = '¡Nueva partida creada! (modo simple)';
-                        statusDiv.style.color = '#4CAF50';
-                        resetSuccess = true;
-                        
-                        // Update the board with the reset state from server
-                        if (simpleData.game_data && simpleData.game_data.board) {
-                            console.log('Updating board with simple reset state from server:', simpleData.game_data.board);
-                            this.updateBoardFromServer(simpleData.game_data.board);
-                            this.currentPlayer = simpleData.game_data.current_player || 1;
-                            this.gameState = simpleData.game_data.game_status || 'playing';
-                            this.capturedPieces = { black: 0, white: 0 };
-                            this.updateCapturedPieces();
-                            this.updateGameStatus();
-                        }
-                    } else {
-                        throw new Error(simpleData.message || 'Error en modo simple');
-                    }
-                } catch (simpleError) {
-                    console.warn('Simple reset also failed, using page reload:', simpleError);
-                    statusDiv.textContent = 'Usando método alternativo...';
-                    statusDiv.style.color = '#FF9800';
-                }
-            }
-            
-            // No cerrar el modal aquí - se cerrará automáticamente cuando el servidor procese la elección
-            // El modal se cerrará cuando handleGameUpdate detecte el cambio de estado a 'new_game_pending'
-            
-            // Redirigir con los nuevos nombres de jugadores después de un breve delay
-            setTimeout(() => {
-                const currentUrl = new URL(window.location.href);
-                // Update the name parameter to match the current player's new name
-                const currentPlayerName = currentUrl.searchParams.get('name');
-                if (currentPlayerName === this.playerNames[1]) {
-                    // I was player 1, now I'm player 1 with new name
-                    currentUrl.searchParams.set('name', newPlayer1Name);
-                } else if (currentPlayerName === this.playerNames[2]) {
-                    // I was player 2, now I'm player 2 with new name  
-                    currentUrl.searchParams.set('name', newPlayer2Name);
-                }
-                window.location.href = currentUrl.toString();
-            }, 2000); // Aumentar el delay para dar tiempo al servidor
-            
-        } catch (error) {
-            console.error('Error creating new game:', error);
-            statusDiv.textContent = 'Error al crear nueva partida. Recargando página...';
-            statusDiv.style.color = '#f44336';
-            
-            // Fallback: recargar la página de todas formas
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        }
-    }
-
-    // Manejar salida al menú principal
-    handleMainMenu() {
-        // Cerrar modal
-        document.getElementById('end-game-modal').style.display = 'none';
-        
-        // Redirigir al menú principal
-        window.location.href = 'index.html';
-    }
 
     hideModal(modalId) {
         document.getElementById(modalId).style.display = 'none';

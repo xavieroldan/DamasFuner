@@ -121,8 +121,6 @@ DamasFuner/
 │   ├── make_move.php      # Realizar movimiento
 │   ├── send_chat.php      # Enviar mensaje de chat
 │   ├── leave_game.php     # Abandonar partida
-│   ├── reset_game.php     # Reiniciar partida
-│   ├── simple_reset.php   # Reinicio simple (fallback)
 │   └── health_check.php   # Verificar estado del servidor
 ├── config/
 │   ├── config.php         # Configuración principal

@@ -352,15 +352,6 @@ class NetworkManager {
         if (gameData.game_state) {
             window.game.gameState = gameData.game_state;
             window.game.updateGameStatus();
-            
-            // Si el juego está en estado de nueva partida pendiente, cerrar el modal automáticamente
-            if (gameData.game_state === 'new_game_pending') {
-                console.log('Game state changed to new_game_pending - closing end game modal');
-                const endGameModal = document.getElementById('end-game-modal');
-                if (endGameModal) {
-                    endGameModal.style.display = 'none';
-                }
-            }
         }
         
         // Actualizar nombres de jugadores
