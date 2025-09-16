@@ -1897,9 +1897,19 @@ class DamasGame {
             // Cerrar modal
             document.getElementById('end-game-modal').style.display = 'none';
             
-            // Recargar la página (esto efectivamente reinicia el juego)
+            // Redirigir con los nuevos nombres de jugadores
             setTimeout(() => {
-                window.location.reload();
+                const currentUrl = new URL(window.location.href);
+                // Update the name parameter to match the current player's new name
+                const currentPlayerName = currentUrl.searchParams.get('name');
+                if (currentPlayerName === this.playerNames[1]) {
+                    // I was player 1, now I'm player 1 with new name
+                    currentUrl.searchParams.set('name', newPlayer1Name);
+                } else if (currentPlayerName === this.playerNames[2]) {
+                    // I was player 2, now I'm player 2 with new name  
+                    currentUrl.searchParams.set('name', newPlayer2Name);
+                }
+                window.location.href = currentUrl.toString();
             }, 1500);
             
         } catch (error) {

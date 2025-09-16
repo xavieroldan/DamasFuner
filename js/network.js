@@ -472,14 +472,25 @@ class NetworkManager {
                 console.log('Player 1 name:', gameData.player1_name);
                 console.log('Player 2 name:', gameData.player2_name);
                 
-                // Set both player names
-                if (gameData.player1_name) {
+                // Set both player names - prioritize URL parameters if available
+                const urlParams = new URLSearchParams(window.location.search);
+                const name1FromUrl = urlParams.get('name1');
+                const name2FromUrl = urlParams.get('name2');
+                
+                if (name1FromUrl) {
+                    window.game.playerNames[1] = name1FromUrl;
+                    console.log('Set player 1 name from URL to:', name1FromUrl);
+                } else if (gameData.player1_name) {
                     window.game.playerNames[1] = gameData.player1_name;
-                    console.log('Set player 1 name to:', gameData.player1_name);
+                    console.log('Set player 1 name from server to:', gameData.player1_name);
                 }
-                if (gameData.player2_name) {
+                
+                if (name2FromUrl) {
+                    window.game.playerNames[2] = name2FromUrl;
+                    console.log('Set player 2 name from URL to:', name2FromUrl);
+                } else if (gameData.player2_name) {
                     window.game.playerNames[2] = gameData.player2_name;
-                    console.log('Set player 2 name to:', gameData.player2_name);
+                    console.log('Set player 2 name from server to:', gameData.player2_name);
                 }
                 
                 // Determine my player number based on my playerId and player names
