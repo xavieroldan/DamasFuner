@@ -30,4 +30,4 @@ jobs:
 
       - name: Deploy via lftp
         run: |
-          lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /; quit"
+          lftp -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_HOST }}; mirror -R -n -vvv --parallel=20 ./ /DamasFuner/; quit"
