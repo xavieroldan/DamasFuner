@@ -433,19 +433,14 @@
             }
             
             downloadResults() {
-                console.log('Download button clicked');
-                console.log('totalTests:', this.totalTests);
-                console.log('results.gameLogic.length:', this.results.gameLogic.length);
-                console.log('results.network.length:', this.results.network.length);
-                console.log('results.ui:', this.results.ui);
-                console.log('results:', this.results);
+                // Crear un array unificado de todos los resultados
+                const allResults = [
+                    ...(this.results.gameLogic || []),
+                    ...(this.results.network || []),
+                    ...(this.results.ui || [])
+                ];
                 
-                // Asegurar que ui esté inicializado
-                if (!this.results.ui) {
-                    this.results.ui = [];
-                }
-                
-                if (this.totalTests === 0 || (this.results.gameLogic.length === 0 && this.results.network.length === 0)) {
+                if (this.totalTests === 0 || allResults.length === 0) {
                     const proceed = confirm('No hay resultados de tests para descargar. ¿Deseas descargar un reporte vacío?');
                     if (!proceed) {
                         return;
@@ -462,47 +457,17 @@
                 report += `Tests fallidos: ${this.failedTests}\n`;
                 report += `Tasa de éxito: ${this.totalTests > 0 ? (this.passedTests / this.totalTests * 100).toFixed(1) : 0}%\n\n`;
                 
-                // Tests de Lógica de Juego
-                if (this.results.gameLogic.length > 0) {
-                    report += `=== TESTS DE LÓGICA DE JUEGO ===\n\n`;
-                    this.results.gameLogic.forEach((result, index) => {
-                        report += `${index + 1}. ${result.name}\n`;
-                        report += `   Estado: ${result.success ? 'PASÓ' : 'FALLÓ'}\n`;
-                        report += `   Mensaje: ${result.message || 'Sin mensaje'}\n`;
-                        if (result.details) {
-                            report += `   Detalles: ${result.details}\n`;
-                        }
-                        report += `\n`;
-                    });
-                }
+                report += `=== DETALLES DE TESTS ===\n\n`;
                 
-                // Tests de Red
-                if (this.results.network.length > 0) {
-                    report += `=== TESTS DE RED ===\n\n`;
-                    this.results.network.forEach((result, index) => {
-                        report += `${index + 1}. ${result.name}\n`;
-                        report += `   Estado: ${result.success ? 'PASÓ' : 'FALLÓ'}\n`;
-                        report += `   Mensaje: ${result.message || 'Sin mensaje'}\n`;
-                        if (result.details) {
-                            report += `   Detalles: ${result.details}\n`;
-                        }
-                        report += `\n`;
-                    });
-                }
-                
-                // Tests de Interfaz
-                if (this.results.ui && this.results.ui.length > 0) {
-                    report += `=== TESTS DE INTERFAZ ===\n\n`;
-                    this.results.ui.forEach((result, index) => {
-                        report += `${index + 1}. ${result.name}\n`;
-                        report += `   Estado: ${result.success ? 'PASÓ' : 'FALLÓ'}\n`;
-                        report += `   Mensaje: ${result.message || 'Sin mensaje'}\n`;
-                        if (result.details) {
-                            report += `   Detalles: ${result.details}\n`;
-                        }
-                        report += `\n`;
-                    });
-                }
+                allResults.forEach((result, index) => {
+                    report += `${index + 1}. ${result.name}\n`;
+                    report += `   Estado: ${result.success ? 'PASÓ' : 'FALLÓ'}\n`;
+                    report += `   Mensaje: ${result.message || 'Sin mensaje'}\n`;
+                    if (result.details) {
+                        report += `   Detalles: ${result.details}\n`;
+                    }
+                    report += `\n`;
+                });
                 
                 report += `=== INFORMACIÓN DEL SISTEMA ===\n`;
                 report += `User Agent: ${navigator.userAgent}\n`;
