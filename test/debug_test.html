@@ -537,6 +537,17 @@
                         body: JSON.stringify({ player_name: 'Test' })
                     });
                     
+                    // Verificar si la respuesta es HTML (error 404 o similar)
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        return { 
+                            success: false, 
+                            message: `Respuesta no es JSON. Status: ${response.status}, Content-Type: ${contentType}`,
+                            details: text.substring(0, 200) + '...'
+                        };
+                    }
+                    
                     const data = await response.json();
                     
                     // Si hay un error de validación, considerar como conexión exitosa pero con error de datos
