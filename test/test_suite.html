@@ -437,7 +437,13 @@
                 console.log('totalTests:', this.totalTests);
                 console.log('results.gameLogic.length:', this.results.gameLogic.length);
                 console.log('results.network.length:', this.results.network.length);
+                console.log('results.ui:', this.results.ui);
                 console.log('results:', this.results);
+                
+                // Asegurar que ui esté inicializado
+                if (!this.results.ui) {
+                    this.results.ui = [];
+                }
                 
                 if (this.totalTests === 0 || (this.results.gameLogic.length === 0 && this.results.network.length === 0)) {
                     const proceed = confirm('No hay resultados de tests para descargar. ¿Deseas descargar un reporte vacío?');
