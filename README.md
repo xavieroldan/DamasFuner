@@ -18,7 +18,6 @@ Este proyecto fue desarrollado completamente con la ayuda de **Cursor AI**, sin 
 ## Características
 
 - 🎮 **Multijugador en tiempo real**: Dos jugadores pueden jugar simultáneamente
-- 💬 **Chat integrado**: Los jugadores pueden comunicarse durante la partida
 - 📱 **Diseño responsive**: Funciona en dispositivos móviles y de escritorio
 - 🎨 **Interfaz moderna**: Diseño atractivo con animaciones suaves
 - 🔒 **Sistema seguro**: Validación de movimientos y protección contra spam
@@ -93,7 +92,7 @@ chmod 755 uploads/
 
 Abre tu navegador y ve a la URL de tu servidor:
 ```
-http://tu-servidor.com/damas-online/
+http://tu-servidor.com/DamasFuner/
 ```
 
 ## Estructura del Proyecto
@@ -119,7 +118,6 @@ DamasFuner/
 │   ├── join_game.php      # Unirse a partida
 │   ├── get_game_state.php # Obtener estado del juego
 │   ├── make_move.php      # Realizar movimiento
-│   ├── send_chat.php      # Enviar mensaje de chat
 │   ├── leave_game.php     # Abandonar partida
 │   └── health_check.php   # Verificar estado del servidor
 ├── config/
@@ -172,7 +170,6 @@ DamasFuner/
 - **Click**: Seleccionar pieza y mover
 - **Ctrl+L**: Abandonar partida
 - **ESC**: Cerrar modales
-- **Enter**: Enviar mensaje de chat
 
 ## Sistema de Testing
 
@@ -243,17 +240,6 @@ Content-Type: application/json
 }
 ```
 
-### Enviar Mensaje de Chat
-```
-POST /api/send_chat.php
-Content-Type: application/json
-
-{
-    "game_id": 1,
-    "player_id": 1,
-    "message": "¡Hola!"
-}
-```
 
 ## Personalización
 
@@ -276,7 +262,6 @@ Edita la tabla `system_config` en la base de datos:
 
 ```sql
 UPDATE system_config SET config_value = '20' WHERE config_key = 'max_games_per_hour';
-UPDATE system_config SET config_value = '50' WHERE config_key = 'max_chat_messages_per_minute';
 ```
 
 ## Solución de Problemas
@@ -383,6 +368,5 @@ Si tienes problemas o preguntas:
 ### v1.0.0
 - Lanzamiento inicial
 - Multijugador en tiempo real
-- Chat integrado
 - Interfaz responsive
 - Sistema de base de datos completo
