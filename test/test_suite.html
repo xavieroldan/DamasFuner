@@ -419,7 +419,7 @@
             }
             
             clearResults() {
-                this.results = { gameLogic: [], network: [] };
+                this.results = { gameLogic: [], network: [], ui: [] };
                 this.totalTests = 0;
                 this.passedTests = 0;
                 this.failedTests = 0;
@@ -485,7 +485,7 @@
                 }
                 
                 // Tests de Interfaz
-                if (this.results.ui.length > 0) {
+                if (this.results.ui && this.results.ui.length > 0) {
                     report += `=== TESTS DE INTERFAZ ===\n\n`;
                     this.results.ui.forEach((result, index) => {
                         report += `${index + 1}. ${result.name}\n`;
